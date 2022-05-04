@@ -1,31 +1,20 @@
 #pragma once
 
-#include <simppl/interface.h>
-#include <simppl/skeleton.h>
+#include "render/window.hpp"
 
-namespace backgroundwave
+#include <sdbus-c++/sdbus-c++.h>
+
+namespace dbus
 {
-	using namespace simppl::dbus;
-	INTERFACE(Control)
+	class dbus_server
 	{
-		Property<std::tuple<int, int, int>, ReadWrite|Notifying> color;
-		Property<double, ReadWrite|Notifying> speed;
-		Method<simppl::dbus::oneway> shutdown;
-
-		inline Control() : INIT(color), INIT(speed), INIT(shutdown)
-		{
-
-		}
+		public:
+			dbus_server(render::window* w);
+			~dbus_server();
+			void run();
+		private:
+			std::unique_ptr<sdbus::IConnection> connection;
+			std::unique_ptr<sdbus::IObject> object;
+			render::window* win;
 	};
 }
-
-namespace render {
-class window;
-}
-
-class MyControl : public simppl::dbus::Skeleton<backgroundwave::Control>
-{
-public:
-    MyControl(simppl::dbus::Dispatcher& disp);
-	render::window* win;
-};

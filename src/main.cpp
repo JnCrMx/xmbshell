@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/cfg/env.h>
 
+#include "dbus.hpp"
 #include "render/window.hpp"
 #include "render/app/render_shell.hpp"
 
@@ -19,6 +20,9 @@ int main(int argc, char *argv[])
 
 	render::window window;
 	window.init();
+
+	dbus::dbus_server server(&window);
+	server.run();
 
 	render::render_shell* renderer = new render::render_shell(&window);
 	window.set_phase(renderer);
