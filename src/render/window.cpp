@@ -218,6 +218,8 @@ namespace render
 
 		vma::AllocatorCreateInfo allocator_info({}, physicalDevice, device.get());
 		allocator_info.setInstance(instance.get());
+		vma::VulkanFunctions functs{vkGetInstanceProcAddr, vkGetDeviceProcAddr};
+		allocator_info.setPVulkanFunctions(&functs);
 		allocator = vma::createAllocator(allocator_info);
 
 		loader = std::make_unique<resource_loader>(device.get(), allocator, 

@@ -67,7 +67,7 @@ namespace render
 		commandBuffer->setScissor(0, scissor);
 
 		font->renderText(commandBuffer.get(), frame, "FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
-		font->renderText(commandBuffer.get(), frame, "MOIN MOIN", 1, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		font->renderText(commandBuffer.get(), frame, "Hello Cynder :D", 1, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		font->finish(frame);
 		
 		commandBuffer->endRenderPass();
