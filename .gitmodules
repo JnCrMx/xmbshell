@@ -3,10 +3,7 @@
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
 [submodule "external/VulkanMemoryAllocator-Hpp"]
 	path = external/VulkanMemoryAllocator-Hpp
-	url = https://github.com/malte-v/VulkanMemoryAllocator-Hpp
-[submodule "external/simppl"]
-	path = external/simppl
-	url = https://github.com/martinhaefner/simppl
+	url = https://github.com/YaaZ/VulkanMemoryAllocator-Hpp
 [submodule "external/glfw"]
 	path = external/glfw
 	url = https://github.com/glfw/glfw

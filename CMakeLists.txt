@@ -23,7 +23,7 @@ target_compile_options(spng PRIVATE -O3)
 
 add_library(optimized_components STATIC ${opt_sources})
 target_include_directories(optimized_components PRIVATE include/)
-target_include_directories(optimized_components PRIVATE external/VulkanMemoryAllocator-Hpp/)
+target_include_directories(optimized_components PRIVATE external/VulkanMemoryAllocator-Hpp/include/)
 target_compile_options(optimized_components PRIVATE -O3)
 
 set(GLFW_BUILD_WAYLAND ON CACHE INTERNAL "")
@@ -33,7 +33,7 @@ add_subdirectory(external/glfw)
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
-target_include_directories(xmbshell PRIVATE external/VulkanMemoryAllocator-Hpp/)
+target_include_directories(xmbshell PRIVATE external/VulkanMemoryAllocator-Hpp/include/)
 target_include_directories(xmbshell PRIVATE external/libspng/spng)
 
 target_link_libraries(xmbshell PRIVATE ${Vulkan_LIBRARIES})
