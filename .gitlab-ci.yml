@@ -1,0 +1,38 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  script:
+      - mkdir build
+      - cd build
+      - cmake ..
+      - make -j2
+  artifacts:
+    paths:
+      - build/xmbshell
+
+video-job:
+  stage: test
+  script:
+      - cd build
+      - mkdir -p /tmp/gitlab-runner
+      - XDG_RUNTIME_DIR=/tmp/gitlab-runner WLR_LIBINPUT_NO_DEVICES=1 dbus-launch timeout 45 sway -c ../.sway/config-record || true
+      - rm -r /tmp/gitlab-runner
+  artifacts:
+    paths:
+      - build/recording.mp4
+
+convert-job:
+  stage: deploy
+  script:
+      - cd build
+      - ffmpeg -i recording.mp4 -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 output.gif
+  artifacts:
+    paths:
+      - build/output.gif
