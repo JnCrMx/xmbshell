@@ -16,6 +16,8 @@ build-job:
   artifacts:
     paths:
       - build/xmbshell
+      - build/**/.so
+      - build/shaders/*.spv
 
 video-job:
   stage: test
