@@ -4,36 +4,47 @@
 namespace render
 {
 	texture::texture(vk::Device device, vma::Allocator allocator, int width, int height,
-		vk::ImageUsageFlags usage, vk::Format format, vk::SampleCountFlagBits sampleCount, bool transfer, vk::ImageAspectFlags aspects) 
+		vk::ImageUsageFlags usage, vk::Format format, vk::SampleCountFlagBits sampleCount, bool transfer, vk::ImageAspectFlags aspects)
 		: device(device), allocator(allocator), width(width), height(height)
 	{
-		vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, format, 
-			{static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1}, 1, 1, 
+		vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, format,
+			{static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1}, 1, 1,
 			sampleCount, vk::ImageTiling::eOptimal,
-			usage | (transfer?vk::ImageUsageFlagBits::eTransferDst:vk::ImageUsageFlagBits{}), 
+			usage | (transfer?vk::ImageUsageFlagBits::eTransferDst:vk::ImageUsageFlagBits{}),
 			vk::SharingMode::eExclusive);
 		vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
-		
+
 		auto [i, a] = allocator.createImage(image_info, alloc_info);
 		image = i;
 		allocation = a;
 
-		vk::ImageViewCreateInfo view_info({}, image, vk::ImageViewType::e2D, format, 
+		vk::ImageViewCreateInfo view_info({}, image, vk::ImageViewType::e2D, format,
 			vk::ComponentMapping(), vk::ImageSubresourceRange(aspects, 0, 1, 0, 1));
 		imageView = device.createImageViewUnique(view_info);
 	}
 
 	texture::texture(vk::Device device, vma::Allocator allocator,
-		vk::ImageUsageFlags usage, vk::Format format, vk::SampleCountFlagBits sampleCount, bool transfer, vk::ImageAspectFlags aspects) 
+		vk::ImageUsageFlags usage, vk::Format format, vk::SampleCountFlagBits sampleCount, bool transfer, vk::ImageAspectFlags aspects)
 		: device(device), allocator(allocator)
 	{
-		image_info = vk::ImageCreateInfo({}, vk::ImageType::e2D, format, 
+		image_info = vk::ImageCreateInfo({}, vk::ImageType::e2D, format,
 			{0, 0, 1}, 1, 1,
 			sampleCount, vk::ImageTiling::eOptimal,
-			usage | (transfer?vk::ImageUsageFlagBits::eTransferDst:vk::ImageUsageFlagBits{}), 
+			usage | (transfer?vk::ImageUsageFlagBits::eTransferDst:vk::ImageUsageFlagBits{}),
 			vk::SharingMode::eExclusive);
-		view_info = vk::ImageViewCreateInfo({}, image, vk::ImageViewType::e2D, format, 
+		view_info = vk::ImageViewCreateInfo({}, image, vk::ImageViewType::e2D, format,
 			vk::ComponentMapping(), vk::ImageSubresourceRange(aspects, 0, 1, 0, 1));
+	}
+
+	texture::texture(texture&& other)
+		: device(other.device), allocator(other.allocator), image(other.image), allocation(other.allocation),
+		width(other.width), height(other.height), imageView(std::move(other.imageView)),
+		image_info(other.image_info), view_info(other.view_info)
+	{
+		other.image = nullptr;
+		other.allocation = nullptr;
+		other.width = 0;
+		other.height = 0;
 	}
 
 	void texture::create_image(int width, int height)
@@ -62,6 +73,7 @@ namespace render
 	texture::~texture()
 	{
 		imageView.reset();
-		allocator.destroyImage(image, allocation);
+		if(image && allocation)
+			allocator.destroyImage(image, allocation);
 	}
 }

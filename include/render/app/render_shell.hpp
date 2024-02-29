@@ -3,6 +3,7 @@
 #include "render/phase.hpp"
 #include "render/window.hpp"
 #include "render/font_renderer.hpp"
+#include "render/gui_renderer.hpp"
 
 namespace render
 {
@@ -20,8 +21,10 @@ namespace render
 
 			std::vector<vk::Image> swapchainImages;
 			std::vector<vk::UniqueFramebuffer> framebuffers;
-			
+
 			vk::UniqueCommandPool pool;
 			std::vector<vk::UniqueCommandBuffer> commandBuffers;
+
+			void render_gui(gui_renderer& renderer);
 	};
 }

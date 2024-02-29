@@ -1,5 +1,8 @@
 #include "utils.hpp"
 
+#include <sstream>
+#include <iomanip>
+
 namespace utils
 {
 	std::string to_fixed_string(double d, int n)

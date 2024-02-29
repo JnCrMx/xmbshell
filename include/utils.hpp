@@ -1,8 +1,6 @@
 #pragma once
 
 #include <future>
-#include <sstream>
-#include <iomanip>
 
 #include <glm/glm.hpp>
 

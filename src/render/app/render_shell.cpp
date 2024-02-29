@@ -1,7 +1,7 @@
 #include "render/app/render_shell.hpp"
 
 #include "render/debug.hpp"
-#include "render/utils.hpp"
+#include "render/gui_renderer.hpp"
 
 namespace render
 {
@@ -44,9 +44,9 @@ namespace render
 			vk::FramebufferCreateInfo framebuffer_info({}, renderPass.get(), swapchainViews[i],
 				win->swapchainExtent.width, win->swapchainExtent.height, 1);
 			framebuffers.push_back(device.createFramebufferUnique(framebuffer_info));
-			debugName(device, framebuffers.back().get(), "Loading Screen Framebuffer #"+std::to_string(i));
+			debugName(device, framebuffers.back().get(), "XMB Shell Framebuffer #"+std::to_string(i));
 
-			debugName(device, commandBuffers[i].get(), "Loading Screen Command Buffer #"+std::to_string(i));
+			debugName(device, commandBuffers[i].get(), "XMB Shell Command Buffer #"+std::to_string(i));
 		}
 		font->prepare(swapchainViews.size());
 	}
@@ -66,8 +66,8 @@ namespace render
 		commandBuffer->setViewport(0, viewport);
 		commandBuffer->setScissor(0, scissor);
 
-		font->renderText(commandBuffer.get(), frame, "FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
-		font->renderText(commandBuffer.get(), frame, "Hello Cynder :D", 1, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        gui_renderer ctx(commandBuffer.get(), frame, font.get());
+		render_gui(ctx);
 		font->finish(frame);
 
 		commandBuffer->endRenderPass();
@@ -76,5 +76,12 @@ namespace render
 		vk::PipelineStageFlags waitFlags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 		vk::SubmitInfo submit_info(imageAvailable, waitFlags, commandBuffer.get(), renderFinished);
 		graphicsQueue.submit(submit_info, fence);
+	}
+
+	void render_shell::render_gui(gui_renderer& renderer) {
+		renderer.draw_text("FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+		renderer.draw_text("Hello Cynder :D", 1, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		renderer.draw_text("llll", 1, 1, 0.05f);
+		renderer.draw_text("mmmm", 1, 1.1f, 0.05f);
 	}
 }

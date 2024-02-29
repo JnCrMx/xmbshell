@@ -6,7 +6,6 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
-#include <optional>
 #include <future>
 
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1

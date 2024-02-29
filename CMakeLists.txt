@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 include(FetchContent)
+include(cmake/AddShader.cmake)
 
 project(xmbshell)
 
@@ -56,31 +57,6 @@ target_link_libraries(xmbshell PRIVATE sdbus-c++)
 target_link_libraries(xmbshell PRIVATE spng)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
-
-find_program(GLSLang_Validator glslangValidator)
-function(add_shader TARGET SHADER)
-	file(RELATIVE_PATH rel ${CMAKE_CURRENT_SOURCE_DIR} ${SHADER})
-	set(output ${CMAKE_BINARY_DIR}/${rel}.spv)
-	set(outputh ${CMAKE_BINARY_DIR}/${rel}.h)
-
-	get_filename_component(output-dir ${output} DIRECTORY)
-	file(MAKE_DIRECTORY ${output-dir})
-
-	add_custom_command(
-		OUTPUT ${output}
-		COMMAND ${GLSLang_Validator} -V -o ${output} ${SHADER}
-		DEPENDS ${SHADER}
-		VERBATIM)
-	add_custom_command(
-		OUTPUT ${outputh}
-		COMMAND xxd -i ${rel}.spv > ${outputh}
-		DEPENDS ${output}
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		VERBATIM)
-
-	set_source_files_properties(${outputh} PROPERTIES GENERATED TRUE)
-	target_sources(${TARGET} PRIVATE ${outputh})
-endfunction(add_shader)
 
 foreach(shader ${shaders})
 	add_shader(xmbshell ${shader})

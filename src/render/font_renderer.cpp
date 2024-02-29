@@ -7,6 +7,7 @@
 #include <freetype/freetype.h>
 
 #include <spdlog/spdlog.h>
+#include <string_view>
 
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
@@ -251,7 +252,7 @@ namespace render
 		vertexOffsets.resize(imageCount);
 	}
 
-	void font_renderer::renderText(vk::CommandBuffer cmd, int frame, std::string text, float x, float y, float scale, glm::vec4 color)
+	void font_renderer::renderText(vk::CommandBuffer cmd, int frame, std::string_view text, float x, float y, float scale, glm::vec4 color)
 	{
 		if(!utils::is_ready(textureReady))
 			return;

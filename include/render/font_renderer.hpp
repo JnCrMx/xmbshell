@@ -7,6 +7,7 @@
 #include <freetype2/ft2build.h>
 #include <freetype/freetype.h>
 #include <glm/glm.hpp>
+#include <string_view>
 
 #include "texture.hpp"
 #include "resource_loader.hpp"
@@ -29,7 +30,7 @@ namespace render
 
 			void preload(FT_Library ft, resource_loader* loader, vk::RenderPass renderPass);
 			void prepare(int imageCount);
-			void renderText(vk::CommandBuffer cmd, int frame, std::string text, float x, float y, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+			void renderText(vk::CommandBuffer cmd, int frame, std::string_view text, float x, float y, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
 			void finish(int frame);
 
 			std::unique_ptr<texture> fontTexture;
@@ -42,7 +43,7 @@ namespace render
 			vk::UniqueDescriptorSetLayout descriptorLayout;
 			vk::UniqueDescriptorPool descriptorPool;
 			std::vector<vk::DescriptorSet> descriptorSets;
-			
+
 			std::vector<vk::Buffer> uniformBuffers;
 			std::vector<vma::Allocation> uniformMemories;
 			std::vector<vk::DeviceSize> uniformOffsets;
@@ -64,8 +65,8 @@ namespace render
 			static constexpr char charStart = 32;
 			static constexpr char charEnd = 127;
 
-			static constexpr size_t maxCharacters = 256;
-			static constexpr size_t maxTexts = 256;
+			static constexpr size_t maxCharacters = 1024;
+			static constexpr size_t maxTexts = 128;
 			struct VertexCharacter {
 				glm::vec2 position;
 				glm::vec2 texCoord;
