@@ -1,0 +1,41 @@
+variables:
+  - &minio-settings
+    access_key:
+      from_secret: minio_access_key
+    secret_key:
+      from_secret: minio_secret_key
+    endpoint:
+      from_secret: minio_endpoint
+    path_style: true
+    region: eu-central-jcm
+
+steps:
+  build:
+    image: ubuntu:mantic
+    commands:
+      - apt-get update
+      - >-
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        clang cmake ninja-build git glslang-tools xxd patch ca-certificates
+        libvulkan-dev pkg-config libsystemd-dev libglfw3-dev libglm-dev libspdlog-dev libfreetype-dev
+      - cmake -B build -G Ninja
+      - cmake --build build --parallel 1
+  test:
+    image: ubuntu:mantic
+    commands:
+      - apt-get update
+      - >-
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        xvfb dbus-x11 mesa-vulkan-drivers libglfw3 libspdlog1.10 vulkan-validationlayers ffmpeg
+      - Xvfb :99 -screen 0 1920x1080x24 -reset -terminate &
+      - export DISPLAY=:99
+      - dbus-launch timeout 60 ./build/xmbshell | tee build/test-log.txt &
+      - ffmpeg -threads 1 -video_size 1920x1080 -framerate 30 -f x11grab -i :99 -preset ultrafast -qp 0 -t 60 -y build/test-output.mp4
+  upload:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/test-*
+      strip_prefix: build/
+      target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
