@@ -18,7 +18,7 @@ namespace dbus
 
 		auto close = [this](){
 			spdlog::info("Exit request from D-Bus");
-			glfwSetWindowShouldClose(win->win, GLFW_TRUE);
+			glfwSetWindowShouldClose(win->win.get(), GLFW_TRUE);
 		};
     	object->registerMethod("close").onInterface("re.jcm.xmbos.Window").implementedAs(std::move(close));
 		object->registerProperty("fps").onInterface("re.jcm.xmbos.Render").withGetter([this](){return win->currentFPS;});

@@ -22,14 +22,14 @@ namespace render
 	font_renderer::font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator) :
 		name(name), size(size), device(device), allocator(allocator)
 	{
-		
+
 	}
 
 	font_renderer::~font_renderer()
 	{
 		if(face)
 			FT_Done_Face(face);
-		
+
 		for(int i=0; i<uniformBuffers.size(); i++)
 		{
 			allocator.unmapMemory(uniformMemories[i]);
@@ -68,6 +68,8 @@ namespace render
 			maxWidth = std::max(maxWidth, face->glyph->advance.x >> 6);
 			maxHeight = std::max(maxWidth, face->glyph->advance.y >> 6);
 		}
+		maxWidth += 4;
+		maxHeight += 4;
 
 		long width = maxWidth*columns;
 		long height = maxHeight*rows;
@@ -83,7 +85,7 @@ namespace render
 				err = FT_Load_Glyph(face, glyph_index, load_flags);
 				if(err != 0) throw std::runtime_error("failed to load glyph");
 
-				glyphs[ch] = {.x = (int)(c*maxWidth), .y = (int)(r*maxHeight), 
+				glyphs[ch] = {.x = (int)(c*maxWidth), .y = (int)(r*maxHeight),
 					.w = (int)(face->glyph->advance.x >> 6), .h = (int)(maxHeight) };
 
 				ch++; if(ch>=charEnd) break;
@@ -94,9 +96,9 @@ namespace render
 
 		fontTexture = std::make_unique<texture>(device, allocator, width, height);
 		textureReady = loader->loadTexture(fontTexture.get(), [this, rows, columns, maxWidth, maxHeight, width, baseline](uint8_t* p, size_t size){
-			assert(sizeof(uint32_t)*rows*maxHeight*columns*maxWidth <= size);			
+			assert(sizeof(uint32_t)*rows*maxHeight*columns*maxWidth <= size);
 			uint32_t* image = (uint32_t*)p;
-			
+
 			FT_Error err;
 			char ch = charStart;
 			for(int r = 0; r<rows; r++)
@@ -118,7 +120,7 @@ namespace render
 						{
 							unsigned char pixel_brightness = bitmap.buffer[y * bitmap.pitch + x];
 							unsigned int color = pixel_brightness | pixel_brightness << 8 | pixel_brightness << 16 | pixel_brightness << 24;
-							
+
 							int dx = x;
 							int dy = y + baseline - face->glyph->bitmap_top;
 
@@ -184,15 +186,15 @@ namespace render
 			vk::PipelineMultisampleStateCreateInfo multisample({}, vk::SampleCountFlagBits::e1);
 			vk::PipelineDepthStencilStateCreateInfo depthStencil({}, false, false);
 
-			vk::PipelineColorBlendAttachmentState attachment(true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd, 
-				vk::BlendFactor::eOne, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd, 
+			vk::PipelineColorBlendAttachmentState attachment(true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+				vk::BlendFactor::eOne, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
 				vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 			vk::PipelineColorBlendStateCreateInfo colorBlend({}, false, vk::LogicOp::eClear, attachment);
 
 			std::array<vk::DynamicState, 2> dynamicStates{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 			vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
 
-			vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input, 
+			vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
 				&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), renderPass);
 			pipeline = device.createGraphicsPipelineUnique({}, pipeline_info).value;
 			debugName(device, pipeline.get(), "Font Renderer Pipeline");
@@ -262,7 +264,7 @@ namespace render
 				Glyph g = glyphs[text[i]];
 				vc[i] = {
 					.position = {x, 0},
-					.texCoord = {g.x/lineHeight, g.y/lineHeight}, 
+					.texCoord = {g.x/lineHeight, g.y/lineHeight},
 					.size = {((float)g.w)/lineHeight, ((float)g.h)/lineHeight},
 					.color = color};
 				x+= ((float)g.w)/lineHeight;

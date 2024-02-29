@@ -78,10 +78,11 @@ namespace render
 		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-		win = glfwCreateWindow(mode->width, mode->height, constants::displayname.c_str(), nullptr, nullptr);
-		spdlog::info("Created window ({}x{} @ {} Hz R{}G{}B{}) on monitor \"{}\"", mode->width, mode->height, mode->refreshRate, 
+
+		win = std::unique_ptr<GLFWwindow, glfw_window_deleter>(glfwCreateWindow(mode->width, mode->height, constants::displayname.c_str(), monitor, nullptr));
+		spdlog::info("Created window ({}x{} @ {} Hz R{}G{}B{}) on monitor \"{}\"", mode->width, mode->height, mode->refreshRate,
 			mode->redBits, mode->greenBits, mode->blueBits, name);
-		
+
 		window_width = mode->width;
 		window_height = mode->height;
 	}
@@ -123,7 +124,7 @@ namespace render
 
 #ifndef NDEBUG
 		debugMessenger = instance->createDebugUtilsMessengerEXTUnique(vk::DebugUtilsMessengerCreateInfoEXT({},
-				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, 
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo,
 				vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
 				debugCallback));
 #endif
@@ -131,7 +132,7 @@ namespace render
 
 		{
 			vk::SurfaceKHR surface_;
-			glfwCreateWindowSurface(instance.get(), win, nullptr, reinterpret_cast<VkSurfaceKHR*>(&surface_));
+			glfwCreateWindowSurface(instance.get(), win.get(), nullptr, reinterpret_cast<VkSurfaceKHR*>(&surface_));
 			vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderDynamic> deleter(instance.get(), nullptr, VULKAN_HPP_DEFAULT_DISPATCHER);
 			surface = vk::UniqueSurfaceKHR(surface_, deleter);
 		}
@@ -166,7 +167,7 @@ namespace render
 		spdlog::info("Using video device {} of type {}", deviceProperties.deviceName, vk::to_string(deviceProperties.deviceType));
 
 		std::vector<vk::DeviceQueueCreateInfo> queueInfos;
-		std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value(), 
+		std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value(),
 			queueFamilyIndices.transferFamily.value_or(UINT32_MAX)};
 		auto families = physicalDevice.getQueueFamilyProperties();
 
@@ -222,7 +223,7 @@ namespace render
 		allocator_info.setPVulkanFunctions(&functs);
 		allocator = vma::createAllocator(allocator_info);
 
-		loader = std::make_unique<resource_loader>(device.get(), allocator, 
+		loader = std::make_unique<resource_loader>(device.get(), allocator,
 			queueFamilyIndices.transferFamily.value_or(queueFamilyIndices.graphicsFamily.value()),
 			queueFamilyIndices.graphicsFamily.value(),
 			transferQueues);
@@ -236,7 +237,7 @@ namespace render
 			return p == CONFIG.preferredPresentMode;
 		});
 		swapchainPresentMode = presentModeIt == swapchainSupport.presentModes.end() ? swapchainSupport.presentModes[0] : *presentModeIt;
-		
+
 		swapchainExtent = vk::Extent2D{
 			std::clamp(window_width, swapchainSupport.capabilities.minImageExtent.width, swapchainSupport.capabilities.maxImageExtent.width),
 			std::clamp(window_height, swapchainSupport.capabilities.minImageExtent.height, swapchainSupport.capabilities.maxImageExtent.height)
@@ -250,8 +251,8 @@ namespace render
 			vk::to_string(swapchainFormat.format), vk::to_string(swapchainPresentMode),
 			swapchainExtent.width, swapchainExtent.height, swapchainImageCount);
 
-		vk::SwapchainCreateInfoKHR swapchain_info({}, surface.get(), swapchainImageCount, 
-			swapchainFormat.format, swapchainFormat.colorSpace, 
+		vk::SwapchainCreateInfoKHR swapchain_info({}, surface.get(), swapchainImageCount,
+			swapchainFormat.format, swapchainFormat.colorSpace,
 			swapchainExtent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
 		swapchain_info.setPresentMode(swapchainPresentMode);
 		if(swapchainSupport.capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
@@ -368,7 +369,7 @@ namespace render
 
 		int currentFrame = 0;
 		vk::Result r;
-		while(!glfwWindowShouldClose(win))
+		while(!glfwWindowShouldClose(win.get()))
 		{
 			glfwPollEvents();
 
@@ -399,7 +400,7 @@ namespace render
 			r = presentQueue.presentKHR(present_info);
 			if(r != vk::Result::eSuccess)
 				spdlog::error("Present failed with result {}", vk::to_string(r));
-			
+
 			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 			{
@@ -411,7 +412,7 @@ namespace render
 					currentFPS = framesInSecond / std::chrono::duration<double>(t-lastFPS).count();
 					lastFPS = t;
 					framesInSecond = 0;
-					
+
 					if(fpsCount%fpsSampleRate == 0)
 					{
 						spdlog::debug("{} FPS", currentFPS);
@@ -427,13 +428,11 @@ namespace render
 
 	window::~window()
 	{
+		device->waitIdle();
+
 		current_renderer.reset();
 		loader.reset();
 
 		allocator.destroy();
-
-		glfwDestroyWindow(win);
-		glfwTerminate();
-		spdlog::info("Destroyed window");
 	}
 }

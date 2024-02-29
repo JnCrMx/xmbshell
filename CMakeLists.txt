@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
+include(FetchContent)
+
 project(xmbshell)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Vulkan REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
@@ -14,33 +17,41 @@ file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
 file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom)
 
-add_executable(xmbshell ${sources})
+FetchContent_Declare(
+  libspng
+  GIT_REPOSITORY https://github.com/randy408/libspng.git
+  GIT_TAG        v0.7.4
+)
+FetchContent_Declare(
+  VulkanMemoryAllocator-Hpp
+  GIT_REPOSITORY https://github.com/YaaZ/VulkanMemoryAllocator-Hpp.git
+  GIT_TAG        master
+  PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
+)
+FetchContent_Declare(
+  sdbus-cpp
+  GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
+  GIT_TAG        v1.5.0
+)
+FetchContent_MakeAvailable(libspng VulkanMemoryAllocator-Hpp sdbus-cpp)
 
-add_subdirectory(external/VulkanMemoryAllocator)
-add_subdirectory(external/sdbus-cpp)
-add_subdirectory(external/libspng)
 target_compile_options(spng PRIVATE -O3)
+
+add_executable(xmbshell ${sources})
 
 add_library(optimized_components STATIC ${opt_sources})
 target_include_directories(optimized_components PRIVATE include/)
-target_include_directories(optimized_components PRIVATE external/VulkanMemoryAllocator-Hpp/include/)
+target_link_libraries(optimized_components PRIVATE VulkanMemoryAllocator-Hpp)
 target_compile_options(optimized_components PRIVATE -O3)
 
-set(GLFW_BUILD_WAYLAND ON CACHE INTERNAL "")
-set(GLFW_BUILD_X11 OFF CACHE INTERNAL "")
-add_subdirectory(external/glfw)
-
 target_include_directories(xmbshell PRIVATE include/)
-target_include_directories(xmbshell PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
-target_include_directories(xmbshell PRIVATE external/VulkanMemoryAllocator-Hpp/include/)
-target_include_directories(xmbshell PRIVATE external/libspng/spng)
 
-target_link_libraries(xmbshell PRIVATE ${Vulkan_LIBRARIES})
+target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
+target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
 target_link_libraries(xmbshell PRIVATE glfw)
 target_link_libraries(xmbshell PRIVATE spdlog::spdlog)
 target_link_libraries(xmbshell PRIVATE dl)
-target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator)
 target_link_libraries(xmbshell PRIVATE sdbus-c++)
 target_link_libraries(xmbshell PRIVATE spng)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)

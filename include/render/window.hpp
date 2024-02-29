@@ -48,12 +48,27 @@ namespace render
 
 			std::unique_ptr<phase> current_renderer;
 
-			GLFWwindow* win;
+			struct glfw_initializer {
+                glfw_initializer() {
+                    glfwInit();
+                }
+                ~glfw_initializer() {
+                    glfwTerminate();
+                }
+            };
+            static glfw_initializer glfw_init;
+
+            struct glfw_window_deleter {
+                void operator()(GLFWwindow* ptr) const {
+                    glfwDestroyWindow(ptr);
+                }
+            };
+            std::unique_ptr<GLFWwindow, glfw_window_deleter> win;
 			uint32_t window_width, window_height;
-			
+
 			vk::UniqueInstance instance;
 			vk::UniqueSurfaceKHR surface;
-			
+
 			vk::PhysicalDevice physicalDevice;
 
 			vk::PhysicalDeviceProperties deviceProperties;
