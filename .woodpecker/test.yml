@@ -26,7 +26,7 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        xvfb dbus-x11 mesa-vulkan-drivers libglfw3 libspdlog1.10 vulkan-validationlayers ffmpeg
+        xvfb dbus-x11 mesa-vulkan-drivers libglfw3 libspdlog1.10 vulkan-validationlayers ffmpeg fonts-ubuntu
       - Xvfb :99 -screen 0 1920x1080x24 -reset -terminate &
       - export DISPLAY=:99
       - dbus-launch timeout 60 ./build/xmbshell | tee build/test-log.txt &
