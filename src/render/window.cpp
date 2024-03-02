@@ -17,6 +17,8 @@ using namespace config;
 
 namespace render
 {
+	window::glfw_initializer window::glfw_init{};
+
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -58,8 +60,6 @@ namespace render
 
 	void window::initWindow()
 	{
-		glfwInit();
-
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
 		int videoModeCount;
