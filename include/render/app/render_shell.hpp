@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render/phase.hpp"
+#include "render/texture.hpp"
 #include "render/window.hpp"
 #include "render/font_renderer.hpp"
 #include "render/image_renderer.hpp"
@@ -28,6 +29,8 @@ namespace render
 
 			vk::UniqueCommandPool pool;
 			std::vector<vk::UniqueCommandBuffer> commandBuffers;
+
+			std::unique_ptr<texture> test_texture;
 
 			void render_gui(gui_renderer& renderer);
 	};

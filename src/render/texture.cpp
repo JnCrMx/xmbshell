@@ -61,6 +61,7 @@ namespace render
 		image = i;
 		allocation = a;
 
+		view_info.image = image;
 		imageView = device.createImageViewUnique(view_info);
 	}
 

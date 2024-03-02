@@ -374,6 +374,7 @@ namespace render
 
 	void window::loop()
 	{
+		startTime = std::chrono::high_resolution_clock::now();
 		lastFrame = std::chrono::high_resolution_clock::now();
 		lastFPS = std::chrono::high_resolution_clock::now();
 		framesInSecond = 0;

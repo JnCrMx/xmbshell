@@ -2,8 +2,9 @@
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
-#include <glm/fwd.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
@@ -97,8 +98,8 @@ void image_renderer::prepare(int frameCount) {
     imageInfos.resize(frameCount);
 }
 
-void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float w, float h) {
-    vk::DescriptorImageInfo image_info(sampler.get(), texture.imageView.get(), vk::ImageLayout::eShaderReadOnlyOptimal);
+void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX, float scaleY) {
+    vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);
 
@@ -107,6 +108,8 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, const texture
 
     push_constants push;
     push.model = glm::mat4(1.0f);
+    push.model = glm::translate(push.model, glm::vec3(x, y, 0.0f));
+    push.model = glm::scale(push.model, glm::vec3(scaleX / aspectRatio, scaleY, 1.0f));
     push.index = index;
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),

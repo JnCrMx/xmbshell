@@ -20,8 +20,9 @@
 
 namespace render
 {
-	font_renderer::font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator) :
-		name(name), size(size), device(device), allocator(allocator)
+	font_renderer::font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator, vk::Extent2D frameSize) :
+		name(name), size(size), device(device), allocator(allocator),
+		aspectRatio(static_cast<double>(frameSize.width)/frameSize.height)
 	{
 
 	}
@@ -275,7 +276,7 @@ namespace render
 		{
 			TextUniform* uni = uniformPointers[frame] + uniformOffsets[frame];
 			uni->position = {x, y};
-			uni->scale = scale;
+			uni->scale = glm::vec2{scale / aspectRatio, scale};
 			uni->textureSize = {fontTexture->width/lineHeight, fontTexture->height/lineHeight};
 		}
 		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());

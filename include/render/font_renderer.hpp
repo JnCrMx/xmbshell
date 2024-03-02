@@ -26,13 +26,15 @@ namespace render
 	class font_renderer
 	{
 		public:
-			font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator);
+			font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator, vk::Extent2D frameSize);
 			~font_renderer();
 
 			void preload(FT_Library ft, resource_loader* loader, vk::RenderPass renderPass);
 			void prepare(int imageCount);
 			void renderText(vk::CommandBuffer cmd, int frame, std::string_view text, float x, float y, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
 			void finish(int frame);
+
+			double aspectRatio;
 
 			std::unique_ptr<texture> fontTexture;
 			std::shared_future<void> textureReady;
@@ -77,7 +79,7 @@ namespace render
 			struct TextUniform {
 				glm::vec2 position;
 				glm::vec2 textureSize;
-				float scale;
+				glm::vec2 scale;
 			};
 
 			std::vector<VertexCharacter*> vertexPointers;

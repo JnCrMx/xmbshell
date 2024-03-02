@@ -92,13 +92,19 @@ namespace render
 	void load_texture(
 		int index, LoadTask& task,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
-		vk::CommandBuffer commandBuffer, spng_ctx* ctx, 
+		vk::CommandBuffer commandBuffer, spng_ctx* ctx,
 		uint8_t* decodeBuffer, size_t stagingSize, vk::Buffer stagingBuffer)
 	{
 		texture* tex = std::get<texture*>(task.dst);
 		if(std::holds_alternative<std::string>(task.src))
 		{
-			std::ifstream in("assets/textures/"+std::get<std::string>(task.src), std::ios_base::ate | std::ios_base::binary);
+			const std::string filename = std::get<std::string>(task.src);
+			std::ifstream in(filename, std::ios_base::ate | std::ios_base::binary);
+			if(!in.good())
+			{
+				spdlog::error("[Resource Loader {}] Failed to open file {}", index, filename);
+				return;
+			}
 			size_t size = in.tellg();
 			std::vector<char> data(size);
 			in.seekg(0);
@@ -126,22 +132,22 @@ namespace render
 
 		commandBuffer.begin(vk::CommandBufferBeginInfo());
 
-		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, 
+		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, {}, {},
 			vk::ImageMemoryBarrier(
 				{}, vk::AccessFlagBits::eTransferWrite,
-				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 
-				VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
+				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+				VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
 				tex->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)));
 		std::array<vk::BufferImageCopy, 1> copies = {
-			vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), 
+			vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
 				{}, {static_cast<uint32_t>(tex->width), static_cast<uint32_t>(tex->height), 1})
 		};
 		commandBuffer.copyBufferToImage(stagingBuffer, tex->image, vk::ImageLayout::eTransferDstOptimal, copies);
-		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, 
+		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, {}, {},
 			vk::ImageMemoryBarrier(
 				vk::AccessFlagBits::eTransferWrite, {},
-				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 
-				VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
+				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+				VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
 				tex->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)));
 		commandBuffer.end();
 
@@ -162,7 +168,7 @@ namespace render
 	void load_model(
 		int index, LoadTask& task,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
-		vk::CommandBuffer commandBuffer, 
+		vk::CommandBuffer commandBuffer,
 		size_t stagingSize, vk::Buffer stagingBuffer)
 	{
 		std::ifstream obj("assets/models/"+std::get<std::string>(task.src));

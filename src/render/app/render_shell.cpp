@@ -2,6 +2,8 @@
 
 #include "render/debug.hpp"
 #include "render/gui_renderer.hpp"
+#include "render/resource_loader.hpp"
+#include <chrono>
 
 namespace render
 {
@@ -13,9 +15,9 @@ namespace render
 	{
 		FT_Library ft;
 		FT_Error err = FT_Init_FreeType(&ft);
-		font = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator);
+		font = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator, win->swapchainExtent);
 
-		image_render = std::make_unique<image_renderer>(device);
+		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
 
 		pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsFamily));
 
@@ -34,6 +36,9 @@ namespace render
 
 		font->preload(ft, loader, renderPass.get());
 		image_render->preload(renderPass.get());
+
+		test_texture = std::make_unique<texture>(device, allocator);
+		loader->loadTexture(test_texture.get(), "applications-internet.png").get();
 	}
 
 	void render_shell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -73,7 +78,9 @@ namespace render
         gui_renderer ctx(commandBuffer.get(), frame, font.get());
 		render_gui(ctx);
 
-		image_render->renderImage(commandBuffer.get(), frame, *font->fontTexture, 0, 0, 0, 0);
+		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
+		double x = (std::fmod(seconds.count(), 10.0) - 5.0) / 5.0;
+		image_render->renderImage(commandBuffer.get(), frame, *test_texture, x, 0);
 
 		font->finish(frame);
 		image_render->finish(frame);

@@ -6,7 +6,7 @@ layout(binding = 0, std140) uniform UBO
 {
 	vec2 position;
 	vec2 textureSize;
-	float scale;
+	vec2 scale;
 } uni;
 
 layout(location = 0) in vec2 inPosition[1];

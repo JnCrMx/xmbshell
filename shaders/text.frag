@@ -4,7 +4,7 @@ layout(binding = 0, std140) uniform UBO
 {
 	vec2 position;
 	vec2 textureSize;
-	float scale;
+	vec2 scale;
 } uni;
 layout(binding = 1) uniform sampler2D tex;
 

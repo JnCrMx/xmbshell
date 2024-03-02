@@ -7,17 +7,24 @@ namespace render
 	class image_renderer
 	{
 		public:
-			image_renderer(vk::Device device) : device(device) {}
+			image_renderer(vk::Device device, vk::Extent2D frameSize) : device(device), frameSize(frameSize),
+				aspectRatio(static_cast<double>(frameSize.width)/frameSize.height) {}
 			~image_renderer();
 
 			void preload(vk::RenderPass renderPass);
 			void prepare(int imageCount);
-			void renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float w, float h);
+			void renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float scaleX = 1.0, float scaleY = 1.0) {
+				renderImage(cmd, frame, texture.imageView.get(), x, y, scaleX, scaleY);
+			}
+			void renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX = 1.0, float scaleY = 1.0);
 			void finish(int frame);
 
 			constexpr static unsigned int max_images = 512;
         private:
 			vk::Device device;
+
+			vk::Extent2D frameSize;
+			double aspectRatio;
 
 			vk::UniqueSampler sampler;
 
