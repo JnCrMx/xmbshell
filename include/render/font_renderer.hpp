@@ -73,7 +73,7 @@ namespace render
 				glm::vec2 size;
 				glm::vec4 color;
 			};
-			struct TextUniform {
+			struct alignas(16) TextUniform {
 				glm::vec2 position;
 				glm::vec2 textureSize;
 				float scale;
