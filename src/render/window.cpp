@@ -4,7 +4,12 @@
 
 #include "render/debug.hpp"
 
+#include <memory>
 #include <spdlog/spdlog.h>
+#include <SDL_events.h>
+#include <SDL_rect.h>
+#include <SDL_video.h>
+#include <SDL_vulkan.h>
 
 #include <cxxabi.h>
 
@@ -17,7 +22,7 @@ using namespace config;
 
 namespace render
 {
-	window::glfw_initializer window::glfw_init{};
+	window::sdl_initializer window::sdl_init{};
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -60,31 +65,19 @@ namespace render
 
 	void window::initWindow()
 	{
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		constexpr unsigned int display_index = 0;
 
-		int videoModeCount;
-		const GLFWvidmode* modes = glfwGetVideoModes(monitor, &videoModeCount);
-		const GLFWvidmode* mode = std::max_element(modes, modes+videoModeCount, [](GLFWvidmode a, GLFWvidmode b){
-			return a.width*a.height*a.refreshRate < b.width*b.height*b.refreshRate; // find maximal video mode
-		});
+		SDL_Rect rect;
+		SDL_GetDisplayBounds(display_index, &rect);
 
-		const char* name = glfwGetMonitorName(monitor);
+		win = std::unique_ptr<SDL_Window, sdl_window_deleter>(
+			SDL_CreateWindow(constants::displayname.c_str(), rect.x, rect.y, rect.w, rect.h, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_VULKAN)
+		);
+		spdlog::info("Created window ({}x{} @ {}:{}) on monitor \"{}\"", rect.w, rect.h, rect.x, rect.y,
+			SDL_GetDisplayName(display_index));
 
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-		glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
-		win = std::unique_ptr<GLFWwindow, glfw_window_deleter>(glfwCreateWindow(mode->width, mode->height, constants::displayname.c_str(), monitor, nullptr));
-		spdlog::info("Created window ({}x{} @ {} Hz R{}G{}B{}) on monitor \"{}\"", mode->width, mode->height, mode->refreshRate,
-			mode->redBits, mode->greenBits, mode->blueBits, name);
-
-		window_width = mode->width;
-		window_height = mode->height;
+		window_width = rect.w;
+		window_height = rect.h;
 	}
 
 	void window::initVulkan()
@@ -105,10 +98,14 @@ namespace render
 			VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 		};
 
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-		std::copy(glfwExtensions, glfwExtensions+glfwExtensionCount, std::back_inserter(extensions));
+		uint32_t sdlExtensionCount = 0;
+		SDL_Vulkan_GetInstanceExtensions(win.get(), &sdlExtensionCount, nullptr);
+
+		std::vector<const char*> sdlExtensions(sdlExtensionCount);
+		SDL_Vulkan_GetInstanceExtensions(win.get(), &sdlExtensionCount, sdlExtensions.data());
+		std::copy(sdlExtensions.begin(), sdlExtensions.end(), std::back_inserter(extensions));
+
+		spdlog::debug("Using extensions: {}", fmt::join(extensions, ", "));
 
 		auto const app = vk::ApplicationInfo()
 			.setPApplicationName(constants::name.c_str())
@@ -132,8 +129,8 @@ namespace render
 		spdlog::info("Initialized Vulkan with {} layer(s) and {} extension(s)", layers.size(), extensions.size());
 
 		{
-			vk::SurfaceKHR surface_;
-			glfwCreateWindowSurface(instance.get(), win.get(), nullptr, reinterpret_cast<VkSurfaceKHR*>(&surface_));
+			VkSurfaceKHR surface_;
+			SDL_Vulkan_CreateSurface(win.get(), instance.get(), &surface_);
 			vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderDynamic> deleter(instance.get(), nullptr, VULKAN_HPP_DEFAULT_DISPATCHER);
 			surface = vk::UniqueSurfaceKHR(surface_, deleter);
 		}
@@ -381,9 +378,14 @@ namespace render
 
 		int currentFrame = 0;
 		vk::Result r;
-		while(!glfwWindowShouldClose(win.get()))
+		while(1)
 		{
-			glfwPollEvents();
+			SDL_Event event;
+			while(SDL_PollEvent(&event))
+			{
+				if(event.type == SDL_QUIT)
+					return;
+			}
 
 			auto now = std::chrono::high_resolution_clock::now();
 			auto dt = std::chrono::duration<double>(now - lastFrame).count();

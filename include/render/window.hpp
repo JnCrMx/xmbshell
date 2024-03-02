@@ -4,8 +4,7 @@
 #include <vulkan/vulkan.hpp>
 #include <vk_mem_alloc.hpp>
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include <SDL.h>
 
 #include <optional>
 #include <memory>
@@ -48,22 +47,22 @@ namespace render
 
 			std::unique_ptr<phase> current_renderer;
 
-			struct glfw_initializer {
-                glfw_initializer() {
-                    glfwInit();
+			struct sdl_initializer {
+                sdl_initializer() {
+                    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
                 }
-                ~glfw_initializer() {
-                    glfwTerminate();
+                ~sdl_initializer() {
+                    SDL_Quit();
                 }
             };
-            static glfw_initializer glfw_init;
+            static sdl_initializer sdl_init;
 
-            struct glfw_window_deleter {
-                void operator()(GLFWwindow* ptr) const {
-                    glfwDestroyWindow(ptr);
+            struct sdl_window_deleter {
+                void operator()(SDL_Window* ptr) const {
+                    SDL_DestroyWindow(ptr);
                 }
             };
-            std::unique_ptr<GLFWwindow, glfw_window_deleter> win;
+            std::unique_ptr<SDL_Window, sdl_window_deleter> win;
 			uint32_t window_width, window_height;
 
 			vk::UniqueInstance instance;

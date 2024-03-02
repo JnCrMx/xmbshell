@@ -3,7 +3,6 @@
 #include "config.hpp"
 
 #include <sdbus-c++/sdbus-c++.h>
-#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
 namespace dbus
@@ -18,7 +17,7 @@ namespace dbus
 
 		auto close = [this](){
 			spdlog::info("Exit request from D-Bus");
-			glfwSetWindowShouldClose(win->win.get(), GLFW_TRUE);
+			// TODO
 		};
     	object->registerMethod("close").onInterface("re.jcm.xmbos.Window").implementedAs(std::move(close));
 		object->registerProperty("fps").onInterface("re.jcm.xmbos.Render").withGetter([this](){return win->currentFPS;});
