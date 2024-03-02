@@ -216,6 +216,7 @@ namespace render
 		vk::DescriptorSetAllocateInfo set_info(descriptorPool.get(), layouts);
 		descriptorSets = device.allocateDescriptorSets(set_info);
 
+		const auto alignment = allocator.getPhysicalDeviceProperties()->limits.minUniformBufferOffsetAlignment;
 
 		std::vector<vk::WriteDescriptorSet> writes(imageCount*2);
 		std::vector<vk::DescriptorBufferInfo> bufferInfos(imageCount);
@@ -237,7 +238,7 @@ namespace render
 				auto [ub, ua] = allocator.createBuffer(uniform_info, ua_info);
 				uniformBuffers.push_back(ub);
 				uniformMemories.push_back(ua);
-				uniformPointers.push_back((TextUniform*)allocator.mapMemory(ua));
+				uniformPointers.push_back(utils::aligned_wrapper<TextUniform>(allocator.mapMemory(ua), alignment));
 
 				bufferInfos[i].setBuffer(ub).setOffset(0).setRange(sizeof(TextUniform));
 				writes[2*i+0].setDstSet(descriptorSets[i]).setDstBinding(0).setDstArrayElement(0)
@@ -279,7 +280,7 @@ namespace render
 		}
 		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
 		cmd.bindVertexBuffers(0, vertexBuffers[frame], vertexOffsets[frame]*sizeof(VertexCharacter));
-		cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], uniformOffsets[frame]*sizeof(TextUniform));
+		cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], uniformPointers[frame].offset(uniformOffsets[frame]));
 		cmd.draw(text.size(), 1, 0, 0);
 
 		vertexOffsets[frame] += text.size();

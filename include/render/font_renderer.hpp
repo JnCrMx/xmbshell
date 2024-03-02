@@ -11,6 +11,7 @@
 
 #include "texture.hpp"
 #include "resource_loader.hpp"
+#include "../utils.hpp"
 
 namespace render
 {
@@ -73,13 +74,13 @@ namespace render
 				glm::vec2 size;
 				glm::vec4 color;
 			};
-			struct alignas(16) TextUniform {
+			struct TextUniform {
 				glm::vec2 position;
 				glm::vec2 textureSize;
 				float scale;
 			};
 
 			std::vector<VertexCharacter*> vertexPointers;
-			std::vector<TextUniform*> uniformPointers;
+			std::vector<utils::aligned_wrapper<TextUniform>> uniformPointers;
 	};
 }

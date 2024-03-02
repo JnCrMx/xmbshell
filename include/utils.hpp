@@ -21,4 +21,34 @@ namespace utils
 	{
 		return to_fixed_string(d, n);
 	}
+
+	template<typename T>
+	class aligned_wrapper {
+		public:
+			aligned_wrapper(void* data, std::size_t alignment) :
+				data(static_cast<std::byte*>(data)), alignment(alignment) {}
+
+			T& operator[](std::size_t i) {
+				return *reinterpret_cast<T*>(data + i * aligned(sizeof(T), alignment));
+			}
+
+			const T& operator[](std::size_t i) const {
+				return *reinterpret_cast<const T*>(data + i * aligned(sizeof(T), alignment));
+			}
+
+			T* operator+(std::size_t i) {
+				return reinterpret_cast<T*>(data + i * aligned(sizeof(T), alignment));
+			}
+
+			std::size_t offset(std::size_t i) const {
+				return i * aligned(sizeof(T), alignment);
+			}
+		private:
+			constexpr static std::size_t aligned(std::size_t size, std::size_t alignment) {
+				return (size + alignment - 1) & ~(alignment - 1);
+			}
+
+			std::byte* data;
+			std::size_t alignment;
+	};
 }
