@@ -5,6 +5,7 @@ layout(location = 0) out vec2 texCoord;
 layout(push_constant) uniform ImageParams
 {
     mat4 matrix;
+    uint index;
 } params;
 
 void main()

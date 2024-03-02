@@ -4,18 +4,32 @@
 
 namespace render
 {
-	class font_renderer
+	class image_renderer
 	{
 		public:
-			font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator);
-			~font_renderer();
+			image_renderer(vk::Device device) : device(device) {}
+			~image_renderer();
 
-			void preload();
+			void preload(vk::RenderPass renderPass);
 			void prepare(int imageCount);
 			void renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float w, float h);
 			void finish(int frame);
+
+			constexpr static unsigned int max_images = 512;
         private:
+			vk::Device device;
+
+			vk::UniqueSampler sampler;
+
+			vk::UniqueDescriptorSetLayout descriptorLayout;
+			vk::UniqueDescriptorPool descriptorPool;
+			std::vector<vk::DescriptorSet> descriptorSets;
+
 			vk::UniquePipelineLayout pipelineLayout;
 			vk::UniquePipeline pipeline;
+
+			std::vector<
+				std::vector<vk::DescriptorImageInfo>
+			> imageInfos;
     };
 }

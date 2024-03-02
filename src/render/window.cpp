@@ -95,13 +95,14 @@ namespace render
 
 		std::vector<const char*> layers = {
 #ifndef NDEBUG
-			"VK_LAYER_KHRONOS_validation"
+			"VK_LAYER_KHRONOS_validation",
 #endif
 		};
 		std::vector<const char*> extensions = {
 #ifndef NDEBUG
-			"VK_EXT_debug_utils"
+			VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 #endif
+			VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 		};
 
 		uint32_t glfwExtensionCount = 0;
@@ -114,7 +115,7 @@ namespace render
 			.setApplicationVersion(constants::version)
 			.setPEngineName(constants::name.c_str())
 			.setEngineVersion(constants::version)
-			.setApplicationVersion(VK_VERSION_1_0);
+			.setApplicationVersion(VK_VERSION_1_2);
 		auto const inst_info = vk::InstanceCreateInfo()
 			.setPApplicationInfo(&app)
 			.setPEnabledLayerNames(layers)
@@ -190,15 +191,25 @@ namespace render
 			.setGeometryShader(true)
 			.setSampleRateShading(true)
 			.setFillModeNonSolid(true)
+			.setShaderSampledImageArrayDynamicIndexing(true)
 			.setWideLines(true);
+		vk::PhysicalDeviceDescriptorIndexingFeatures indexingFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures()
+			.setDescriptorBindingPartiallyBound(true)
+			.setDescriptorBindingSampledImageUpdateAfterBind(true);
+		vk::PhysicalDeviceFeatures2 features2 = vk::PhysicalDeviceFeatures2()
+			.setFeatures(features)
+			.setPNext(&indexingFeatures);
+
 		const std::vector<const char*> deviceExtensions = {
-    		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+			VK_KHR_MAINTENANCE3_EXTENSION_NAME,
 		};
 		vk::DeviceCreateInfo device_info = vk::DeviceCreateInfo()
 			.setQueueCreateInfos(queueInfos)
-			.setPEnabledFeatures(&features)
 			.setPEnabledLayerNames(layers)
-			.setPEnabledExtensionNames(deviceExtensions);
+			.setPEnabledExtensionNames(deviceExtensions)
+			.setPNext(&features2);
 
 		device = physicalDevice.createDeviceUnique(device_info);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());

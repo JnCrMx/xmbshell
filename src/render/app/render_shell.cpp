@@ -15,6 +15,8 @@ namespace render
 		FT_Error err = FT_Init_FreeType(&ft);
 		font = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator);
 
+		image_render = std::make_unique<image_renderer>(device);
+
 		pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsFamily));
 
 		vk::AttachmentDescription attachment({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
@@ -31,6 +33,7 @@ namespace render
 		debugName(device, renderPass.get(), "Shell Render Pass");
 
 		font->preload(ft, loader, renderPass.get());
+		image_render->preload(renderPass.get());
 	}
 
 	void render_shell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -49,6 +52,7 @@ namespace render
 			debugName(device, commandBuffers[i].get(), "XMB Shell Command Buffer #"+std::to_string(i));
 		}
 		font->prepare(swapchainViews.size());
+		image_render->prepare(swapchainViews.size());
 	}
 
 	void render_shell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
@@ -68,7 +72,11 @@ namespace render
 
         gui_renderer ctx(commandBuffer.get(), frame, font.get());
 		render_gui(ctx);
+
+		image_render->renderImage(commandBuffer.get(), frame, *font->fontTexture, 0, 0, 0, 0);
+
 		font->finish(frame);
+		image_render->finish(frame);
 
 		commandBuffer->endRenderPass();
 		commandBuffer->end();

@@ -3,7 +3,10 @@
 #include "render/phase.hpp"
 #include "render/window.hpp"
 #include "render/font_renderer.hpp"
+#include "render/image_renderer.hpp"
 #include "render/gui_renderer.hpp"
+
+#include <memory>
 
 namespace render
 {
@@ -16,6 +19,7 @@ namespace render
 			void render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence) override;
 		private:
 			std::unique_ptr<font_renderer> font;
+			std::unique_ptr<image_renderer> image_render;
 
 			vk::UniqueRenderPass renderPass;
 

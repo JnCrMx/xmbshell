@@ -18,7 +18,7 @@ namespace render
 		image = i;
 		allocation = a;
 
-		vk::ImageViewCreateInfo view_info({}, image, vk::ImageViewType::e2D, format,
+		view_info = vk::ImageViewCreateInfo({}, image, vk::ImageViewType::e2D, format,
 			vk::ComponentMapping(), vk::ImageSubresourceRange(aspects, 0, 1, 0, 1));
 		imageView = device.createImageViewUnique(view_info);
 	}
