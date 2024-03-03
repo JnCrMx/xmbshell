@@ -5,6 +5,8 @@ include(cmake/AddShader.cmake)
 
 project(xmbshell)
 
+option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shallow" OFF)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -21,18 +23,22 @@ file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom)
 FetchContent_Declare(
   libspng
   GIT_REPOSITORY https://github.com/randy408/libspng.git
+  GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
   GIT_TAG        v0.7.4
 )
 FetchContent_Declare(
   VulkanMemoryAllocator-Hpp
   GIT_REPOSITORY https://github.com/YaaZ/VulkanMemoryAllocator-Hpp.git
   GIT_TAG        master
+  GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
+  GIT_SUBMODULES_RECURSE FALSE
   PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
 )
 FetchContent_Declare(
   sdbus-cpp
   GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
   GIT_TAG        v1.5.0
+  GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
 )
 FetchContent_MakeAvailable(libspng VulkanMemoryAllocator-Hpp sdbus-cpp)
 
