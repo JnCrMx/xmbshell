@@ -77,9 +77,8 @@ namespace render
 				glm::vec4 color;
 			};
 			struct TextUniform {
-				glm::vec2 position;
+				glm::mat4 matrix;
 				glm::vec2 textureSize;
-				glm::vec2 scale;
 			};
 
 			std::vector<VertexCharacter*> vertexPointers;

@@ -8,6 +8,7 @@
 
 #include <spdlog/spdlog.h>
 #include <string_view>
+#include <glm/ext/matrix_transform.hpp>
 
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
@@ -274,10 +275,13 @@ namespace render
 			}
 		}
 		{
-			TextUniform* uni = uniformPointers[frame] + uniformOffsets[frame];
-			uni->position = {x, y};
-			uni->scale = glm::vec2{scale / aspectRatio, scale};
-			uni->textureSize = {fontTexture->width/lineHeight, fontTexture->height/lineHeight};
+    		glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
+
+			TextUniform& uni = uniformPointers[frame][uniformOffsets[frame]];
+			uni.matrix = glm::mat4(1.0f);
+			uni.matrix = glm::translate(uni.matrix, glm::vec3(pos, 0.0f));
+			uni.matrix = glm::scale(uni.matrix, glm::vec3(scale / aspectRatio, scale, 1.0f));
+			uni.textureSize = {fontTexture->width/lineHeight, fontTexture->height/lineHeight};
 		}
 		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
 		cmd.bindVertexBuffers(0, vertexBuffers[frame], vertexOffsets[frame]*sizeof(VertexCharacter));

@@ -4,9 +4,8 @@ layout(max_vertices = 4, triangle_strip) out;
 
 layout(binding = 0, std140) uniform UBO
 {
-	vec2 position;
+	mat4 matrix;
 	vec2 textureSize;
-	vec2 scale;
 } uni;
 
 layout(location = 0) in vec2 inPosition[1];
@@ -19,23 +18,18 @@ layout(location = 1) out vec4 outColor;
 
 void main()
 {
-	gl_Position = vec4(inPosition[0]*uni.scale, 0.0, 1.0) - vec4(1.0, 1.0, 0.0, 0.0) + vec4(uni.position, 0.0, 0.0);
-	outTexCoord = inTexCoord[0];
-	outColor = inColor[0];
-	EmitVertex();
+	const vec2 offsets[4] = vec2[4](
+		vec2(0, 0),
+		vec2(0, 1),
+		vec2(1, 0),
+		vec2(1, 1)
+	);
 
-	gl_Position = vec4((inPosition[0] + vec2(0, inSize[0].y))*uni.scale, 0.0, 1.0) - vec4(1.0, 1.0, 0.0, 0.0) + vec4(uni.position, 0.0, 0.0);
-	outTexCoord = inTexCoord[0] + vec2(0, inSize[0].y);
-	outColor = inColor[0];
-	EmitVertex();
-
-	gl_Position = vec4((inPosition[0] + vec2(inSize[0].x, 0))*uni.scale, 0.0, 1.0) - vec4(1.0, 1.0, 0.0, 0.0) + vec4(uni.position, 0.0, 0.0);
-	outTexCoord = inTexCoord[0] + vec2(inSize[0].x, 0);
-	outColor = inColor[0];
-	EmitVertex();
-
-	gl_Position = vec4((inPosition[0] + inSize[0])*uni.scale, 0.0, 1.0) - vec4(1.0, 1.0, 0.0, 0.0) + vec4(uni.position, 0.0, 0.0);
-	outTexCoord = inTexCoord[0] + inSize[0];
-	outColor = inColor[0];
-	EmitVertex();
+	for (int i = 0; i < 4; i++)
+	{
+		gl_Position = uni.matrix * vec4(inPosition[0] + offsets[i] * inSize[0], 0.0, 1.0);
+		outTexCoord = inTexCoord[0] + offsets[i] * inSize[0];
+		outColor = inColor[0];
+		EmitVertex();
+	}
 }

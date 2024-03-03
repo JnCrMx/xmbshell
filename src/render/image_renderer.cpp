@@ -2,9 +2,8 @@
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
-#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
@@ -14,7 +13,7 @@
 namespace render {
 
 struct push_constants {
-    glm::mat4 model;
+    glm::mat4 matrix;
     unsigned int index;
 };
 
@@ -106,10 +105,12 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView
     cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
     cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], {});
 
+    glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
+
     push_constants push;
-    push.model = glm::mat4(1.0f);
-    push.model = glm::translate(push.model, glm::vec3(x, y, 0.0f));
-    push.model = glm::scale(push.model, glm::vec3(scaleX / aspectRatio, scaleY, 1.0f));
+    push.matrix = glm::mat4(1.0f);
+    push.matrix = glm::translate(push.matrix, glm::vec3(pos, 0.0f));
+    push.matrix = glm::scale(push.matrix, glm::vec3(scaleX / aspectRatio, scaleY, 1.0f));
     push.index = index;
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),
@@ -128,10 +129,12 @@ void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::Imag
     double scaleX = static_cast<double>(width) / frameSize.width;
     double scaleY = static_cast<double>(height) / frameSize.height;
 
+    glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
+
     push_constants push;
-    push.model = glm::mat4(1.0f);
-    push.model = glm::translate(push.model, glm::vec3(x, y, 0.0f));
-    push.model = glm::scale(push.model, glm::vec3(scaleX, scaleY, 1.0f));
+    push.matrix = glm::mat4(1.0f);
+    push.matrix = glm::translate(push.matrix, glm::vec3(pos, 0.0f));
+    push.matrix = glm::scale(push.matrix, glm::vec3(scaleX, scaleY, 1.0f));
     push.index = index;
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),
