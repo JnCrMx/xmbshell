@@ -117,6 +117,28 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView
     cmd.draw(6, 1, 0, 0);
 }
 
+void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height) {
+    vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
+    int index = imageInfos[frame].size();
+    imageInfos[frame].push_back(image_info);
+
+    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
+    cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], {});
+
+    double scaleX = static_cast<double>(width) / frameSize.width;
+    double scaleY = static_cast<double>(height) / frameSize.height;
+
+    push_constants push;
+    push.model = glm::mat4(1.0f);
+    push.model = glm::translate(push.model, glm::vec3(x, y, 0.0f));
+    push.model = glm::scale(push.model, glm::vec3(scaleX, scaleY, 1.0f));
+    push.index = index;
+
+    cmd.pushConstants<push_constants>(pipelineLayout.get(),
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, push);
+    cmd.draw(6, 1, 0, 0);
+}
+
 void image_renderer::finish(int frame) {
     if(imageInfos[frame].empty())
         return;

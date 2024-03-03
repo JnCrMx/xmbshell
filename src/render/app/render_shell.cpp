@@ -75,15 +75,12 @@ namespace render
 		commandBuffer->setViewport(0, viewport);
 		commandBuffer->setScissor(0, scissor);
 
-        gui_renderer ctx(commandBuffer.get(), frame, font.get());
-		render_gui(ctx);
-
-		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
-		double x = (std::fmod(seconds.count(), 10.0) - 5.0) / 5.0;
-		image_render->renderImage(commandBuffer.get(), frame, *test_texture, x, 0);
-
-		font->finish(frame);
-		image_render->finish(frame);
+		{
+			gui_renderer ctx(commandBuffer.get(), frame, font.get(), image_render.get());
+			render_gui(ctx);
+			font->finish(frame);
+			image_render->finish(frame);
+		}
 
 		commandBuffer->endRenderPass();
 		commandBuffer->end();
@@ -94,6 +91,10 @@ namespace render
 	}
 
 	void render_shell::render_gui(gui_renderer& renderer) {
+		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
+		double x = (std::fmod(seconds.count(), 10.0) - 5.0) / 5.0;
+		renderer.draw_image_sized(*test_texture, x, 0.0f);
+
 		renderer.draw_text("FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 		renderer.draw_text("Hello Cynder :D", 1, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		renderer.draw_text("llll", 1, 1, 0.05f);
