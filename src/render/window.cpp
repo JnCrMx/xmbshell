@@ -17,6 +17,7 @@
 #include <map>
 #include <set>
 #include <stdexcept>
+#include <thread>
 
 using namespace config;
 
@@ -71,13 +72,20 @@ namespace render
 		SDL_GetDisplayBounds(display_index, &rect);
 
 		win = std::unique_ptr<SDL_Window, sdl_window_deleter>(
-			SDL_CreateWindow(constants::displayname.c_str(), rect.x, rect.y, rect.w, rect.h, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_VULKAN)
+			SDL_CreateWindow(constants::displayname.c_str(), rect.x, rect.y, rect.w, rect.h,
+				SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_VULKAN)
 		);
 		spdlog::info("Created window ({}x{} @ {}:{}) on monitor \"{}\"", rect.w, rect.h, rect.x, rect.y,
 			SDL_GetDisplayName(display_index));
 
+		SDL_DisplayMode mode;
+		SDL_GetWindowDisplayMode(win.get(), &mode);
+
 		window_width = rect.w;
 		window_height = rect.h;
+
+		refreshRate = mode.refresh_rate;
+		CONFIG.setMaxFPS(refreshRate);
 	}
 
 	void window::initVulkan()
@@ -255,14 +263,16 @@ namespace render
 		if(swapchainSupport.capabilities.maxImageCount > 0)
 			swapchainImageCount = std::min(swapchainImageCount, swapchainSupport.capabilities.maxImageCount);
 
-		spdlog::debug("Swapchain of format {}, present mode {}, extent {}x{} and {} images",
+		spdlog::debug("Swapchain of format {}, present mode {}, extent {}x{} and {} images (composite alpha: {})",
 			vk::to_string(swapchainFormat.format), vk::to_string(swapchainPresentMode),
-			swapchainExtent.width, swapchainExtent.height, swapchainImageCount);
+			swapchainExtent.width, swapchainExtent.height, swapchainImageCount,
+			vk::to_string(swapchainSupport.capabilities.supportedCompositeAlpha));
 
 		vk::SwapchainCreateInfoKHR swapchain_info({}, surface.get(), swapchainImageCount,
 			swapchainFormat.format, swapchainFormat.colorSpace,
 			swapchainExtent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
 		swapchain_info.setPresentMode(swapchainPresentMode);
+		swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eInherit);
 		if(swapchainSupport.capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
 			swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::ePreMultiplied);
 		swapchain = device->createSwapchainKHRUnique(swapchain_info);
@@ -391,8 +401,16 @@ namespace render
 			auto dt = std::chrono::duration<double>(now - lastFrame).count();
 			lastFrame = now;
 
-			auto sleep = CONFIG.frameTime - std::chrono::duration<double>(now - lastFrame);
-			std::this_thread::sleep_for(sleep);
+			using vk::PresentModeKHR::eFifo;
+			using vk::PresentModeKHR::eFifoRelaxed;
+			if(CONFIG.maxFPS < refreshRate ||
+				not (swapchainPresentMode == eFifo || swapchainPresentMode == eFifoRelaxed) // those have an FPS limit anyways
+			) {
+				auto sleep = CONFIG.frameTime - std::chrono::duration<double>(now - lastFrame);
+				if(sleep > CONFIG.frameTime/10) {
+					std::this_thread::sleep_for(sleep*0.9);
+				}
+			}
 
 			r = device->waitForFences(inFlightFences[currentFrame], true, UINT64_MAX);
 			if(r != vk::Result::eSuccess)

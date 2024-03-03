@@ -107,6 +107,7 @@ namespace render
 			decltype(std::chrono::high_resolution_clock::now()) lastFPS;
 			int fpsCount;
 			double currentFPS;
+			int refreshRate;
 
 #ifndef NDEBUG
 			vk::UniqueDebugUtilsMessengerEXT debugMessenger;

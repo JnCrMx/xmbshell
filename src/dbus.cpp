@@ -21,10 +21,13 @@ namespace dbus
 		};
     	object->registerMethod("close").onInterface("re.jcm.xmbos.Window").implementedAs(std::move(close));
 		object->registerProperty("fps").onInterface("re.jcm.xmbos.Render").withGetter([this](){return win->currentFPS;});
-		object->registerProperty("maxFps").onInterface("re.jcm.xmbos.Render").withGetter([this](){return config::CONFIG.maxFPS;}).withSetter([this](double maxFps){
-			config::CONFIG.maxFPS = maxFps;
-			config::CONFIG.frameTime = std::chrono::duration<double>(std::chrono::seconds(1))/maxFps;
-		});
+		object->registerProperty("re.jcm.xmbos.Render", "maxFps", "i",
+			[this](sdbus::PropertyGetReply& reply){reply << static_cast<int>(config::CONFIG.maxFPS);},
+			[this](sdbus::PropertySetCall& call){
+				int maxFPS;
+				call >> maxFPS;
+				config::CONFIG.setMaxFPS(maxFPS);
+			});
 
 		object->finishRegistration();
 	}
