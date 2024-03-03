@@ -403,8 +403,10 @@ namespace render
 
 			using vk::PresentModeKHR::eFifo;
 			using vk::PresentModeKHR::eFifoRelaxed;
-			if(CONFIG.maxFPS < refreshRate ||
-				not (swapchainPresentMode == eFifo || swapchainPresentMode == eFifoRelaxed) // those have an FPS limit anyways
+			if(CONFIG.maxFPS > 0 &&
+				(CONFIG.maxFPS < refreshRate ||
+					not (swapchainPresentMode == eFifo || swapchainPresentMode == eFifoRelaxed) // those have an FPS limit anyways
+				)
 			) {
 				auto sleep = CONFIG.frameTime - std::chrono::duration<double>(now - lastFrame);
 				if(sleep > CONFIG.frameTime/10) {
