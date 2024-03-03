@@ -12,21 +12,21 @@ namespace render
         m_fontRenderer->renderText(m_commandBuffer, m_frame, text, x, y, scale, color);
     }
 
-    void gui_renderer::draw_image(const texture& texture, float x, float y, float scaleX, float scaleY)
+    void gui_renderer::draw_image(const texture& texture, float x, float y, float scaleX, float scaleY, glm::vec4 color)
     {
-        m_imageRenderer->renderImage(m_commandBuffer, m_frame, texture, x, y, scaleX, scaleY);
+        m_imageRenderer->renderImage(m_commandBuffer, m_frame, texture, x, y, scaleX, scaleY, color);
     }
-    void gui_renderer::draw_image(vk::ImageView view, float x, float y, float scaleX, float scaleY)
+    void gui_renderer::draw_image(vk::ImageView view, float x, float y, float scaleX, float scaleY, glm::vec4 color)
     {
-        m_imageRenderer->renderImage(m_commandBuffer, m_frame, view, x, y, scaleX, scaleY);
+        m_imageRenderer->renderImage(m_commandBuffer, m_frame, view, x, y, scaleX, scaleY, color);
     }
 
-    void gui_renderer::draw_image_sized(const texture& texture, float x, float y, int width, int height)
+    void gui_renderer::draw_image_sized(const texture& texture, float x, float y, int width, int height, glm::vec4 color)
     {
-        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, texture, x, y, width, height);
+        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, texture, x, y, width, height, color);
     }
-    void gui_renderer::draw_image_sized(vk::ImageView view, float x, float y, int width, int height)
+    void gui_renderer::draw_image_sized(vk::ImageView view, float x, float y, int width, int height, glm::vec4 color)
     {
-        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, view, x, y, width, height);
+        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, view, x, y, width, height, color);
     }
 }

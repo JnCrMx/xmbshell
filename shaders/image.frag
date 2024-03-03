@@ -8,10 +8,11 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform ImageParams
 {
     mat4 matrix;
+    vec4 color;
     uint index;
 } params;
 
 void main()
 {
-	outColor = texture(tex[params.index], inTexCoord);
+	outColor = texture(tex[params.index], inTexCoord) * params.color;
 }

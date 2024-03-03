@@ -14,6 +14,7 @@ namespace render {
 
 struct push_constants {
     glm::mat4 matrix;
+    glm::vec4 color;
     unsigned int index;
 };
 
@@ -97,7 +98,7 @@ void image_renderer::prepare(int frameCount) {
     imageInfos.resize(frameCount);
 }
 
-void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX, float scaleY) {
+void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX, float scaleY, glm::vec4 color) {
     vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);
@@ -112,13 +113,14 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView
     push.matrix = glm::translate(push.matrix, glm::vec3(pos, 0.0f));
     push.matrix = glm::scale(push.matrix, glm::vec3(scaleX / aspectRatio, scaleY, 1.0f));
     push.index = index;
+    push.color = color;
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, push);
     cmd.draw(6, 1, 0, 0);
 }
 
-void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height) {
+void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color) {
     vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);
@@ -136,6 +138,7 @@ void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::Imag
     push.matrix = glm::translate(push.matrix, glm::vec3(pos, 0.0f));
     push.matrix = glm::scale(push.matrix, glm::vec3(scaleX, scaleY, 1.0f));
     push.index = index;
+    push.color = color;
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, push);

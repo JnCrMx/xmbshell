@@ -1,6 +1,7 @@
 #pragma once
 
 #include "texture.hpp"
+#include <glm/vec4.hpp>
 
 namespace render
 {
@@ -14,15 +15,15 @@ namespace render
 			void preload(vk::RenderPass renderPass);
 			void prepare(int imageCount);
 
-			void renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float scaleX = 1.0, float scaleY = 1.0) {
-				renderImage(cmd, frame, texture.imageView.get(), x, y, scaleX, scaleY);
+			void renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float scaleX = 1.0, float scaleY = 1.0, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0)) {
+				renderImage(cmd, frame, texture.imageView.get(), x, y, scaleX, scaleY, color);
 			}
-			void renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX = 1.0, float scaleY = 1.0);
+			void renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX = 1.0, float scaleY = 1.0, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
 
-			void renderImageSized(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, int width = -1, int height = -1) {
-				renderImageSized(cmd, frame, texture.imageView.get(), x, y, width == -1 ? texture.width : width, height == -1 ? texture.height : height);
+			void renderImageSized(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, int width = -1, int height = -1, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0)) {
+				renderImageSized(cmd, frame, texture.imageView.get(), x, y, width == -1 ? texture.width : width, height == -1 ? texture.height : height, color);
 			}
-			void renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height);
+			void renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 			void finish(int frame);
 
