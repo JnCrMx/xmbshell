@@ -95,7 +95,7 @@ namespace render
 	void render_shell::render_gui(gui_renderer& renderer) {
 		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
 		double x = std::fmod(seconds.count(), 10.0) / 10.0;
-		renderer.draw_image_sized(*test_texture, x, 0.1f);
+		renderer.draw_image_sized(*test_texture, x, 0.1f, -1, -1, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));
 		renderer.draw_text(fmt::format("{:.2f}", x), x, 0.2f, 0.05f);
 
 		renderer.draw_text("FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
