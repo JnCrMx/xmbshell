@@ -11,7 +11,7 @@ namespace config
 	class config
 	{
 		public:
-			vk::PresentModeKHR preferredPresentMode = vk::PresentModeKHR::eImmediate; //aka VSync
+			vk::PresentModeKHR preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
 			vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e2; // aka Anti-aliasing
 
 			double maxFPS = 100;
