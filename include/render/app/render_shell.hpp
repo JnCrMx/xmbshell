@@ -22,7 +22,7 @@ namespace render
 			std::unique_ptr<font_renderer> font;
 			std::unique_ptr<image_renderer> image_render;
 
-			vk::UniqueRenderPass renderPass;
+			vk::UniqueRenderPass backgroundRenderPass, shellRenderPass, popupRenderPass;
 
 			std::vector<vk::Image> swapchainImages;
 			std::vector<vk::UniqueFramebuffer> framebuffers;
