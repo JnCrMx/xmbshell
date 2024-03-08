@@ -23,7 +23,7 @@ namespace render
 
 	void render_shell::preload()
 	{
-		font_render = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator, win->swapchainExtent);
+		font_render = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 32, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
 		wave_render = std::make_unique<wave_renderer>(device, allocator, win->swapchainExtent);
 
@@ -165,7 +165,7 @@ namespace render
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			gui_renderer ctx(commandBuffer.get(), frame, font_render.get(), image_render.get());
+			gui_renderer ctx(commandBuffer.get(), frame, win->swapchainExtent, font_render.get(), image_render.get());
 			render_gui(ctx);
 
 			commandBuffer->endRenderPass();
@@ -178,7 +178,7 @@ namespace render
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			gui_renderer ctx(commandBuffer.get(), frame, font_render.get(), image_render.get());
+			gui_renderer ctx(commandBuffer.get(), frame, win->swapchainExtent, font_render.get(), image_render.get());
 			// TODO
 
 			commandBuffer->endRenderPass();
@@ -195,12 +195,10 @@ namespace render
 	void render_shell::render_gui(gui_renderer& renderer) {
 		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
 		double x = std::fmod(seconds.count(), 10.0) / 10.0;
-		renderer.draw_image_sized(*test_texture, x, 0.1f, -1, -1, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));
-		renderer.draw_text(fmt::format("{:.2f}", x), x, 0.2f, 0.05f);
+		renderer.draw_image(*test_texture, x, 0.4f, 0.1f, 0.1f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));
+		renderer.draw_text("Internet", x+0.05f/renderer.aspect_ratio, 0.5f, 0.033f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f), true);
 
 		renderer.draw_text("FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 		renderer.draw_text("Hello Cynder :D", 0.5, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-		renderer.draw_text("llll", 0.5, 0.5, 0.05f);
-		renderer.draw_text("mmmm", 0.5, 0.6, 0.05f);
 	}
 }

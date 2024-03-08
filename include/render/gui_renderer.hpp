@@ -12,14 +12,24 @@ namespace render
     class gui_renderer
     {
         public:
-            gui_renderer(vk::CommandBuffer commandBuffer, int frame, font_renderer* fontRenderer, image_renderer* imageRenderer);
+            gui_renderer(vk::CommandBuffer commandBuffer, int frame,
+                vk::Extent2D frameSize,
+                font_renderer* fontRenderer, image_renderer* imageRenderer);
+            const vk::Extent2D frame_size;
+            const double aspect_ratio;
 
-            void draw_text(std::string_view text, float x, float y, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+            void draw_text(std::string_view text, float x, float y, float scale = 1.0f,
+                glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0),
+                bool centerH = false, bool centerV = false);
 
-            void draw_image(const texture& texture, float x, float y, float scaleX = 1.0f, float scaleY = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
-            void draw_image(vk::ImageView view, float x, float y, float scaleX = 1.0f, float scaleY = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
-            void draw_image_sized(const texture& texture, float x, float y, int width = -1, int height = -1, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
-            void draw_image_sized(vk::ImageView view, float x, float y, int width, int height, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+            void draw_image(const texture& texture, float x, float y, float scaleX = 1.0f, float scaleY = 1.0f,
+                glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+            void draw_image(vk::ImageView view, float x, float y, float scaleX = 1.0f, float scaleY = 1.0f,
+                glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+            void draw_image_sized(const texture& texture, float x, float y, int width = -1, int height = -1,
+                glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+            void draw_image_sized(vk::ImageView view, float x, float y, int width, int height,
+                glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
         private:
             font_renderer* m_fontRenderer;
             image_renderer* m_imageRenderer;

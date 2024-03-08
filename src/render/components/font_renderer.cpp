@@ -294,6 +294,17 @@ namespace render
 		uniformOffsets[frame]++;
 	}
 
+	glm::vec2 font_renderer::measureText(std::string_view text, float scale)
+	{
+		float width = 0;
+		for(int i=0; i<text.size(); i++)
+		{
+			Glyph g = glyphs[text[i]];
+			width += ((float)g.w)/lineHeight;
+		}
+		return glm::vec2{width*scale/aspectRatio, scale}/2.0f;
+	}
+
 	void font_renderer::finish(int frame)
 	{
 		vertexOffsets[frame] = 0;
