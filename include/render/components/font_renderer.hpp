@@ -9,9 +9,9 @@
 #include <glm/glm.hpp>
 #include <string_view>
 
-#include "texture.hpp"
-#include "resource_loader.hpp"
-#include "../utils.hpp"
+#include "render/texture.hpp"
+#include "render/resource_loader.hpp"
+#include "utils.hpp"
 
 namespace render
 {

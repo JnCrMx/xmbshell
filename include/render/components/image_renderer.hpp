@@ -1,6 +1,6 @@
 #pragma once
 
-#include "texture.hpp"
+#include "render/texture.hpp"
 #include <glm/vec4.hpp>
 
 namespace render

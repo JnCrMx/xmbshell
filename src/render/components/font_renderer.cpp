@@ -1,4 +1,4 @@
-#include "render/font_renderer.hpp"
+#include "render/components/font_renderer.hpp"
 #include "render/utils.hpp"
 #include "render/debug.hpp"
 #include "utils.hpp"

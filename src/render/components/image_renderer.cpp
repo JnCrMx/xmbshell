@@ -1,11 +1,9 @@
-#include "render/image_renderer.hpp"
+#include "render/components/image_renderer.hpp"
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 #include "image.vert.h"
 #include "image.frag.h"

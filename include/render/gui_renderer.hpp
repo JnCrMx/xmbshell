@@ -3,8 +3,8 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
-#include "render/font_renderer.hpp"
-#include "render/image_renderer.hpp"
+#include "render/components/font_renderer.hpp"
+#include "render/components/image_renderer.hpp"
 #include "render/texture.hpp"
 
 namespace render

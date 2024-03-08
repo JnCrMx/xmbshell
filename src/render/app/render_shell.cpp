@@ -1,7 +1,6 @@
 #include "render/app/render_shell.hpp"
 
 #include "render/debug.hpp"
-#include "render/gui_renderer.hpp"
 #include "render/resource_loader.hpp"
 
 #include <chrono>
@@ -15,11 +14,9 @@ namespace render
 
 	void render_shell::preload()
 	{
-		FT_Library ft;
-		FT_Error err = FT_Init_FreeType(&ft);
-		font = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator, win->swapchainExtent);
-
+		font_render = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
+		wave_render = std::make_unique<wave_renderer>(device, allocator, win->swapchainExtent);
 
 		pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsFamily));
 
@@ -28,6 +25,20 @@ namespace render
 				vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
 				vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
 				vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
+			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
+			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
+				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				{}, vk::AccessFlagBits::eColorAttachmentWrite);
+			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
+			vk::RenderPassCreateInfo renderpass_info({}, attachment, subpass, dep);
+			backgroundRenderPass = device.createRenderPassUnique(renderpass_info);
+			debugName(device, backgroundRenderPass.get(), "Background Render Pass");
+		}
+		{
+			vk::AttachmentDescription attachment({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
+				vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
+				vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+				vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -52,8 +63,12 @@ namespace render
 			debugName(device, popupRenderPass.get(), "Popup Render Pass");
 		}
 
-		font->preload(ft, loader, shellRenderPass.get());
+		FT_Library ft;
+		FT_Error err = FT_Init_FreeType(&ft);
+
+		font_render->preload(ft, loader, shellRenderPass.get());
 		image_render->preload(shellRenderPass.get());
+		wave_render->preload(backgroundRenderPass.get());
 
 		test_texture = std::make_unique<texture>(device, allocator);
 		loader->loadTexture(test_texture.get(), "applications-internet.png").get();
@@ -74,8 +89,9 @@ namespace render
 
 			debugName(device, commandBuffers[i].get(), "XMB Shell Command Buffer #"+std::to_string(i));
 		}
-		font->prepare(swapchainViews.size());
+		font_render->prepare(swapchainViews.size());
 		image_render->prepare(swapchainViews.size());
+		wave_render->prepare(swapchainViews.size());
 	}
 
 	void render_shell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
@@ -85,14 +101,26 @@ namespace render
 		commandBuffer->begin(vk::CommandBufferBeginInfo());
 		{
 			vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f});
-			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(shellRenderPass.get(), framebuffers[frame].get(),
+			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), framebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
 			vk::Rect2D scissor({0,0}, win->swapchainExtent);
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			gui_renderer ctx(commandBuffer.get(), frame, font.get(), image_render.get());
+			wave_render->render(commandBuffer.get(), frame);
+
+			commandBuffer->endRenderPass();
+		}
+		{
+			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(shellRenderPass.get(), framebuffers[frame].get(),
+				vk::Rect2D({0, 0}, win->swapchainExtent)), vk::SubpassContents::eInline);
+			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
+			vk::Rect2D scissor({0,0}, win->swapchainExtent);
+			commandBuffer->setViewport(0, viewport);
+			commandBuffer->setScissor(0, scissor);
+
+			gui_renderer ctx(commandBuffer.get(), frame, font_render.get(), image_render.get());
 			render_gui(ctx);
 
 			commandBuffer->endRenderPass();
@@ -105,12 +133,12 @@ namespace render
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			gui_renderer ctx(commandBuffer.get(), frame, font.get(), image_render.get());
+			gui_renderer ctx(commandBuffer.get(), frame, font_render.get(), image_render.get());
 			// TODO
 
 			commandBuffer->endRenderPass();
 		}
-		font->finish(frame);
+		font_render->finish(frame);
 		image_render->finish(frame);
 		commandBuffer->end();
 
