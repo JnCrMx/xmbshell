@@ -13,6 +13,9 @@ namespace config
 		public:
 			vk::PresentModeKHR preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
 			vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e4; // aka Anti-aliasing
+			void setSampleCount(vk::SampleCountFlagBits count) {
+				sampleCount = count;
+			}
 
 			double maxFPS = 100;
 			std::chrono::duration<double> frameTime = std::chrono::duration<double>(std::chrono::seconds(1))/maxFPS;

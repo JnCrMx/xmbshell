@@ -172,6 +172,36 @@ namespace render
 		swapchainSupport = querySwapChainSupport(physicalDevice);
 		spdlog::info("Using video device {} of type {}", deviceProperties.deviceName, vk::to_string(deviceProperties.deviceType));
 
+		vk::SampleCountFlags supportedSamples = deviceProperties.limits.framebufferColorSampleCounts;
+		if(!(supportedSamples & CONFIG.sampleCount)) {
+			spdlog::warn("Sample count {} not supported, searching for closest match", vk::to_string(CONFIG.sampleCount));
+			constexpr std::array<vk::SampleCountFlagBits, 7> sampleCounts = {
+				vk::SampleCountFlagBits::e1,
+				vk::SampleCountFlagBits::e2,
+				vk::SampleCountFlagBits::e4,
+				vk::SampleCountFlagBits::e8,
+				vk::SampleCountFlagBits::e16,
+				vk::SampleCountFlagBits::e32,
+				vk::SampleCountFlagBits::e64,
+			};
+			int index = std::distance(sampleCounts.begin(), std::find(sampleCounts.begin(), sampleCounts.end(), CONFIG.sampleCount));
+			for(int i=1; i<8; i++)
+			{
+				if(index+i < sampleCounts.size() && (supportedSamples & sampleCounts[index+i]))
+				{
+					CONFIG.setSampleCount(sampleCounts[index+i]);
+					spdlog::warn("Using sample count {}", vk::to_string(CONFIG.sampleCount));
+					break;
+				}
+				if(index-i >= 0 && (supportedSamples & sampleCounts[index-i]))
+				{
+					CONFIG.setSampleCount(sampleCounts[index-i]);
+					spdlog::warn("Using sample count {}", vk::to_string(CONFIG.sampleCount));
+					break;
+				}
+			}
+		}
+
 		std::vector<vk::DeviceQueueCreateInfo> queueInfos;
 		std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value(),
 			queueFamilyIndices.transferFamily.value_or(UINT32_MAX)};
