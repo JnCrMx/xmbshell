@@ -57,7 +57,7 @@ void image_renderer::preload(vk::RenderPass renderPass) {
         };
 
         vk::PipelineVertexInputStateCreateInfo vertex_input{};
-        vk::PipelineInputAssemblyStateCreateInfo input_assembly({}, vk::PrimitiveTopology::eTriangleList);
+        vk::PipelineInputAssemblyStateCreateInfo input_assembly({}, vk::PrimitiveTopology::eTriangleStrip);
         vk::PipelineTessellationStateCreateInfo tesselation({}, {});
 
         vk::Viewport v{};
@@ -117,7 +117,7 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, push);
-    cmd.draw(6, 1, 0, 0);
+    cmd.draw(4, 1, 0, 0);
 }
 
 void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color) {
@@ -142,7 +142,7 @@ void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::Imag
 
     cmd.pushConstants<push_constants>(pipelineLayout.get(),
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, push);
-    cmd.draw(6, 1, 0, 0);
+    cmd.draw(4, 1, 0, 0);
 }
 
 void image_renderer::finish(int frame) {
