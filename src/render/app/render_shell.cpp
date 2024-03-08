@@ -1,5 +1,6 @@
 #include "render/app/render_shell.hpp"
 
+#include "config.hpp"
 #include "render/debug.hpp"
 #include "render/resource_loader.hpp"
 
@@ -12,6 +13,14 @@ namespace render
 	{
 	}
 
+	render_shell::~render_shell()
+	{
+		for(unsigned int i = 0; i<renderImages.size(); i++)
+		{
+			allocator.destroyImage(renderImages[i], renderAllocations[i]);
+		}
+	}
+
 	void render_shell::preload()
 	{
 		font_render = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 128, device, allocator, win->swapchainExtent);
@@ -21,44 +30,63 @@ namespace render
 		pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsFamily));
 
 		{
-			vk::AttachmentDescription attachment({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
-				vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
-				vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-				vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
+			std::array<vk::AttachmentDescription, 2> attachments = {
+				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
+					vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal),
+				vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral)
+			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				{}, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachment, subpass, dep);
+			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
 			backgroundRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, backgroundRenderPass.get(), "Background Render Pass");
 		}
 		{
-			vk::AttachmentDescription attachment({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
-				vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
-				vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-				vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+			std::array<vk::AttachmentDescription, 2> attachments = {
+				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
+					vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal),
+				vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral)
+			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				{}, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachment, subpass, dep);
+			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
 			shellRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, shellRenderPass.get(), "Shell Render Pass");
 		}
 		{
-			vk::AttachmentDescription attachment({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
-				vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
-				vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-				vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR);
+			std::array<vk::AttachmentDescription, 2> attachments = {
+				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
+					vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal),
+				vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
+					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR)
+			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
+			vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				{}, vk::AccessFlagBits::eColorAttachmentWrite);
-			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachment, subpass, dep);
+			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref, rref);
+			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
 			popupRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, popupRenderPass.get(), "Popup Render Pass");
 		}
@@ -80,9 +108,26 @@ namespace render
 			vk::CommandBufferAllocateInfo(pool.get(), vk::CommandBufferLevel::ePrimary, swapchainImages.size()));
 		this->swapchainImages = swapchainImages;
 
+		renderImages.resize(swapchainImages.size());
+		renderAllocations.resize(swapchainImages.size());
+		renderViews.resize(swapchainImages.size());
 		for(int i=0; i<swapchainViews.size(); i++)
 		{
-			vk::FramebufferCreateInfo framebuffer_info({}, shellRenderPass.get(), swapchainViews[i],
+			vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, win->swapchainFormat.format,
+				vk::Extent3D(win->swapchainExtent, 1), 1, 1, config::CONFIG.sampleCount,
+				vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransientAttachment,
+				vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
+			vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
+			std::tie(renderImages[i], renderAllocations[i]) = allocator.createImage(image_info, alloc_info);
+			debugName(device, renderImages[i], "XMB Shell Render Image #"+std::to_string(i));
+
+			vk::ImageViewCreateInfo view_info({}, renderImages[i], vk::ImageViewType::e2D, win->swapchainFormat.format,
+				vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+			renderViews[i] = device.createImageViewUnique(view_info);
+			debugName(device, renderViews[i].get(), "XMB Shell Render Image View #"+std::to_string(i));
+
+			std::array<vk::ImageView, 2> attachments = {renderViews[i].get(), swapchainViews[i]};
+			vk::FramebufferCreateInfo framebuffer_info({}, shellRenderPass.get(), attachments,
 				win->swapchainExtent.width, win->swapchainExtent.height, 1);
 			framebuffers.push_back(device.createFramebufferUnique(framebuffer_info));
 			debugName(device, framebuffers.back().get(), "XMB Shell Framebuffer #"+std::to_string(i));

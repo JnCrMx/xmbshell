@@ -16,6 +16,7 @@ namespace render
 	{
 		public:
 			render_shell(window* window);
+			~render_shell();
 			void preload() override;
 			void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews) override;
 			void render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence) override;
@@ -25,6 +26,10 @@ namespace render
 			std::unique_ptr<wave_renderer> wave_render;
 
 			vk::UniqueRenderPass backgroundRenderPass, shellRenderPass, popupRenderPass;
+
+			std::vector<vk::Image> renderImages;
+			std::vector<vma::Allocation> renderAllocations;
+			std::vector<vk::UniqueImageView> renderViews;
 
 			std::vector<vk::Image> swapchainImages;
 			std::vector<vk::UniqueFramebuffer> framebuffers;

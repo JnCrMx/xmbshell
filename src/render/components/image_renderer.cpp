@@ -1,4 +1,6 @@
 #include "render/components/image_renderer.hpp"
+
+#include "config.hpp"
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
@@ -63,7 +65,7 @@ void image_renderer::preload(vk::RenderPass renderPass) {
         vk::PipelineViewportStateCreateInfo viewport({}, v, s);
 
         vk::PipelineRasterizationStateCreateInfo rasterization({}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone, vk::FrontFace::eCounterClockwise, false, 0.0f, 0.0f, 0.0f, 1.0f);
-        vk::PipelineMultisampleStateCreateInfo multisample({}, vk::SampleCountFlagBits::e1);
+        vk::PipelineMultisampleStateCreateInfo multisample({}, config::CONFIG.sampleCount);
         vk::PipelineDepthStencilStateCreateInfo depthStencil({}, false, false);
 
         vk::PipelineColorBlendAttachmentState attachment(true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
