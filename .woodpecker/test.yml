@@ -43,3 +43,5 @@ steps:
       source: build/test-*
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+    when:
+      - status: [ success, failure ]
