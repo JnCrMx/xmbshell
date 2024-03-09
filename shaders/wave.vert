@@ -2,6 +2,7 @@
 
 layout(push_constant) uniform UBO
 {
+	vec4 color;
 	float time;
 } constants;
 layout(location = 0) in vec3 VertexCoord;

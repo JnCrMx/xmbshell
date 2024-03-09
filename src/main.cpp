@@ -1,17 +1,17 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/cfg/env.h>
+#include <glibmm/init.h>
 
+#include "config.hpp"
 #include "dbus.hpp"
 #include "render/window.hpp"
 #include "render/app/render_shell.hpp"
 
-#include "config.hpp"
-
-#include <future>
-#include <thread>
-
 int main(int argc, char *argv[])
 {
+	Glib::init();
+	config::CONFIG.load();
+
 	spdlog::cfg::load_env_levels();
 #ifndef NDEBUG
 	spdlog::set_level(spdlog::level::debug);

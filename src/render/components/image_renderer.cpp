@@ -12,11 +12,13 @@
 
 namespace render {
 
-struct push_constants {
-    glm::mat4 matrix;
-    glm::vec4 color;
-    unsigned int index;
-};
+namespace {
+    struct push_constants {
+        glm::mat4 matrix;
+        glm::vec4 color;
+        unsigned int index;
+    };
+}
 
 image_renderer::~image_renderer() = default;
 

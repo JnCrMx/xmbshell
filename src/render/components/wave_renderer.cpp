@@ -12,6 +12,7 @@
 namespace render {
     namespace {
         struct push_constants {
+			glm::vec4 color;
             float time;
         };
     }
@@ -140,7 +141,10 @@ namespace render {
 
 		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
 
-        push_constants push{.time = (seconds.count() + partialSeconds.count())*speed};
+        push_constants push{
+			glm::vec4(config::CONFIG.waveColor, 1.0),
+			(seconds.count() + partialSeconds.count())*speed
+		};
         cmd.pushConstants(pipelineLayout.get(), vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(push_constants), &push);
 
         cmd.bindVertexBuffers(0, vertexBuffer, {0});

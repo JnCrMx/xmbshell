@@ -1,6 +1,7 @@
 #include "render/components/font_renderer.hpp"
 
 #include "config.hpp"
+#include "constants.hpp"
 #include "render/utils.hpp"
 #include "render/debug.hpp"
 #include "utils.hpp"
@@ -50,7 +51,12 @@ namespace render
 	void font_renderer::preload(FT_Library ft, resource_loader* loader, vk::RenderPass renderPass)
 	{
 		FT_Error err = FT_New_Face(ft, name.c_str(), 0, &face);
-		if(err != 0) throw std::runtime_error("failed to load face");
+		if(err != 0) {
+			spdlog::error("Failed to load font from \"{}\", trying fallback font", name);
+			err = FT_New_Face(ft, constants::fallback_font, 0, &face);
+			if(err != 0)
+				throw std::runtime_error("failed to load font and fallback font");
+		}
 
 		err = FT_Set_Pixel_Sizes(face, 0, size);
 		if(err != 0) throw std::runtime_error("failed to set size");

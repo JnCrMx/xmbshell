@@ -72,7 +72,7 @@ namespace render
 		SDL_GetDisplayBounds(display_index, &rect);
 
 		win = std::unique_ptr<SDL_Window, sdl_window_deleter>(
-			SDL_CreateWindow(constants::displayname.c_str(), rect.x, rect.y, rect.w, rect.h,
+			SDL_CreateWindow(constants::displayname, rect.x, rect.y, rect.w, rect.h,
 				SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_VULKAN)
 		);
 		spdlog::info("Created window ({}x{} @ {}:{}) on monitor \"{}\"", rect.w, rect.h, rect.x, rect.y,
@@ -85,7 +85,6 @@ namespace render
 		window_height = rect.h;
 
 		refreshRate = mode.refresh_rate;
-		CONFIG.setMaxFPS(refreshRate);
 	}
 
 	void window::initVulkan()
@@ -116,9 +115,9 @@ namespace render
 		spdlog::debug("Using extensions: {}", fmt::join(extensions, ", "));
 
 		auto const app = vk::ApplicationInfo()
-			.setPApplicationName(constants::name.c_str())
+			.setPApplicationName(constants::name)
 			.setApplicationVersion(constants::version)
-			.setPEngineName(constants::name.c_str())
+			.setPEngineName(constants::name)
 			.setEngineVersion(constants::version)
 			.setApplicationVersion(VK_VERSION_1_2);
 		auto const inst_info = vk::InstanceCreateInfo()

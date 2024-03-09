@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist>
+    <schema path="/re/jcm/xmbos/xmbshell/" id="re.jcm.xmbos.xmbshell">
+        <key name='font-path' type='s'>
+            <default>'/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf'</default>
+            <summary>Font</summary>
+            <description>
+                Path to the font to use to render text.
+            </description>
+        </key>
+        <key name='wave-color' type='s'>
+            <default>'#FFFFFF'</default>
+            <summary>Wave color</summary>
+            <description>
+                Color of the background wave.
+            </description>
+        </key>
+    </schema>
+    <schema path="/re/jcm/xmbos/xmbshell/render/" id="re.jcm.xmbos.xmbshell.render">
+        <key name='vsync' type='b'>
+            <default>true</default>
+            <summary>Render with VSync</summary>
+            <description>
+                When enabled, the shell will render with VSync, which avoids screen tearing,
+                but limits the FPS to the refresh rate of the monitor.
+                This can cause input lag and can therefore be disabled to let the shell render as fast as possible.
+            </description>
+        </key>
+        <key name='max-fps' type='i'>
+            <default>200</default>
+            <summary>Maximum FPS</summary>
+            <description>
+                Limits the maximum FPS the shell can render.
+                This can be useful to avoid the shell rendering as fast as possible and using all the resources.
+                When set to 0 (or a negative value), the shell will render as fast as possible.
+                When VSync is enabled this setting is ignored if it is higher than the refresh rate of the monitor.
+            </description>
+        </key>
+        <key name='sample-count' type='i'>
+            <default>4</default>
+            <summary>Sample count</summary>
+            <description>
+                The number of samples to use for multisampling.
+                This can be useful to improve the quality of the rendering, but it can also be more resource intensive.
+                A value of 1 disables multisampling.
+            </description>
+        </key>
+        <key name='show-fps' type='b'>
+            <default>true</default>
+            <summary>Show FPS</summary>
+            <description>
+                When enabled, the shell will show the FPS in the top left corner of the screen.
+            </description>
+        </key>
+        <key name='show-mem' type='b'>
+            <default>true</default>
+            <summary>Show memory usage</summary>
+            <description>
+                When enabled, the shell will show the memory usage in the top right corner of the screen.
+            </description>
+        </key>
+    </schema>
+</schemalist>

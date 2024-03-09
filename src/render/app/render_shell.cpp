@@ -23,7 +23,7 @@ namespace render
 
 	void render_shell::preload()
 	{
-		font_render = std::make_unique<font_renderer>("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", 32, device, allocator, win->swapchainExtent);
+		font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
 		wave_render = std::make_unique<wave_renderer>(device, allocator, win->swapchainExtent);
 
@@ -198,7 +198,20 @@ namespace render
 		renderer.draw_image(*test_texture, x, 0.4f, 0.1f, 0.1f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));
 		renderer.draw_text("Internet", x+0.05f/renderer.aspect_ratio, 0.5f, 0.033f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f), true);
 
-		renderer.draw_text("FPS: "+std::to_string(win->currentFPS), 0, 0, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
-		renderer.draw_text("Hello Cynder :D", 0.5, 0, 0.1f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		double debug_y = 0.0;
+		if(config::CONFIG.showFPS) {
+			renderer.draw_text(std::format("FPS: {:.2f}", win->currentFPS), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+			debug_y += 0.025f;
+		}
+		if(config::CONFIG.showMemory) {
+			vk::DeviceSize budget{}, usage{};
+			for(const auto& b : allocator.getHeapBudgets()) {
+				budget += b.budget;
+				usage += b.usage;
+			}
+			constexpr double mb = 1024.0*1024.0;
+			renderer.draw_text(std::format("Memory: {:.2f}/{:.2f} MB", usage/mb, budget/mb), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+			debug_y += 0.025f;
+		}
 	}
 }

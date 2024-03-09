@@ -15,6 +15,9 @@ find_package(SDL2 REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
@@ -53,6 +56,7 @@ target_compile_options(optimized_components PRIVATE -O3)
 
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
+target_include_directories(xmbshell PRIVATE ${GIOMM_INCLUDE_DIRS})
 
 target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
 target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
@@ -63,6 +67,7 @@ target_link_libraries(xmbshell PRIVATE sdbus-c++)
 target_link_libraries(xmbshell PRIVATE spng)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
+target_link_libraries(xmbshell PRIVATE ${GIOMM_LIBRARIES})
 
 foreach(shader ${shaders})
 	add_shader(xmbshell ${shader})

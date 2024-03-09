@@ -1,11 +1,13 @@
+#pragma once
+
 #include <cstdint>
-#include <string>
-#include <vulkan/vulkan.h>
 
 namespace constants
 {
-	inline const std::string displayname = "XMB Shell";
-	inline const std::string name = "xmbshell";
+	constexpr auto displayname = "XMB Shell";
+	constexpr auto name = "xmbshell";
 
-	inline const uint32_t version = 1;
+	constexpr uint32_t version = 1;
+
+	constexpr auto fallback_font = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf";
 }
