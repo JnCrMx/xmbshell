@@ -17,18 +17,22 @@ steps:
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         clang cmake ninja-build git glslang-tools xxd patch ca-certificates
-        libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libglm-dev libspdlog-dev libfreetype-dev
+        libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libglm-dev
+        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libglib2.0-bin
       - cmake -B build -G Ninja -DDOWNLOAD_DEPENDENCIES_SHALLOW=ON
       - cmake --build build --parallel 1
+      - glib-compile-schemas schemas
   test:
     image: ubuntu:mantic
     commands:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libspdlog1.10 vulkan-validationlayers ffmpeg fonts-ubuntu
+        xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libspdlog1.10 libglibmm-2.68-1
+        vulkan-validationlayers ffmpeg fonts-ubuntu
       - Xvfb :99 -screen 0 1920x1080x24 -reset -terminate &
       - export DISPLAY=:99
+      - export GSETTINGS_SCHEMA_DIR="$PWD/schemas:$GSETTINGS_SCHEMA_DIR"
       - dbus-launch timeout 60 ./build/xmbshell | tee build/test-log.txt &
       - ffmpeg -threads 1 -video_size 1920x1080 -framerate 30 -f x11grab -i :99 -preset ultrafast -qp 0 -t 60 -y build/test-output.mp4
   upload:
