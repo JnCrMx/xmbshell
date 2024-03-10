@@ -90,6 +90,8 @@ namespace render
 
 	void window::initInput()
 	{
+		SDL_GameControllerEventState(SDL_ENABLE);
+
 		int numJoysticks = SDL_NumJoysticks();
 		for(int i=0; i<numJoysticks; i++)
 		{

@@ -13,7 +13,7 @@
 namespace app
 {
 	using namespace render;
-	class xmbshell : public phase
+	class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler
 	{
 		public:
 			xmbshell(window* window);
@@ -21,6 +21,15 @@ namespace app
 			void preload() override;
 			void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews) override;
 			void render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence) override;
+
+			void key_up(SDL_Keysym key) override;
+			void key_down(SDL_Keysym key) override;
+
+			void add_controller(SDL_GameController* controller) override;
+			void remove_controller(SDL_GameController* controller) override;
+			void button_down(SDL_GameController* controller, SDL_GameControllerButton button) override;
+			void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
+			void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
 		private:
 			std::unique_ptr<font_renderer> font_render;
 			std::unique_ptr<image_renderer> image_render;

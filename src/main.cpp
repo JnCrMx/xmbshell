@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	server.run();
 
 	app::xmbshell* shell = new app::xmbshell(&window);
-	window.set_phase(shell);
+	window.set_phase(shell, shell, shell);
 
 	window.loop();
 

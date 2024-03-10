@@ -214,4 +214,32 @@ namespace app
 			debug_y += 0.025f;
 		}
 	}
+
+	void xmbshell::key_up(SDL_Keysym key)
+	{
+		spdlog::trace("Key up: {}", key.sym);
+	}
+	void xmbshell::key_down(SDL_Keysym key)
+	{
+		spdlog::trace("Key down: {}", key.sym);
+	}
+
+	void xmbshell::add_controller(SDL_GameController* controller)
+	{
+	}
+	void xmbshell::remove_controller(SDL_GameController* controller)
+	{
+	}
+	void xmbshell::button_down(SDL_GameController* controller, SDL_GameControllerButton button)
+	{
+		spdlog::trace("Button down: {}", fmt::underlying(button));
+	}
+	void xmbshell::button_up(SDL_GameController* controller, SDL_GameControllerButton button)
+	{
+		spdlog::trace("Button up: {}", fmt::underlying(button));
+	}
+	void xmbshell::axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value)
+	{
+		spdlog::trace("Axis motion: {} {}", fmt::underlying(axis), value);
+	}
 }
