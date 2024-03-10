@@ -10,13 +10,14 @@
 
 #include <memory>
 
-namespace render
+namespace app
 {
-	class render_shell : public phase
+	using namespace render;
+	class xmbshell : public phase
 	{
 		public:
-			render_shell(window* window);
-			~render_shell();
+			xmbshell(window* window);
+			~xmbshell();
 			void preload() override;
 			void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews) override;
 			void render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence) override;

@@ -1,4 +1,4 @@
-#include "render/app/render_shell.hpp"
+#include "app/xmbshell.hpp"
 
 #include "config.hpp"
 #include "render/debug.hpp"
@@ -7,13 +7,13 @@
 #include <chrono>
 #include <fmt/format.h>
 
-namespace render
+namespace app
 {
-	render_shell::render_shell(window* window) : phase(window)
+	xmbshell::xmbshell(window* window) : phase(window)
 	{
 	}
 
-	render_shell::~render_shell()
+	xmbshell::~xmbshell()
 	{
 		for(unsigned int i = 0; i<renderImages.size(); i++)
 		{
@@ -21,7 +21,7 @@ namespace render
 		}
 	}
 
-	void render_shell::preload()
+	void xmbshell::preload()
 	{
 		font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
@@ -102,7 +102,7 @@ namespace render
 		loader->loadTexture(test_texture.get(), "applications-internet.png").get();
 	}
 
-	void render_shell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
+	void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
 	{
 		commandBuffers = device.allocateCommandBuffersUnique(
 			vk::CommandBufferAllocateInfo(pool.get(), vk::CommandBufferLevel::ePrimary, swapchainImages.size()));
@@ -139,7 +139,7 @@ namespace render
 		wave_render->prepare(swapchainViews.size());
 	}
 
-	void render_shell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
+	void xmbshell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
 	{
 		vk::UniqueCommandBuffer& commandBuffer = commandBuffers[frame];
 
@@ -192,7 +192,7 @@ namespace render
 		graphicsQueue.submit(submit_info, fence);
 	}
 
-	void render_shell::render_gui(gui_renderer& renderer) {
+	void xmbshell::render_gui(gui_renderer& renderer) {
 		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
 		double x = std::fmod(seconds.count(), 10.0) / 10.0;
 		renderer.draw_image(*test_texture, x, 0.4f, 0.1f, 0.1f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));

@@ -5,7 +5,7 @@
 #include "config.hpp"
 #include "dbus.hpp"
 #include "render/window.hpp"
-#include "render/app/render_shell.hpp"
+#include "app/xmbshell.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
 	dbus::dbus_server server(&window);
 	server.run();
 
-	render::render_shell* renderer = new render::render_shell(&window);
-	window.set_phase(renderer);
+	app::xmbshell* shell = new app::xmbshell(&window);
+	window.set_phase(shell);
 
 	window.loop();
 
