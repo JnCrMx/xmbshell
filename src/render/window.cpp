@@ -10,6 +10,7 @@
 #include <SDL_rect.h>
 #include <SDL_video.h>
 #include <SDL_vulkan.h>
+#include <SDL_mixer.h>
 
 #include <cxxabi.h>
 
@@ -109,6 +110,14 @@ namespace render
 					spdlog::warn("Failed to open controller {}: {}", i, SDL_GetError());
 				}
 			}
+		}
+	}
+
+	void window::initAudio()
+	{
+		if(Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 2048) < 0) {
+			spdlog::error("Failed to open audio: {}", Mix_GetError());
+			return;
 		}
 	}
 
@@ -580,5 +589,7 @@ namespace render
 		loader.reset();
 
 		allocator.destroy();
+
+		Mix_Quit();
 	}
 }

@@ -128,6 +128,7 @@ namespace render
 		private:
 			void initWindow();
 			void initInput();
+			void initAudio();
 			void initVulkan();
 
 			int rateDeviceSuitability(vk::PhysicalDevice phyDev);
