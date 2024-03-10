@@ -6,12 +6,14 @@
 
 #include <SDL.h>
 
-#include <optional>
-#include <memory>
 #include <chrono>
+#include <map>
+#include <memory>
+#include <optional>
 
 #include "phase.hpp"
 #include "resource_loader.hpp"
+#include "input.hpp"
 
 namespace render
 {
@@ -41,15 +43,19 @@ namespace render
 			void init();
 			void loop();
 
-			void set_phase(phase* renderer);
+			void set_phase(phase* renderer, input::keyboard_handler* keyboard_handler = nullptr, input::controller_handler* controller_handler = nullptr);
 
 			std::unique_ptr<resource_loader> loader;
 
 			std::unique_ptr<phase> current_renderer;
+			input::keyboard_handler* keyboard_handler;
+			input::controller_handler* controller_handler;
 
 			struct sdl_initializer {
                 sdl_initializer() {
-                    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+                    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
+						SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_JOYSTICK |
+						SDL_INIT_AUDIO);
                 }
                 ~sdl_initializer() {
                     SDL_Quit();
@@ -109,11 +115,19 @@ namespace render
 			double currentFPS;
 			int refreshRate;
 
+			struct sdl_controller_closer {
+				void operator()(SDL_GameController* ptr) const {
+					SDL_GameControllerClose(ptr);
+				}
+			};
+			std::map<SDL_JoystickID, std::unique_ptr<SDL_GameController, sdl_controller_closer>> controllers;
+
 #ifndef NDEBUG
 			vk::UniqueDebugUtilsMessengerEXT debugMessenger;
 #endif
 		private:
 			void initWindow();
+			void initInput();
 			void initVulkan();
 
 			int rateDeviceSuitability(vk::PhysicalDevice phyDev);

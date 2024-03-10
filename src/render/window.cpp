@@ -61,6 +61,7 @@ namespace render
 	void window::init()
 	{
 		initWindow();
+		initInput();
 		initVulkan();
 	}
 
@@ -85,6 +86,28 @@ namespace render
 		window_height = rect.h;
 
 		refreshRate = mode.refresh_rate;
+	}
+
+	void window::initInput()
+	{
+		int numJoysticks = SDL_NumJoysticks();
+		for(int i=0; i<numJoysticks; i++)
+		{
+			if(SDL_IsGameController(i))
+			{
+				auto controller = SDL_GameControllerOpen(i);
+				if(controller)
+				{
+					SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
+					controllers[id] = std::unique_ptr<SDL_GameController, sdl_controller_closer>(controller);
+					spdlog::debug("Opened controller \"{}\" with id {}", SDL_GameControllerName(controller), id);
+				}
+				else
+				{
+					spdlog::warn("Failed to open controller {}: {}", i, SDL_GetError());
+				}
+			}
+		}
 	}
 
 	void window::initVulkan()
@@ -334,9 +357,19 @@ namespace render
 #endif
 	}
 
-	void window::set_phase(phase* renderer)
+	void window::set_phase(phase* renderer, input::keyboard_handler* keyboard, input::controller_handler* controller)
 	{
 		current_renderer.reset(renderer);
+		keyboard_handler = keyboard;
+		controller_handler = controller;
+
+		if(controller_handler) {
+			for(auto& [id, controller] : controllers)
+			{
+				if(controller)
+					controller_handler->add_controller(controller.get());
+			}
+		}
 
 		auto t0 = std::chrono::high_resolution_clock::now();
 		current_renderer->preload();
@@ -422,8 +455,56 @@ namespace render
 			SDL_Event event;
 			while(SDL_PollEvent(&event))
 			{
-				if(event.type == SDL_QUIT)
-					return;
+				switch(event.type) {
+					case SDL_QUIT:
+						return;
+					case SDL_KEYDOWN:
+						if(keyboard_handler)
+							keyboard_handler->key_down(event.key.keysym);
+						break;
+					case SDL_KEYUP:
+						if(keyboard_handler)
+							keyboard_handler->key_up(event.key.keysym);
+						break;
+					case SDL_CONTROLLERBUTTONDOWN:
+						if(controller_handler)
+							controller_handler->button_down(controllers[event.cbutton.which].get(), static_cast<SDL_GameControllerButton>(event.cbutton.button));
+						break;
+					case SDL_CONTROLLERBUTTONUP:
+						if(controller_handler)
+							controller_handler->button_up(controllers[event.cbutton.which].get(), static_cast<SDL_GameControllerButton>(event.cbutton.button));
+						break;
+					case SDL_CONTROLLERAXISMOTION:
+						if(controller_handler)
+							controller_handler->axis_motion(controllers[event.caxis.which].get(), static_cast<SDL_GameControllerAxis>(event.caxis.axis), event.caxis.value);
+						break;
+					case SDL_CONTROLLERDEVICEADDED:
+						if(SDL_IsGameController(event.cdevice.which))
+						{
+							auto controller = SDL_GameControllerOpen(event.cdevice.which);
+							if(controller)
+							{
+								SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
+								controllers[id] = std::unique_ptr<SDL_GameController, sdl_controller_closer>(controller);
+								spdlog::debug("Connected controller \"{}\" with id {}", SDL_GameControllerName(controller), id);
+								if(controller_handler)
+									controller_handler->add_controller(controller);
+							}
+							else
+							{
+								spdlog::warn("Failed to open controller {}: {}", event.cdevice.which, SDL_GetError());
+							}
+						}
+						break;
+					case SDL_CONTROLLERDEVICEREMOVED:
+						if(controller_handler)
+							controller_handler->remove_controller(controllers[event.cdevice.which].get());
+						if(controllers.contains(event.cdevice.which)) {
+							spdlog::debug("Disconnected controller \"{}\" with id {}", SDL_GameControllerName(controllers[event.cdevice.which].get()), event.cdevice.which);
+							controllers.erase(event.cdevice.which);
+						}
+						break;
+				}
 			}
 
 			auto now = std::chrono::high_resolution_clock::now();
