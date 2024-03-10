@@ -16,9 +16,9 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang cmake ninja-build git glslang-tools xxd patch ca-certificates
+        clang cmake ninja-build git glslang-tools xxd patch ca-certificates libglib2.0-bin
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libglm-dev
-        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libglib2.0-bin
+        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libspng-dev libsdbus-c++-dev
       - cmake -B build -G Ninja -DDOWNLOAD_DEPENDENCIES_SHALLOW=ON
       - cmake --build build --parallel 1
       - glib-compile-schemas schemas
@@ -28,7 +28,7 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libspdlog1.10 libglibmm-2.68-1
+        xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libspdlog1.10 libglibmm-2.68-1 libspng0 libsdbus-c++1
         vulkan-validationlayers ffmpeg fonts-ubuntu
       - Xvfb :99 -screen 0 1920x1080x24 -reset -terminate &
       - export DISPLAY=:99

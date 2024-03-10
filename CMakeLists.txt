@@ -15,20 +15,16 @@ find_package(SDL2 REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(sdbus-c++ REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
+pkg_check_modules(SPNG spng REQUIRED)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
 file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom)
 
-FetchContent_Declare(
-  libspng
-  GIT_REPOSITORY https://github.com/randy408/libspng.git
-  GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
-  GIT_TAG        v0.7.4
-)
 FetchContent_Declare(
   VulkanMemoryAllocator-Hpp
   GIT_REPOSITORY https://github.com/YaaZ/VulkanMemoryAllocator-Hpp.git
@@ -37,15 +33,7 @@ FetchContent_Declare(
   GIT_SUBMODULES_RECURSE FALSE
   PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
 )
-FetchContent_Declare(
-  sdbus-cpp
-  GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
-  GIT_TAG        v1.5.0
-  GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
-)
-FetchContent_MakeAvailable(libspng VulkanMemoryAllocator-Hpp sdbus-cpp)
-
-target_compile_options(spng PRIVATE -O3)
+FetchContent_MakeAvailable(VulkanMemoryAllocator-Hpp)
 
 add_executable(xmbshell ${sources})
 
@@ -57,17 +45,18 @@ target_compile_options(optimized_components PRIVATE -O3)
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
 target_include_directories(xmbshell PRIVATE ${GIOMM_INCLUDE_DIRS})
+target_include_directories(xmbshell PRIVATE ${SPNG_INCLUDE_DIRS})
 
 target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
 target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
 target_link_libraries(xmbshell PRIVATE SDL2::SDL2)
 target_link_libraries(xmbshell PRIVATE spdlog::spdlog)
 target_link_libraries(xmbshell PRIVATE dl)
-target_link_libraries(xmbshell PRIVATE sdbus-c++)
-target_link_libraries(xmbshell PRIVATE spng)
+target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
 target_link_libraries(xmbshell PRIVATE ${GIOMM_LIBRARIES})
+target_link_libraries(xmbshell PRIVATE ${SPNG_LIBRARIES})
 
 foreach(shader ${shaders})
 	add_shader(xmbshell ${shader})
