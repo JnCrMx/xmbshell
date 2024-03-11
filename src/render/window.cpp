@@ -62,6 +62,7 @@ namespace render
 	void window::init()
 	{
 		initWindow();
+		initAudio();
 		initInput();
 		initVulkan();
 	}

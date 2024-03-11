@@ -17,6 +17,11 @@ static std::unique_ptr<simple_menu> create_simple_menu(const std::string& name, 
 }
 
 void main_menu::preload(vk::Device device, vma::Allocator allocator, render::resource_loader& loader) {
+    ok_sound = SoundChunk(Mix_LoadWAV("sounds/ok.wav"));
+    if(!ok_sound) {
+        spdlog::error("Mix_LoadWAV: {}", Mix_GetError());
+    }
+
     menus.push_back(create_simple_menu("Users", "icons/icon_category_users.png", device, allocator, loader));
     menus.push_back(create_simple_menu("Settings", "icons/icon_category_settings.png", device, allocator, loader));
     menus.push_back(create_simple_menu("Photo", "icons/icon_category_photo.png", device, allocator, loader));
@@ -82,11 +87,19 @@ bool main_menu::select_relative(direction dir) {
     if(dir == direction::left) {
         if(selected > 0) {
             select(selected-1);
+            if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+            }
+
             return true;
         }
     } else if(dir == direction::right) {
         if(selected < menus.size()-1) {
             select(selected+1);
+            if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+            }
+
             return true;
         }
     }

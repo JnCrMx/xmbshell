@@ -5,9 +5,18 @@
 #include "render/resource_loader.hpp"
 #include "input.hpp"
 
+#include <SDL_mixer.h>
+
 #include <optional>
 
 namespace app {
+
+struct Mix_Chunk_Freer {
+    void operator()(Mix_Chunk* chunk) {
+        Mix_FreeChunk(chunk);
+    }
+};
+using SoundChunk = std::unique_ptr<Mix_Chunk, Mix_Chunk_Freer>;
 
 class main_menu : input::keyboard_handler, input::controller_handler {
     public:
@@ -31,6 +40,8 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         void select(int index);
         bool select_relative(direction dir);
         void error_rumble(SDL_GameController* controller);
+
+        SoundChunk ok_sound;
 
         std::vector<std::unique_ptr<menu>> menus;
         int selected = 0;
