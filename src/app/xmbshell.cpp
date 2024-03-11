@@ -2,7 +2,6 @@
 
 #include "config.hpp"
 #include "render/debug.hpp"
-#include "render/resource_loader.hpp"
 
 #include <chrono>
 #include <fmt/format.h>
@@ -97,9 +96,7 @@ namespace app
 		font_render->preload(ft, loader, shellRenderPass.get());
 		image_render->preload(shellRenderPass.get());
 		wave_render->preload(backgroundRenderPass.get());
-
-		test_texture = std::make_unique<texture>(device, allocator);
-		loader->loadTexture(test_texture.get(), "applications-internet.png").get();
+		menu.preload(device, allocator, *loader);
 	}
 
 	void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -193,10 +190,7 @@ namespace app
 	}
 
 	void xmbshell::render_gui(gui_renderer& renderer) {
-		std::chrono::duration<double> seconds = (std::chrono::high_resolution_clock::now() - win->startTime);
-		double x = std::fmod(seconds.count(), 10.0) / 10.0;
-		renderer.draw_image(*test_texture, x, 0.4f, 0.1f, 0.1f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));
-		renderer.draw_text("Internet", x+0.05f/renderer.aspect_ratio, 0.5f, 0.033f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f), true);
+		menu.render(renderer);
 
     	auto now = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
 		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(now)),
@@ -222,10 +216,12 @@ namespace app
 	void xmbshell::key_up(SDL_Keysym key)
 	{
 		spdlog::trace("Key up: {}", key.sym);
+		menu.key_up(key);
 	}
 	void xmbshell::key_down(SDL_Keysym key)
 	{
 		spdlog::trace("Key down: {}", key.sym);
+		menu.key_down(key);
 	}
 
 	void xmbshell::add_controller(SDL_GameController* controller)
@@ -237,13 +233,16 @@ namespace app
 	void xmbshell::button_down(SDL_GameController* controller, SDL_GameControllerButton button)
 	{
 		spdlog::trace("Button down: {}", fmt::underlying(button));
+		menu.button_down(controller, button);
 	}
 	void xmbshell::button_up(SDL_GameController* controller, SDL_GameControllerButton button)
 	{
 		spdlog::trace("Button up: {}", fmt::underlying(button));
+		menu.button_up(controller, button);
 	}
 	void xmbshell::axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value)
 	{
 		spdlog::trace("Axis motion: {} {}", fmt::underlying(axis), value);
+		menu.axis_motion(controller, axis, value);
 	}
 }

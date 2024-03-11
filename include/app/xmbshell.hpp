@@ -1,7 +1,7 @@
 #pragma once
 
+#include "app/components/main_menu.hpp"
 #include "render/phase.hpp"
-#include "render/texture.hpp"
 #include "render/window.hpp"
 #include "render/components/font_renderer.hpp"
 #include "render/components/image_renderer.hpp"
@@ -47,7 +47,7 @@ namespace app
 			vk::UniqueCommandPool pool;
 			std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
-			std::unique_ptr<texture> test_texture;
+			main_menu menu;
 
 			void render_gui(gui_renderer& renderer);
 	};

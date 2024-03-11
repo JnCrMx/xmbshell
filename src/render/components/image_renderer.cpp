@@ -101,6 +101,8 @@ void image_renderer::prepare(int frameCount) {
 }
 
 void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX, float scaleY, glm::vec4 color) {
+    if(!view)
+        return;
     vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);
@@ -123,6 +125,8 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView
 }
 
 void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color) {
+    if(!view)
+        return;
     vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);

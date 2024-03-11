@@ -89,10 +89,17 @@ namespace render
 		return vk::Extent2D{ihdr.width, ihdr.height};
 	}
 
+	struct spng_ctx_deleter
+	{
+		void operator()(spng_ctx* ctx) const
+		{
+			spng_ctx_free(ctx);
+		}
+	};
 	void load_texture(
-		int index, LoadTask& task,
+		int index, LoadTask& task, std::mutex& lock,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
-		vk::CommandBuffer commandBuffer, spng_ctx* ctx,
+		vk::CommandBuffer commandBuffer,
 		uint8_t* decodeBuffer, size_t stagingSize, vk::Buffer stagingBuffer)
 	{
 		texture* tex = std::get<texture*>(task.dst);
@@ -110,25 +117,28 @@ namespace render
 			in.seekg(0);
 			in.read(data.data(), size);
 
-			spng_set_png_buffer(ctx, data.data(), data.size());
+			std::unique_ptr<spng_ctx, spng_ctx_deleter> ctx(spng_ctx_new(0));
+			spng_set_png_buffer(ctx.get(), data.data(), data.size());
 
 			struct spng_ihdr ihdr;
-    		spng_get_ihdr(ctx, &ihdr);
-			tex->create_image(ihdr.width, ihdr.height);
+    		spng_get_ihdr(ctx.get(), &ihdr);
+
+			{
+				std::scoped_lock<std::mutex> l(lock);
+				tex->create_image(ihdr.width, ihdr.height);
+			}
 
 			size_t decodedSize;
-			spng_decoded_image_size(ctx, SPNG_FMT_RGBA8, &decodedSize);
+			spng_decoded_image_size(ctx.get(), SPNG_FMT_RGBA8, &decodedSize);
 			assert(decodedSize <= stagingSize);
-			spng_decode_image(ctx, decodeBuffer, decodedSize, SPNG_FMT_RGBA8, 0);
+			spng_decode_image(ctx.get(), decodeBuffer, decodedSize, SPNG_FMT_RGBA8, 0);
 		}
 		else
 		{
 			std::fill(decodeBuffer, decodeBuffer+stagingSize, 0x00);
 			std::get<LoaderFunction>(task.src)(decodeBuffer, stagingSize);
 		}
-		void* buf = allocator.mapMemory(allocation);
-		std::copy(decodeBuffer, decodeBuffer+stagingSize, (char*)buf);
-		allocator.unmapMemory(allocation);
+		allocator.copyMemoryToAllocation(decodeBuffer, allocation, 0, stagingSize);
 
 		commandBuffer.begin(vk::CommandBufferBeginInfo());
 
@@ -206,19 +216,26 @@ namespace render
 
 	void resource_loader::loadThread(int index, vk::Queue queue)
 	{
-		vk::UniqueCommandPool pool = device.createCommandPoolUnique(
-				vk::CommandPoolCreateInfo({}, transferFamily));
-		vk::UniqueCommandBuffer commandBuffer = std::move(device.allocateCommandBuffersUnique(
-				vk::CommandBufferAllocateInfo(pool.get(), vk::CommandBufferLevel::ePrimary, 1)).back());
-		vk::UniqueFence fence = device.createFenceUnique(vk::FenceCreateInfo());
+		vk::UniqueCommandPool pool;
+		vk::UniqueCommandBuffer commandBuffer;
+		vk::UniqueFence fence;
+		vk::Buffer stagingBuffer;
+		vma::Allocation allocation;
+		{
+			std::scoped_lock<std::mutex> l(lock);
 
-		vk::BufferCreateInfo buffer_info({}, stagingSize, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive);
-		vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eCpuToGpu);
-		auto [stagingBuffer, allocation] = allocator.createBuffer(buffer_info, alloc_info);
+			pool = device.createCommandPoolUnique(
+					vk::CommandPoolCreateInfo({}, transferFamily));
+			commandBuffer = std::move(device.allocateCommandBuffersUnique(
+					vk::CommandBufferAllocateInfo(pool.get(), vk::CommandBufferLevel::ePrimary, 1)).back());
+			fence = device.createFenceUnique(vk::FenceCreateInfo());
+
+			vk::BufferCreateInfo buffer_info({}, stagingSize, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive);
+			vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eCpuToGpu);
+			std::tie(stagingBuffer, allocation) = allocator.createBuffer(buffer_info, alloc_info);
+		}
 
 		uint8_t* cpuBuffer = new uint8_t[stagingSize];
-
-		spng_ctx *ctx = spng_ctx_new(0);
 
 		spdlog::info("[Resource Loader {}]: Started", index);
 		std::unique_lock<std::mutex> l(lock);
@@ -240,7 +257,7 @@ namespace render
 				{
 					if(task.type == Texture)
 					{
-						load_texture(index, task, device, allocator, allocation, commandBuffer.get(), ctx, cpuBuffer, stagingSize, stagingBuffer);
+						load_texture(index, task, lock, device, allocator, allocation, commandBuffer.get(), cpuBuffer, stagingSize, stagingBuffer);
 					}
 					else if(task.type == Model)
 					{
@@ -261,14 +278,16 @@ namespace render
 				}
 				auto t1 = std::chrono::high_resolution_clock::now();
 				auto time = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-				spdlog::debug("[Resource Loader {}] Loaded {} in {} ms", index,
-					std::holds_alternative<std::string>(task.src) ? std::get<std::string>(task.src) : "dynamic resource", time);
+				spdlog::debug("[Resource Loader {}] Loaded {} into {} in {} ms", index,
+					std::holds_alternative<std::string>(task.src) ? std::get<std::string>(task.src) : "dynamic resource",
+					std::holds_alternative<texture*>(task.dst) ? static_cast<void*>(std::get<texture*>(task.dst)->image) :
+						(std::holds_alternative<model*>(task.dst) ? std::get<model*>(task.dst)->vertexBuffer : VK_NULL_HANDLE),
+					time);
 
 				l.lock();
 			}
 		} while(!quit);
 
-		spng_ctx_free(ctx);
 		allocator.destroyBuffer(stagingBuffer, allocation);
 		spdlog::info("[Resource Loader {}]: Quit", index);
 	}
