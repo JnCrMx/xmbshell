@@ -198,6 +198,10 @@ namespace app
 		renderer.draw_image(*test_texture, x, 0.4f, 0.1f, 0.1f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f));
 		renderer.draw_text("Internet", x+0.05f/renderer.aspect_ratio, 0.5f, 0.033f, glm::vec4(x, 1.0f-x, 0.5f, 1.0f), true);
 
+    	auto now = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(now)),
+			0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
+
 		double debug_y = 0.0;
 		if(config::CONFIG.showFPS) {
 			renderer.draw_text(std::format("FPS: {:.2f}", win->currentFPS), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));

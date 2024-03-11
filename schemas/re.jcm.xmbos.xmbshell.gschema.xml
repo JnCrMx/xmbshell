@@ -9,10 +9,25 @@
             </description>
         </key>
         <key name='wave-color' type='s'>
-            <default>'#FFFFFF'</default>
+            <default>'#f9f9f9'</default>
             <summary>Wave color</summary>
             <description>
                 Color of the background wave.
+            </description>
+        </key>
+        <key name='date-time-format' type='s'>
+            <default>'m/%d %H:%M'</default>
+            <summary>Date Time format</summary>
+            <description>
+                Format to use to display the date and time.
+            </description>
+        </key>
+        <key name='date-time-x-offset' type='d'>
+            <default>0.0</default>
+            <summary>Date Time x offset</summary>
+            <description>
+                Offset (in relative screen units) to move the date time by.
+                This is useful when setting a longer format for the date time.
             </description>
         </key>
     </schema>

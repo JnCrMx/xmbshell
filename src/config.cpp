@@ -8,6 +8,8 @@ void config::load() {
         Gio::Settings::create("re.jcm.xmbos.xmbshell");
     setFontPath(shellSettings->get_string("font-path"));
     setWaveColor(shellSettings->get_string("wave-color"));
+    setDateTimeFormat(shellSettings->get_string("date-time-format"));
+    dateTimeOffset = shellSettings->get_double("date-time-x-offset");
 
     Glib::RefPtr<Gio::Settings> renderSettings =
         Gio::Settings::create("re.jcm.xmbos.xmbshell.render");
@@ -33,6 +35,57 @@ void config::load() {
 
     showFPS = renderSettings->get_boolean("show-fps");
     showMemory = renderSettings->get_boolean("show-mem");
+}
+
+void config::setSampleCount(vk::SampleCountFlagBits count) {
+    sampleCount = count;
+}
+void config::setMaxFPS(double fps) {
+    if(fps <= 0) {
+        maxFPS = std::numeric_limits<double>::max();
+        frameTime = std::chrono::duration<double>(0);
+        return;
+    }
+    maxFPS = fps;
+    frameTime = std::chrono::duration<double>(std::chrono::seconds(1))/maxFPS;
+}
+void config::setFontPath(std::string path) {
+    fontPath = path;
+}
+void config::setWaveColor(glm::vec3 color) {
+    waveColor = color;
+}
+void config::setWaveColor(std::string_view hex) {
+    if(hex.size() != 7 || hex[0] != '#') {
+        spdlog::error("Ignoring invalid hex wave-color: {}", hex);
+        return;
+    }
+    auto parseHex = [](std::string_view hex) -> std::optional<unsigned int> {
+        unsigned int value;
+        if(std::from_chars(hex.data(), hex.data() + hex.size(), value, 16).ec == std::errc()) {
+            return value;
+        }
+        return std::nullopt;
+    };
+    waveColor = glm::vec3(
+        parseHex(hex.substr(1, 2)).value_or(0) / 255.0f,
+        parseHex(hex.substr(3, 2)).value_or(0) / 255.0f,
+        parseHex(hex.substr(5, 2)).value_or(0) / 255.0f
+    );
+}
+void config::setWaveColor(const std::string& hex) {
+    setWaveColor(std::string_view(hex));
+}
+void config::setDateTimeFormat(const std::string& format) {
+    auto now = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+    try {
+        std::ignore = std::vformat("{:"+format+"}", std::make_format_args(now));
+        dateTimeFormat = format;
+    } catch(const std::exception& e) {
+        spdlog::error("Invalid date-time format: \"{}\", error is: {}", format, e.what());
+        spdlog::warn("Using fallback format: {}", constants::fallback_datetime_format);
+        dateTimeFormat = constants::fallback_datetime_format;
+    }
 }
 
 }
