@@ -16,6 +16,13 @@ namespace config
 		public:
 			config() = default;
 
+			std::string asset_directory = [](){
+				if(auto v = std::getenv("XMB_ASSET_DIR"); v != nullptr) {
+					return std::string(v);
+				}
+				return std::string(constants::asset_directory);
+			}();
+
 			vk::PresentModeKHR preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
 			vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e4; // aka Anti-aliasing
 

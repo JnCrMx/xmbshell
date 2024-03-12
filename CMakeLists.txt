@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 include(FetchContent)
 include(cmake/AddShader.cmake)
 
-project(xmbshell)
+project(xmbshell VERSION 1.0 LANGUAGES CXX)
 
 option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shallow" OFF)
 
@@ -64,3 +64,18 @@ foreach(shader ${shaders})
 	add_shader(xmbshell ${shader})
 endforeach()
 target_include_directories(xmbshell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+
+include(GNUInstallDirs)
+
+install(TARGETS xmbshell)
+install(FILES schemas/re.jcm.xmbos.xmbshell.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)
+install(DIRECTORY icons DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
+install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
+
+set(CPACK_PACKAGE_NAME "xmbhell")
+set(CPACK_PACKAGE_CONTACT "JCM <jcm@jcm.re>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A shell mimicking the XMB interface of the PlayStation 3")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://git.jcm.re/XMB-OS/xmbshell")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+include(CPack)
