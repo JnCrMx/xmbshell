@@ -10,6 +10,7 @@ void config::load() {
     setWaveColor(shellSettings->get_string("wave-color"));
     setDateTimeFormat(shellSettings->get_string("date-time-format"));
     dateTimeOffset = shellSettings->get_double("date-time-x-offset");
+    controllerRumble = shellSettings->get_boolean("controller-rumble");
 
     Glib::RefPtr<Gio::Settings> renderSettings =
         Gio::Settings::create("re.jcm.xmbos.xmbshell.render");

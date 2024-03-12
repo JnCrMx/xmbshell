@@ -37,6 +37,8 @@ namespace config
 			std::string dateTimeFormat = constants::fallback_datetime_format;
 			double dateTimeOffset = 0.0;
 
+			bool controllerRumble;
+
 			void load();
 
 			void setSampleCount(vk::SampleCountFlagBits count);

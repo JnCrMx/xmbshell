@@ -16,7 +16,7 @@
             </description>
         </key>
         <key name='date-time-format' type='s'>
-            <default>'m/%d %H:%M'</default>
+            <default>'%m/%d %H:%M'</default>
             <summary>Date Time format</summary>
             <description>
                 Format to use to display the date and time.
@@ -28,6 +28,13 @@
             <description>
                 Offset (in relative screen units) to move the date time by.
                 This is useful when setting a longer format for the date time.
+            </description>
+        </key>
+        <key name='controller-rumble' type='b'>
+            <default>true</default>
+            <summary>Controller rumble</summary>
+            <description>
+                Whether to enable controller rumble in XMB if supported.
             </description>
         </key>
     </schema>
