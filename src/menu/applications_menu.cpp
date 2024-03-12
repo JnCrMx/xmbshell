@@ -57,7 +57,9 @@ applications_menu::applications_menu(const std::string& name, render::texture&& 
             } else if(auto* file_icon = dynamic_cast<Gio::FileIcon*>(icon.get())) {
                 icon_path = file_icon->get_file()->get_path();
             } else {
-                spdlog::warn("Unknown icon type for app: {}", desktop_app->get_display_name());
+                auto& r = *icon;
+                spdlog::warn("Unknown icon type for app \"{}\": {}", desktop_app->get_display_name(),
+                    typeid(r).name());
             }
 
             render::texture icon_texture(loader.getDevice(), loader.getAllocator());

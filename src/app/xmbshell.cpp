@@ -4,7 +4,6 @@
 #include "render/debug.hpp"
 
 #include <chrono>
-#include <fmt/format.h>
 
 namespace app
 {
@@ -192,7 +191,14 @@ namespace app
 	void xmbshell::render_gui(gui_renderer& renderer) {
 		menu.render(renderer);
 
-    	auto now = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+		static const std::chrono::time_zone* timezone = [](){
+			auto tz = std::chrono::current_zone();
+			auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+			auto local = std::chrono::zoned_time(tz, system);
+			spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
+			return tz;
+		}();
+    	auto now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
 		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(now)),
 			0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
 
