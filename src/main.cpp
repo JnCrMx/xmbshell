@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/cfg/env.h>
-#include <glibmm/init.h>
+#include <giomm/init.h>
 
 #include "config.hpp"
 #include "dbus.hpp"
@@ -9,13 +9,14 @@
 
 int main(int argc, char *argv[])
 {
-	Glib::init();
+	Gio::init();
 	config::CONFIG.load();
 
-	spdlog::cfg::load_env_levels();
 #ifndef NDEBUG
 	spdlog::set_level(spdlog::level::debug);
 #endif
+	spdlog::cfg::load_env_levels();
+
 	spdlog::info("Welcome to your XMB!");
 
 	render::window window;

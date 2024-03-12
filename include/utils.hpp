@@ -51,4 +51,9 @@ namespace utils
 			std::byte* data;
 			std::size_t alignment;
 	};
+
+	template<typename T>
+	T mix(T a, T b, double x) {
+		return a * (1.0 - x) + b * x;
+	}
 }

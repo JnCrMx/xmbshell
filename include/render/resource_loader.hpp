@@ -50,6 +50,9 @@ namespace render
 			std::future<void> loadModel(model* model, std::string filename);
 
 			static vk::Extent2D getImageSize(std::string filename);
+
+			vk::Device getDevice() const { return device; }
+			vma::Allocator getAllocator() const { return allocator; }
 		private:
 			vk::Device device;
 			vma::Allocator allocator;

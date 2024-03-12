@@ -17,7 +17,13 @@ namespace dbus
 
 		auto close = [this](){
 			spdlog::info("Exit request from D-Bus");
-			// TODO
+            SDL_Event event = {
+                .quit = {
+                    .type = SDL_QUIT,
+                    .timestamp = SDL_GetTicks()
+                }
+            };
+            SDL_PushEvent(&event);
 		};
     	object->registerMethod("close").onInterface("re.jcm.xmbos.Window").implementedAs(std::move(close));
 		object->registerProperty("fps").onInterface("re.jcm.xmbos.Render").withGetter([this](){return win->currentFPS;});
