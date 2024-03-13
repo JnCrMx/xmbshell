@@ -1,4 +1,5 @@
 .cache/
 .vscode/
 build/
+build-*/
 schemas/gschemas.compiled

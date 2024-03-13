@@ -16,11 +16,11 @@ find_package(SDL2_mixer REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(sdbus-c++ REQUIRED)
+find_package(sdbus-c++ QUIET)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
-pkg_check_modules(SPNG spng REQUIRED)
+pkg_check_modules(SPNG spng)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
@@ -36,6 +36,32 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(VulkanMemoryAllocator-Hpp)
 
+if(NOT sdbus-c++_FOUND)
+message(STATUS "sdbus-c++ not found, downloading and building it.")
+  FetchContent_Declare(
+    sdbus-cpp
+    GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
+    GIT_TAG        v1.2.0
+  )
+  FetchContent_MakeAvailable(sdbus-cpp)
+  add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
+endif()
+
+if(SPNG_FOUND)
+  add_library(SPNG::spng INTERFACE IMPORTED)
+  target_include_directories(SPNG::spng INTERFACE ${SPNG_INCLUDE_DIRS})
+  target_link_libraries(SPNG::spng INTERFACE ${SPNG_LIBRARIES})
+else()
+  message(STATUS "spng not found, downloading and building it.")
+  FetchContent_Declare(
+    spng
+    GIT_REPOSITORY https://github.com/randy408/libspng.git
+    GIT_TAG        v0.7.4
+  )
+  FetchContent_MakeAvailable(spng)
+  add_library(SPNG::spng ALIAS spng_static)
+endif()
+
 add_executable(xmbshell ${sources})
 
 add_library(optimized_components STATIC ${opt_sources})
@@ -46,7 +72,6 @@ target_compile_options(optimized_components PRIVATE -O3)
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
 target_include_directories(xmbshell PRIVATE ${GIOMM_INCLUDE_DIRS})
-target_include_directories(xmbshell PRIVATE ${SPNG_INCLUDE_DIRS})
 
 target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
 target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
@@ -57,8 +82,8 @@ target_link_libraries(xmbshell PRIVATE dl)
 target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
+target_link_libraries(xmbshell PRIVATE SPNG::spng)
 target_link_libraries(xmbshell PRIVATE ${GIOMM_LIBRARIES})
-target_link_libraries(xmbshell PRIVATE ${SPNG_LIBRARIES})
 
 foreach(shader ${shaders})
 	add_shader(xmbshell ${shader})
@@ -68,6 +93,8 @@ target_include_directories(xmbshell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 include(GNUInstallDirs)
 
 install(TARGETS xmbshell)
+install(FILES xmbshell.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES icons/xmbshell.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps RENAME xmbshell.png)
 install(FILES schemas/re.jcm.xmbos.xmbshell.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)
 install(DIRECTORY icons DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
 install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)

@@ -9,7 +9,7 @@
 
 namespace menu {
     users_menu::users_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader) : simple_menu(name, std::move(icon)) {
-        entries.push_back(make_simple<action_menu_entry>("Quit", config::CONFIG.asset_directory+"icons/icon_action_quit.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Quit", config::CONFIG.asset_directory/"icons/icon_action_quit.png", loader, [](){
             spdlog::info("Exit request from XMB");
             SDL_Event event = {
                 .quit = {

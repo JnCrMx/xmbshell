@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constants.hpp"
+#include <filesystem>
 
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
@@ -16,12 +17,14 @@ namespace config
 		public:
 			config() = default;
 
-			std::string asset_directory = [](){
+			std::filesystem::path exe_path = std::filesystem::canonical("/proc/self/exe").parent_path();
+			std::filesystem::path asset_directory = [this](){
 				if(auto v = std::getenv("XMB_ASSET_DIR"); v != nullptr) {
-					return std::string(v);
+					return std::filesystem::path(v);
 				}
-				return std::string(constants::asset_directory);
+				return exe_path / std::string(constants::asset_directory);
 			}();
+			std::filesystem::path fallback_font = exe_path / std::string(constants::fallback_font);
 
 			vk::PresentModeKHR preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
 			vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e4; // aka Anti-aliasing

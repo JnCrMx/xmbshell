@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <variant>
 #include <thread>
@@ -31,7 +32,7 @@ namespace render
 	struct LoadTask
 	{
 		LoadType type;
-		std::variant<std::string, LoaderFunction> src;
+		std::variant<std::filesystem::path, LoaderFunction> src;
 		std::variant<texture*, model*, vk::Image, vk::Buffer> dst;
 		std::promise<void> promise;
 	};
@@ -44,10 +45,10 @@ namespace render
 				std::vector<vk::Queue> queues);
 			~resource_loader();
 
-			std::future<void> loadTexture(texture* texture, std::string filename);
+			std::future<void> loadTexture(texture* texture, std::filesystem::path filename);
 			std::future<void> loadTexture(texture* texture, LoaderFunction loader);
 
-			std::future<void> loadModel(model* model, std::string filename);
+			std::future<void> loadModel(model* model, std::filesystem::path filename);
 
 			static vk::Extent2D getImageSize(std::string filename);
 

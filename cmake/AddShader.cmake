@@ -1,4 +1,5 @@
-find_program(GLSLang_Validator glslangValidator)
+find_program(GLSLang_Validator glslangValidator REQUIRED)
+find_program(xxd xxd REQUIRED)
 function(add_shader TARGET SHADER)
 	file(RELATIVE_PATH rel ${CMAKE_CURRENT_SOURCE_DIR} ${SHADER})
 	set(output ${CMAKE_BINARY_DIR}/${rel}.spv)
@@ -14,7 +15,7 @@ function(add_shader TARGET SHADER)
 		VERBATIM)
 	add_custom_command(
 		OUTPUT ${outputh}
-		COMMAND xxd -i ${rel}.spv > ${outputh}
+		COMMAND ${xxd} -i ${rel}.spv > ${outputh}
 		DEPENDS ${output}
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		VERBATIM)

@@ -12,7 +12,7 @@ main_menu::main_menu() {
 }
 
 void main_menu::preload(vk::Device device, vma::Allocator allocator, render::resource_loader& loader) {
-    ok_sound = SoundChunk(Mix_LoadWAV((config::CONFIG.asset_directory+"sounds/ok.wav").c_str()));
+    ok_sound = SoundChunk(Mix_LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str()));
     if(!ok_sound) {
         spdlog::error("Mix_LoadWAV: {}", Mix_GetError());
     }
@@ -23,15 +23,15 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, render::res
     using ::menu::make_simple_of;
 
     const auto& asset_directory = config::CONFIG.asset_directory;
-    menus.push_back(make_simple<users_menu>("Users", asset_directory+"icons/icon_category_users.png", loader, loader));
-    menus.push_back(make_simple_of<menu>("Settings", asset_directory+"icons/icon_category_settings.png", loader));
-    menus.push_back(make_simple_of<menu>("Photo", asset_directory+"icons/icon_category_photo.png", loader));
-    menus.push_back(make_simple_of<menu>("Music", asset_directory+"icons/icon_category_music.png", loader));
-    menus.push_back(make_simple_of<menu>("Video", asset_directory+"icons/icon_category_video.png", loader));
-    menus.push_back(make_simple_of<menu>("TV", asset_directory+"icons/icon_category_tv.png", loader));
-    menus.push_back(make_simple<applications_menu>("Game", asset_directory+"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
-    menus.push_back(make_simple_of<menu>("Network", asset_directory+"icons/icon_category_network.png", loader));
-    menus.push_back(make_simple_of<menu>("Friends", asset_directory+"icons/icon_category_friends.png", loader));
+    menus.push_back(make_simple<users_menu>("Users", asset_directory/"icons/icon_category_users.png", loader, loader));
+    menus.push_back(make_simple_of<menu>("Settings", asset_directory/"icons/icon_category_settings.png", loader));
+    menus.push_back(make_simple_of<menu>("Photo", asset_directory/"icons/icon_category_photo.png", loader));
+    menus.push_back(make_simple_of<menu>("Music", asset_directory/"icons/icon_category_music.png", loader));
+    menus.push_back(make_simple_of<menu>("Video", asset_directory/"icons/icon_category_video.png", loader));
+    menus.push_back(make_simple_of<menu>("TV", asset_directory/"icons/icon_category_tv.png", loader));
+    menus.push_back(make_simple<applications_menu>("Game", asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
+    menus.push_back(make_simple_of<menu>("Network", asset_directory/"icons/icon_category_network.png", loader));
+    menus.push_back(make_simple_of<menu>("Friends", asset_directory/"icons/icon_category_friends.png", loader));
 }
 
 void main_menu::key_down(SDL_Keysym key) {

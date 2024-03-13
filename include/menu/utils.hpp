@@ -3,12 +3,13 @@
 #include "menu/menu.hpp"
 #include "render/resource_loader.hpp"
 
+#include <filesystem>
 #include <memory>
 
 namespace menu {
 
 template<typename Menu, typename... Args>
-static std::unique_ptr<Menu> make_simple(const std::string& name, const std::string& icon_path,
+static std::unique_ptr<Menu> make_simple(const std::string& name, const std::filesystem::path& icon_path,
     render::resource_loader& loader,
     Args&&... args)
 {
@@ -19,7 +20,7 @@ static std::unique_ptr<Menu> make_simple(const std::string& name, const std::str
 }
 
 template<typename Menu, typename... Args>
-static std::unique_ptr<simple<Menu>> make_simple_of(const std::string& name, const std::string& icon_path,
+static std::unique_ptr<simple<Menu>> make_simple_of(const std::string& name, const std::filesystem::path& icon_path,
     render::resource_loader& loader,
     Args&&... args)
 {

@@ -53,7 +53,7 @@ namespace render
 		FT_Error err = FT_New_Face(ft, name.c_str(), 0, &face);
 		if(err != 0) {
 			spdlog::error("Failed to load font from \"{}\", trying fallback font", name);
-			err = FT_New_Face(ft, constants::fallback_font, 0, &face);
+			err = FT_New_Face(ft, config::CONFIG.fallback_font.c_str(), 0, &face);
 			if(err != 0)
 				throw std::runtime_error("failed to load font and fallback font");
 		}

@@ -34,12 +34,12 @@ namespace render
 		}
 	}
 
-	std::future<void> resource_loader::loadTexture(texture* image, std::string filename)
+	std::future<void> resource_loader::loadTexture(texture* image, std::filesystem::path path)
 	{
 		std::future<void> f;
 		{
 			std::scoped_lock<std::mutex> l(lock);
-			tasks.push(LoadTask{.type = LoadType::Texture, .src = filename, .dst = image, .promise = std::promise<void>()});
+			tasks.push(LoadTask{.type = LoadType::Texture, .src = path, .dst = image, .promise = std::promise<void>()});
 			f = tasks.back().promise.get_future();
 		}
 		cv.notify_one();
@@ -58,12 +58,12 @@ namespace render
 		return f;
 	}
 
-	std::future<void> resource_loader::loadModel(model* model, std::string filename)
+	std::future<void> resource_loader::loadModel(model* model, std::filesystem::path path)
 	{
 		std::future<void> f;
 		{
 			std::scoped_lock<std::mutex> l(lock);
-			tasks.push(LoadTask{.type = LoadType::Model, .src = filename, .dst = model, .promise = std::promise<void>()});
+			tasks.push(LoadTask{.type = LoadType::Model, .src = path, .dst = model, .promise = std::promise<void>()});
 			f = tasks.back().promise.get_future();
 		}
 		cv.notify_one();
@@ -96,21 +96,25 @@ namespace render
 			spng_ctx_free(ctx);
 		}
 	};
-	void load_texture(
+	bool load_texture(
 		int index, LoadTask& task, std::mutex& lock,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
 		vk::CommandBuffer commandBuffer,
 		uint8_t* decodeBuffer, size_t stagingSize, vk::Buffer stagingBuffer)
 	{
 		texture* tex = std::get<texture*>(task.dst);
-		if(std::holds_alternative<std::string>(task.src))
+		if(std::holds_alternative<std::filesystem::path>(task.src))
 		{
-			const std::string filename = std::get<std::string>(task.src);
-			std::ifstream in(filename, std::ios_base::ate | std::ios_base::binary);
+			const auto& path = std::get<std::filesystem::path>(task.src);
+			std::ifstream in(path, std::ios_base::ate | std::ios_base::binary);
 			if(!in.good())
 			{
-				spdlog::error("[Resource Loader {}] Failed to open file {}", index, filename);
-				return;
+				spdlog::error("[Resource Loader {}] Failed to open file {}", index, path.string());
+				{
+					std::scoped_lock<std::mutex> l(lock);
+					tex->create_image(4, 4); // create fake image to avoid crash
+				}
+				return false;
 			}
 			size_t size = in.tellg();
 			std::vector<char> data(size);
@@ -161,11 +165,12 @@ namespace render
 				tex->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)));
 		commandBuffer.end();
 
-		if(std::holds_alternative<std::string>(task.src))
+		if(std::holds_alternative<std::filesystem::path>(task.src))
 		{
-			debugTag(device, tex->image, debug_tag::TextureSrc, std::get<std::string>(task.src));
-			debugName(device, tex->image, "Texture \""+std::get<std::string>(task.src)+"\"");
-			debugName(device, tex->imageView.get(), "Texture \""+std::get<std::string>(task.src)+"\" View");
+			const auto& path = std::get<std::filesystem::path>(task.src).string();
+			debugTag(device, tex->image, debug_tag::TextureSrc, path);
+			debugName(device, tex->image, "Texture \""+path+"\"");
+			debugName(device, tex->imageView.get(), "Texture \""+path+"\" View");
 		}
 		else
 		{
@@ -173,15 +178,16 @@ namespace render
 			debugName(device, tex->image, "Dynamic Texture");
 			debugName(device, tex->imageView.get(), "Dynamic Texture View");
 		}
+		return true;
 	}
 
-	void load_model(
+	bool load_model(
 		int index, LoadTask& task,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
 		vk::CommandBuffer commandBuffer,
 		size_t stagingSize, vk::Buffer stagingBuffer)
 	{
-		std::ifstream obj("assets/models/"+std::get<std::string>(task.src));
+		std::ifstream obj(std::get<std::filesystem::path>(task.src));
 		std::vector<vertex_data> vertices;
 		std::vector<uint32_t> indices;
 		load_obj(obj, vertices, indices);
@@ -210,8 +216,10 @@ namespace render
 		commandBuffer.copyBuffer(stagingBuffer, mesh->indexBuffer, region.setSrcOffset(indexOffset).setSize(indexSize));
 		commandBuffer.end();
 
-		debugName(device, mesh->vertexBuffer, "Model \""+std::get<std::string>(task.src)+"\" Vertex Buffer");
-		debugName(device, mesh->indexBuffer, "Model \""+std::get<std::string>(task.src)+"\" Index Buffer");
+		const auto& path = std::get<std::filesystem::path>(task.src).string();
+		debugName(device, mesh->vertexBuffer, "Model \""+path+"\" Vertex Buffer");
+		debugName(device, mesh->indexBuffer, "Model \""+path+"\" Index Buffer");
+		return true;
 	}
 
 	void resource_loader::loadThread(int index, vk::Queue queue)
@@ -252,34 +260,37 @@ namespace render
 				l.unlock();
 
 				spdlog::debug("[Resource Loader {}] Loading {}", index,
-					std::holds_alternative<std::string>(task.src) ? std::get<std::string>(task.src) : "dynamic resource");
+					std::holds_alternative<std::filesystem::path>(task.src) ? std::get<std::filesystem::path>(task.src).string() : "dynamic resource");
 				auto t0 = std::chrono::high_resolution_clock::now();
 				{
+					bool okay;
 					if(task.type == Texture)
 					{
-						load_texture(index, task, lock, device, allocator, allocation, commandBuffer.get(), cpuBuffer, stagingSize, stagingBuffer);
+						okay = load_texture(index, task, lock, device, allocator, allocation, commandBuffer.get(), cpuBuffer, stagingSize, stagingBuffer);
 					}
 					else if(task.type == Model)
 					{
-						load_model(index, task, device, allocator, allocation, commandBuffer.get(), stagingSize, stagingBuffer);
+						okay = load_model(index, task, device, allocator, allocation, commandBuffer.get(), stagingSize, stagingBuffer);
 					}
-					std::array<vk::SubmitInfo, 1> submits = {
-						vk::SubmitInfo({}, {}, commandBuffer.get(), {})
-					};
-					queue.submit(submits, fence.get());
-					vk::Result result = device.waitForFences(fence.get(), true, UINT64_MAX);
-					if(result != vk::Result::eSuccess)
-					{
-						spdlog::error("[Resource Loader {}] Waiting for fence failed: {}", index, vk::to_string(result));
+					if(okay) {
+						std::array<vk::SubmitInfo, 1> submits = {
+							vk::SubmitInfo({}, {}, commandBuffer.get(), {})
+						};
+						queue.submit(submits, fence.get());
+						vk::Result result = device.waitForFences(fence.get(), true, UINT64_MAX);
+						if(result != vk::Result::eSuccess)
+						{
+							spdlog::error("[Resource Loader {}] Waiting for fence failed: {}", index, vk::to_string(result));
+						}
+						device.resetCommandPool(pool.get());
+						device.resetFences(fence.get());
 					}
-					device.resetCommandPool(pool.get());
-					device.resetFences(fence.get());
 					task.promise.set_value();
 				}
 				auto t1 = std::chrono::high_resolution_clock::now();
 				auto time = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 				spdlog::debug("[Resource Loader {}] Loaded {} into {} in {} ms", index,
-					std::holds_alternative<std::string>(task.src) ? std::get<std::string>(task.src) : "dynamic resource",
+					std::holds_alternative<std::filesystem::path>(task.src) ? std::get<std::filesystem::path>(task.src).string() : "dynamic resource",
 					std::holds_alternative<texture*>(task.dst) ? static_cast<void*>(std::get<texture*>(task.dst)->image) :
 						(std::holds_alternative<model*>(task.dst) ? std::get<model*>(task.dst)->vertexBuffer : VK_NULL_HANDLE),
 					time);
