@@ -47,6 +47,7 @@ namespace app
 			vk::UniqueCommandPool pool;
 			std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
+			std::unique_ptr<texture> backgroundTexture;
 			main_menu menu;
 
 			void render_gui(gui_renderer& renderer);

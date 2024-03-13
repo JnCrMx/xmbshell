@@ -8,13 +8,6 @@
                 Path to the font to use to render text.
             </description>
         </key>
-        <key name='wave-color' type='s'>
-            <default>'#f9f9f9'</default>
-            <summary>Wave color</summary>
-            <description>
-                Color of the background wave.
-            </description>
-        </key>
         <key name='date-time-format' type='s'>
             <default>'%m/%d %H:%M'</default>
             <summary>Date Time format</summary>
@@ -35,6 +28,39 @@
             <summary>Controller rumble</summary>
             <description>
                 Whether to enable controller rumble in XMB if supported.
+            </description>
+        </key>
+        <key name='background-type' type='s'>
+            <default>'wave'</default>
+            <summary>Background type</summary>
+            <description>
+                Type of background to use.
+            </description>
+            <choices>
+                <choice value='wave'/>
+                <choice value='color'/>
+                <choice value='image'/>
+            </choices>
+        </key>
+        <key name='background-color' type='s'>
+            <default>'#22093d'</default>
+            <summary>Background color</summary>
+            <description>
+                Color of the background.
+            </description>
+        </key>
+        <key name='background-image' type='s'>
+            <default>''</default>
+            <summary>Background image</summary>
+            <description>
+                Path to the background image.
+            </description>
+        </key>
+        <key name='wave-color' type='s'>
+            <default>'#f9f9f9'</default>
+            <summary>Wave color</summary>
+            <description>
+                Color of the background wave.
             </description>
         </key>
     </schema>

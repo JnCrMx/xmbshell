@@ -96,6 +96,11 @@ namespace app
 		image_render->preload(shellRenderPass.get());
 		wave_render->preload(backgroundRenderPass.get());
 		menu.preload(device, allocator, *loader);
+
+		if(config::CONFIG.backgroundType == config::config::background_type::image) {
+			backgroundTexture = std::make_unique<texture>(device, allocator);
+			loader->loadTexture(backgroundTexture.get(), config::CONFIG.backgroundImage);
+		}
 	}
 
 	void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -142,6 +147,14 @@ namespace app
 		commandBuffer->begin(vk::CommandBufferBeginInfo());
 		{
 			vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f});
+			if(config::CONFIG.backgroundType == config::config::background_type::color) {
+				color = vk::ClearColorValue(std::array<float, 4>{
+					config::CONFIG.backgroundColor.r,
+					config::CONFIG.backgroundColor.g,
+					config::CONFIG.backgroundColor.b,
+					1.0f
+				});
+			}
 			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), framebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
@@ -149,7 +162,13 @@ namespace app
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			wave_render->render(commandBuffer.get(), frame);
+			if(config::CONFIG.backgroundType == config::config::background_type::wave) {
+				wave_render->render(commandBuffer.get(), frame);
+			}
+			if(config::CONFIG.backgroundType == config::config::background_type::image) {
+				image_render->renderImageSized(commandBuffer.get(), frame, *backgroundTexture,
+					0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+			}
 
 			commandBuffer->endRenderPass();
 		}
