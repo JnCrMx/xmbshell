@@ -16,11 +16,13 @@ namespace render
 			void prepare(int imageCount);
 
 			void renderImage(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, float scaleX = 1.0, float scaleY = 1.0, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0)) {
+				if(!texture.loaded) return;
 				renderImage(cmd, frame, texture.imageView.get(), x, y, scaleX, scaleY, color);
 			}
 			void renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX = 1.0, float scaleY = 1.0, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 			void renderImageSized(vk::CommandBuffer cmd, int frame, const texture& texture, float x, float y, int width = -1, int height = -1, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0)) {
+				if(!texture.loaded) return;
 				renderImageSized(cmd, frame, texture.imageView.get(), x, y, width == -1 ? texture.width : width, height == -1 ? texture.height : height, color);
 			}
 			void renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));

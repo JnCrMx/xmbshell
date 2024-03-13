@@ -32,6 +32,8 @@ namespace render
 		int vertexCount;
 		int indexCount;
 
+		bool loaded = false;
+
 		void create_buffers(int vertexCount, int indexCount);
 
 		glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());

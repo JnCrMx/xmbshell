@@ -284,6 +284,11 @@ namespace render
 						}
 						device.resetCommandPool(pool.get());
 						device.resetFences(fence.get());
+
+						if(std::holds_alternative<texture*>(task.dst))
+							std::get<texture*>(task.dst)->loaded = true;
+						else if(std::holds_alternative<model*>(task.dst))
+							std::get<model*>(task.dst)->loaded = true;
 					}
 					task.promise.set_value();
 				}

@@ -44,6 +44,7 @@ namespace render
 		int height;
 
 		vk::UniqueImageView imageView;
+		bool loaded = false;
 
 		private:
 		vk::ImageCreateInfo image_info;

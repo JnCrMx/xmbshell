@@ -165,7 +165,7 @@ namespace app
 			if(config::CONFIG.backgroundType == config::config::background_type::wave) {
 				wave_render->render(commandBuffer.get(), frame);
 			}
-			if(config::CONFIG.backgroundType == config::config::background_type::image) {
+			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
 				image_render->renderImageSized(commandBuffer.get(), frame, *backgroundTexture,
 					0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
 			}
