@@ -30,6 +30,13 @@
                 Whether to enable controller rumble in XMB if supported.
             </description>
         </key>
+        <key name='controller-analog-stick' type='b'>
+            <default>true</default>
+            <summary>Controller analog stick</summary>
+            <description>
+                Whether to enable navigation with the analog stick in XMB.
+            </description>
+        </key>
         <key name='background-type' type='s'>
             <default>'wave'</default>
             <summary>Background type</summary>

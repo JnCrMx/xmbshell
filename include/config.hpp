@@ -30,11 +30,11 @@ namespace config
             }();
             std::filesystem::path fallback_font = exe_path / std::string(constants::fallback_font);
 
-            vk::PresentModeKHR preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
+            vk::PresentModeKHR      preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
             vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e4; // aka Anti-aliasing
 
-            double maxFPS = 100;
-            std::chrono::duration<double> frameTime = std::chrono::duration<double>(std::chrono::seconds(1))/maxFPS;
+            double                          maxFPS = 100;
+            std::chrono::duration<double>   frameTime = std::chrono::duration<double>(std::chrono::seconds(1))/maxFPS;
 
             bool showFPS;
             bool showMemory;
@@ -48,6 +48,7 @@ namespace config
             double                  dateTimeOffset = 0.0;
 
             bool controllerRumble;
+            bool controllerAnalogStick;
 
             void load();
 

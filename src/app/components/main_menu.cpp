@@ -86,6 +86,10 @@ void main_menu::button_up(SDL_GameController* controller, SDL_GameControllerButt
     last_controller_button_input = std::nullopt;
 }
 void main_menu::axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) {
+    if(!config::CONFIG.controllerAnalogStick) {
+        return;
+    }
+
     if(axis == SDL_CONTROLLER_AXIS_LEFTX || axis == SDL_CONTROLLER_AXIS_LEFTY) {
         unsigned int index = axis == SDL_CONTROLLER_AXIS_LEFTX ? 0 : 1;
         if(std::abs(value) < controller_axis_input_threshold) {

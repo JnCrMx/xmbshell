@@ -32,6 +32,7 @@ void config::load() {
     setDateTimeFormat(shellSettings->get_string("date-time-format"));
     dateTimeOffset = shellSettings->get_double("date-time-x-offset");
     controllerRumble = shellSettings->get_boolean("controller-rumble");
+    controllerAnalogStick = shellSettings->get_boolean("controller-analog-stick");
 
     Glib::RefPtr<Gio::Settings> renderSettings =
         Gio::Settings::create("re.jcm.xmbos.xmbshell.render");
