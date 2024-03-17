@@ -24,7 +24,11 @@ namespace menu {
             std::string real_name = Glib::get_real_name();
             std::string user_name = Glib::get_user_name();
             constexpr auto faces_dir = "/var/lib/AccountsService/icons/";
-            entries.push_back(make_simple<simple_menu_entry>(real_name, faces_dir+user_name, loader));
+            auto face_path = faces_dir+user_name;
+            if(!std::filesystem::exists(face_path)) {
+                face_path = config::CONFIG.asset_directory/"icons/icon_user.png";
+            }
+            entries.push_back(make_simple<simple_menu_entry>(real_name, face_path, loader));
             selected_submenu = entries.size()-1;
         }
     }
