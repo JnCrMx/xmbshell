@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "menu/applications_menu.hpp"
 #include "menu/users_menu.hpp"
+#include "menu/settings_menu.hpp"
 #include "menu/utils.hpp"
 #include <spdlog/spdlog.h>
 
@@ -16,22 +17,19 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, render::res
     if(!ok_sound) {
         spdlog::error("Mix_LoadWAV: {}", Mix_GetError());
     }
-    using ::menu::menu;
-    using ::menu::applications_menu;
-    using ::menu::users_menu;
     using ::menu::make_simple;
     using ::menu::make_simple_of;
 
     const auto& asset_directory = config::CONFIG.asset_directory;
-    menus.push_back(make_simple<users_menu>("Users", asset_directory/"icons/icon_category_users.png", loader, loader));
-    menus.push_back(make_simple_of<menu>("Settings", asset_directory/"icons/icon_category_settings.png", loader));
-    menus.push_back(make_simple_of<menu>("Photo", asset_directory/"icons/icon_category_photo.png", loader));
-    menus.push_back(make_simple_of<menu>("Music", asset_directory/"icons/icon_category_music.png", loader));
-    menus.push_back(make_simple_of<menu>("Video", asset_directory/"icons/icon_category_video.png", loader));
-    menus.push_back(make_simple_of<menu>("TV", asset_directory/"icons/icon_category_tv.png", loader));
-    menus.push_back(make_simple<applications_menu>("Game", asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
-    menus.push_back(make_simple_of<menu>("Network", asset_directory/"icons/icon_category_network.png", loader));
-    menus.push_back(make_simple_of<menu>("Friends", asset_directory/"icons/icon_category_friends.png", loader));
+    menus.push_back(make_simple<menu::users_menu>("Users", asset_directory/"icons/icon_category_users.png", loader, loader));
+    menus.push_back(make_simple<menu::settings_menu>("Settings", asset_directory/"icons/icon_category_settings.png", loader, loader));
+    menus.push_back(make_simple_of<menu::menu>("Photo", asset_directory/"icons/icon_category_photo.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("Music", asset_directory/"icons/icon_category_music.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("Video", asset_directory/"icons/icon_category_video.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("TV", asset_directory/"icons/icon_category_tv.png", loader));
+    menus.push_back(make_simple<menu::applications_menu>("Game", asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
+    menus.push_back(make_simple_of<menu::menu>("Network", asset_directory/"icons/icon_category_network.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("Friends", asset_directory/"icons/icon_category_friends.png", loader));
 }
 
 void main_menu::key_down(SDL_Keysym key) {
@@ -49,7 +47,10 @@ void main_menu::key_down(SDL_Keysym key) {
             select_relative(direction::down);
             break;
         case SDLK_RETURN:
-            menus[selected]->activate();
+            activate_current();
+            break;
+        case SDLK_ESCAPE:
+            back();
             break;
     }
 }
@@ -78,6 +79,10 @@ void main_menu::button_down(SDL_GameController* controller, SDL_GameControllerBu
         }
     } else if(button == SDL_CONTROLLER_BUTTON_A) {
         if(!activate_current()) {
+            error_rumble(controller);
+        }
+    } else if(button == SDL_CONTROLLER_BUTTON_B) {
+        if(!back()) {
             error_rumble(controller);
         }
     }
@@ -160,7 +165,21 @@ bool main_menu::select_relative(direction dir) {
     return false;
 }
 bool main_menu::activate_current() {
+    auto& menu = *menus[selected];
+    if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
+        if(submenu->get_submenus_count() > 0) {
+            in_submenu = true;
+            return true;
+        }
+    }
     return menus[selected]->activate();
+}
+bool main_menu::back() {
+    if(in_submenu) {
+        in_submenu = false;
+        return true;
+    }
+    return false;
 }
 
 void main_menu::select(int index) {
@@ -215,7 +234,14 @@ void main_menu::tick() {
 
 void main_menu::render(render::gui_renderer& renderer) {
     tick(); // TODO: This should be called from the outside
+    if(in_submenu) {
+        render_submenu(renderer);
+    } else {
+        render_crossbar(renderer);
+    }
+}
 
+void main_menu::render_crossbar(render::gui_renderer& renderer) {
     float real_selection;
     int selected = this->selected;
 
@@ -296,6 +322,10 @@ void main_menu::render(render::gui_renderer& renderer) {
             }
         }
     }
+}
+
+void main_menu::render_submenu(render::gui_renderer& renderer) {
+    // TODO
 }
 
 }

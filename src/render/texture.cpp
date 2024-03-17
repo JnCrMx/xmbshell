@@ -57,9 +57,7 @@ namespace render
 		image_info.extent = vk::Extent3D{static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
 
 		vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
-		auto [i, a] = allocator.createImage(image_info, alloc_info);
-		image = i;
-		allocation = a;
+		std::tie(image, allocation) = allocator.createImage(image_info, alloc_info);
 
 		view_info.image = image;
 		imageView = device.createImageViewUnique(view_info);

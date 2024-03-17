@@ -13,8 +13,7 @@ static std::unique_ptr<Menu> make_simple(const std::string& name, const std::fil
     render::resource_loader& loader,
     Args&&... args)
 {
-    render::texture icon(loader.getDevice(), loader.getAllocator());
-    auto menu = std::make_unique<Menu>(name, std::move(icon), std::forward<Args>(args)...);
+    auto menu = std::make_unique<Menu>(name, render::texture(loader.getDevice(), loader.getAllocator()), std::forward<Args>(args)...);
     loader.loadTexture(&menu->get_icon(), icon_path);
     return menu;
 }

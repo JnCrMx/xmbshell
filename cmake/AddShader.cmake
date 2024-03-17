@@ -1,5 +1,4 @@
 find_program(GLSLang_Validator glslangValidator REQUIRED)
-find_program(xxd xxd REQUIRED)
 function(add_shader TARGET SHADER)
 	file(RELATIVE_PATH rel ${CMAKE_CURRENT_SOURCE_DIR} ${SHADER})
 	set(output ${CMAKE_BINARY_DIR}/${rel}.spv)
@@ -8,16 +7,13 @@ function(add_shader TARGET SHADER)
 	get_filename_component(output-dir ${output} DIRECTORY)
 	file(MAKE_DIRECTORY ${output-dir})
 
-	add_custom_command(
-		OUTPUT ${output}
-		COMMAND ${GLSLang_Validator} -V -o ${output} ${SHADER}
-		DEPENDS ${SHADER}
-		VERBATIM)
+	string(REPLACE "/" "_" shader_name ${rel})
+	string(REPLACE "." "_" shader_name ${shader_name})
+
 	add_custom_command(
 		OUTPUT ${outputh}
-		COMMAND ${xxd} -i ${rel}.spv > ${outputh}
-		DEPENDS ${output}
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMAND ${GLSLang_Validator} -V -o ${outputh} --vn ${shader_name} ${SHADER}
+		DEPENDS ${SHADER}
 		VERBATIM)
 
 	set_source_files_properties(${outputh} PROPERTIES GENERATED TRUE)

@@ -72,6 +72,13 @@ class action_menu_entry : public simple_menu_entry {
 class simple_menu : public simple_menu_shallow {
     public:
         simple_menu(const std::string& name, render::texture&& icon) : simple_menu_shallow(name, std::move(icon)) {}
+
+        template<std::derived_from<menu_entry> T, std::size_t N>
+        simple_menu(const std::string& name, render::texture&& icon, std::array<std::unique_ptr<T>, N>&& entries) : simple_menu_shallow(name, std::move(icon)) {
+            for(auto& entry : entries) {
+                this->entries.push_back(std::move(entry));
+            }
+        }
         ~simple_menu() override = default;
 
         unsigned int get_submenus_count() const override {

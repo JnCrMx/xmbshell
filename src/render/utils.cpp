@@ -5,9 +5,9 @@
 
 namespace render
 {
-	vk::UniqueShaderModule createShader(vk::Device device, std::string file)
+	vk::UniqueShaderModule createShader(vk::Device device, const std::filesystem::path& path)
 	{
-		std::ifstream in("shaders/"+file+".spv", std::ios_base::binary | std::ios_base::ate);
+		std::ifstream in(path, std::ios_base::binary | std::ios_base::ate);
 
 		size_t size = in.tellg();
 		std::vector<uint32_t> buf(size/sizeof(uint32_t));
@@ -16,13 +16,13 @@ namespace render
 
 		vk::ShaderModuleCreateInfo shader_info({}, size, buf.data());
 		vk::UniqueShaderModule shader = device.createShaderModuleUnique(shader_info);
-		debugName(device, shader.get(), "Shader Module \""+file+"\"");
+		debugName(device, shader.get(), "Shader Module \""+path.filename().string()+"\"");
 		return std::move(shader);
 	}
 
-	vk::UniqueShaderModule createShader(vk::Device device, unsigned char* p, unsigned int size)
+	vk::UniqueShaderModule createShader(vk::Device device, std::span<const uint32_t> code)
 	{
-		vk::ShaderModuleCreateInfo shader_info({}, size, (uint32_t*)p);
+		vk::ShaderModuleCreateInfo shader_info({}, code.size()*sizeof(decltype(code)::element_type), code.data());
 		vk::UniqueShaderModule shader = device.createShaderModuleUnique(shader_info);
 		return std::move(shader);
 	}

@@ -168,9 +168,9 @@ namespace render
 			debugName(device, pipelineLayout.get(), "Font Renderer Pipeline Layout");
 		}
 		{
-			vk::UniqueShaderModule vertexShader = createShader(device, shaders_text_vert_spv, shaders_text_vert_spv_len);
-			vk::UniqueShaderModule geometryShader = createShader(device, shaders_text_geom_spv, shaders_text_geom_spv_len);
-			vk::UniqueShaderModule fragmentShader = createShader(device, shaders_text_frag_spv, shaders_text_frag_spv_len);
+			vk::UniqueShaderModule vertexShader = createShader(device, shaders_text_vert);
+			vk::UniqueShaderModule geometryShader = createShader(device, shaders_text_geom);
+			vk::UniqueShaderModule fragmentShader = createShader(device, shaders_text_frag);
 			std::array<vk::PipelineShaderStageCreateInfo, 3> shaders = {
 				vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
 				vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eGeometry, geometryShader.get(), "main"),

@@ -21,14 +21,14 @@ namespace config
                 wave, color, image
             };
 
-            std::filesystem::path exe_path = std::filesystem::canonical("/proc/self/exe").parent_path();
+            std::filesystem::path exe_directory = std::filesystem::canonical("/proc/self/exe").parent_path();
             std::filesystem::path asset_directory = [this](){
                 if(auto v = std::getenv("XMB_ASSET_DIR"); v != nullptr) {
                     return std::filesystem::path(v);
                 }
-                return exe_path / std::string(constants::asset_directory);
+                return exe_directory / std::string(constants::asset_directory);
             }();
-            std::filesystem::path fallback_font = exe_path / std::string(constants::fallback_font);
+            std::filesystem::path fallback_font = exe_directory / std::string(constants::fallback_font);
 
             vk::PresentModeKHR      preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
             vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e4; // aka Anti-aliasing

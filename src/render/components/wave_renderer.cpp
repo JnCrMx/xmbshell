@@ -113,8 +113,8 @@ namespace render {
 			vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
 
 			{
-				vk::UniqueShaderModule vertexShader = createShader(device, shaders_wave_vert_spv, shaders_wave_vert_spv_len);
-				vk::UniqueShaderModule fragmentShader = createShader(device, shaders_wave_frag_spv, shaders_wave_frag_spv_len);
+				vk::UniqueShaderModule vertexShader = createShader(device, shaders_wave_vert);
+				vk::UniqueShaderModule fragmentShader = createShader(device, shaders_wave_frag);
 				std::array<vk::PipelineShaderStageCreateInfo, 2> shaders = {
 					vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
 					vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, fragmentShader.get(), "main")

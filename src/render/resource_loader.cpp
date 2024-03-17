@@ -112,7 +112,7 @@ namespace render
 				spdlog::error("[Resource Loader {}] Failed to open file {}", index, path.string());
 				{
 					std::scoped_lock<std::mutex> l(lock);
-					tex->create_image(4, 4); // create fake image to avoid crash
+					tex->create_image(1, 1); // create fake image to avoid crash
 				}
 				return false;
 			}
@@ -125,7 +125,14 @@ namespace render
 			spng_set_png_buffer(ctx.get(), data.data(), data.size());
 
 			struct spng_ihdr ihdr;
-    		spng_get_ihdr(ctx.get(), &ihdr);
+    		if(spng_get_ihdr(ctx.get(), &ihdr) != 0) {
+				spdlog::error("[Resource Loader {}] Failed to get IHDR from {}", index, path.string());
+				{
+					std::scoped_lock<std::mutex> l(lock);
+					tex->create_image(1, 1); // create fake image to avoid crash
+				}
+				return false;
+			}
 
 			{
 				std::scoped_lock<std::mutex> l(lock);

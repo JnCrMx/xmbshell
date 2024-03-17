@@ -57,9 +57,13 @@ applications_menu::applications_menu(const std::string& name, render::texture&& 
             } else if(auto* file_icon = dynamic_cast<Gio::FileIcon*>(icon.get())) {
                 icon_path = file_icon->get_file()->get_path();
             } else {
-                auto& r = *icon;
-                spdlog::warn("Unknown icon type for app \"{}\": {}", desktop_app->get_display_name(),
-                    typeid(r).name());
+                if(icon) {
+                    auto& r = *icon;
+                    spdlog::warn("Unsupported icon type for app \"{}\": {}", desktop_app->get_display_name(),
+                        typeid(r).name());
+                } else {
+                    spdlog::warn("No icon for app \"{}\"", desktop_app->get_display_name());
+                }
             }
 
             render::texture icon_texture(loader.getDevice(), loader.getAllocator());

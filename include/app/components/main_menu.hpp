@@ -32,6 +32,9 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
         void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
     private:
+        void render_crossbar(render::gui_renderer& renderer);
+        void render_submenu(render::gui_renderer& renderer);
+
         enum class direction {
             left,
             right,
@@ -43,6 +46,7 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         void select_submenu(int index);
         bool select_relative(direction dir);
         bool activate_current();
+        bool back();
         void error_rumble(SDL_GameController* controller);
 
         SoundChunk ok_sound;
@@ -57,6 +61,8 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         int last_selected_submenu = 0;
         std::chrono::time_point<std::chrono::system_clock> last_selected_submenu_transition;
         constexpr static auto transition_submenu_duration = std::chrono::milliseconds(200);
+
+        bool in_submenu = false;
 
         constexpr static int controller_axis_input_threshold = 10000;
         std::chrono::time_point<std::chrono::system_clock> last_controller_axis_input_time[2];

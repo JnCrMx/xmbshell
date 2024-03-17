@@ -51,8 +51,8 @@ void image_renderer::preload(vk::RenderPass renderPass) {
     }
 
     {
-        vk::UniqueShaderModule vertexShader = createShader(device, shaders_image_vert_spv, shaders_image_vert_spv_len);
-        vk::UniqueShaderModule fragmentShader = createShader(device, shaders_image_frag_spv, shaders_image_frag_spv_len);
+        vk::UniqueShaderModule vertexShader = createShader(device, shaders_image_vert);
+        vk::UniqueShaderModule fragmentShader = createShader(device, shaders_image_frag);
         std::array<vk::PipelineShaderStageCreateInfo, 2> shaders = {
             vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
             vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, fragmentShader.get(), "main")
