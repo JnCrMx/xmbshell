@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Vulkan REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
+find_package(SDL2_image REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
@@ -20,7 +21,6 @@ find_package(sdbus-c++ QUIET)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
-pkg_check_modules(SPNG spng)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
@@ -47,21 +47,6 @@ message(STATUS "sdbus-c++ not found, downloading and building it.")
   add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 endif()
 
-if(SPNG_FOUND)
-  add_library(SPNG::spng INTERFACE IMPORTED)
-  target_include_directories(SPNG::spng INTERFACE ${SPNG_INCLUDE_DIRS})
-  target_link_libraries(SPNG::spng INTERFACE ${SPNG_LIBRARIES})
-else()
-  message(STATUS "spng not found, downloading and building it.")
-  FetchContent_Declare(
-    spng
-    GIT_REPOSITORY https://github.com/randy408/libspng.git
-    GIT_TAG        v0.7.4
-  )
-  FetchContent_MakeAvailable(spng)
-  add_library(SPNG::spng ALIAS spng_static)
-endif()
-
 add_executable(xmbshell ${sources})
 
 add_library(optimized_components STATIC ${opt_sources})
@@ -77,12 +62,12 @@ target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
 target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
 target_link_libraries(xmbshell PRIVATE SDL2::SDL2)
 target_link_libraries(xmbshell PRIVATE SDL2_mixer::SDL2_mixer)
+target_link_libraries(xmbshell PRIVATE SDL2_image::SDL2_image)
 target_link_libraries(xmbshell PRIVATE spdlog::spdlog)
 target_link_libraries(xmbshell PRIVATE dl)
 target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
-target_link_libraries(xmbshell PRIVATE SPNG::spng)
 target_link_libraries(xmbshell PRIVATE ${GIOMM_LIBRARIES})
 
 foreach(shader ${shaders})

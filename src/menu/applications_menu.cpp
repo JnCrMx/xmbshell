@@ -1,6 +1,7 @@
 #include "menu/applications_menu.hpp"
 
 #include <filesystem>
+#include <glibmm/miscutils.h>
 #include <giomm/appinfo.h>
 #include <giomm/desktopappinfo.h>
 #include <giomm/themedicon.h>
@@ -9,30 +10,44 @@
 
 namespace menu {
 
-inline std::unordered_map<std::string, std::filesystem::path> themedIconPaths = [](){
+inline std::unordered_map<std::string, std::filesystem::path> themedIconPaths;
+inline std::once_flag themedIconPathsFlag;
+
+static void initialize_themed_icons(){
     std::unordered_map<std::string, std::filesystem::path> paths;
+    auto process = [&paths](const std::string& dir) {
+        auto path = std::filesystem::path(dir) / "icons";
+        if(!std::filesystem::exists(path)) {
+            return;
+        }
+        for(const auto& icon : std::filesystem::recursive_directory_iterator(path)) {
+            if(icon.is_regular_file()) {
+                auto iconName = icon.path().stem().string();
+                auto iconPath = icon.path();
+                paths[iconName] = iconPath;
+            }
+        }
+    };
+    process("/usr/share");
+    process("/usr/local/share");
+    process(Glib::get_home_dir()+"/.local/share");
+
     auto xdg_data_dirs = std::getenv("XDG_DATA_DIRS");
     if(xdg_data_dirs) {
         std::istringstream iss(xdg_data_dirs);
         std::string dir;
         while(std::getline(iss, dir, ':')) {
-            auto path = std::filesystem::path(dir) / "icons";
-            if(!std::filesystem::exists(path)) {
-                continue;
-            }
-            for(const auto& icon : std::filesystem::recursive_directory_iterator(path)) {
-                if(icon.path().extension() == ".png") {
-                    auto iconName = icon.path().stem().string();
-                    auto iconPath = icon.path();
-                    paths[iconName] = iconPath;
-                }
-            }
+            process(dir);
         }
     }
-    return paths;
-}();
+    spdlog::debug("Found {} themed icons", paths.size());
+
+    themedIconPaths = paths;
+};
 
 applications_menu::applications_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader, AppFilter filter) : simple_menu(name, std::move(icon)) {
+    std::call_once(themedIconPathsFlag, initialize_themed_icons);
+
     auto appInfos = Gio::AppInfo::get_all();
     for (const auto& app : appInfos) {
         if(auto desktop_app = std::dynamic_pointer_cast<Gio::DesktopAppInfo>(app)) {

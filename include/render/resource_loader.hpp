@@ -1,7 +1,6 @@
 #pragma once
 
 #include <filesystem>
-#include <string>
 #include <variant>
 #include <thread>
 #include <mutex>
@@ -12,8 +11,6 @@
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include <vk_mem_alloc.hpp>
-
-#include <spng.h>
 
 #include "texture.hpp"
 #include "model.hpp"
@@ -49,8 +46,6 @@ namespace render
 			std::future<void> loadTexture(texture* texture, LoaderFunction loader);
 
 			std::future<void> loadModel(model* model, std::filesystem::path filename);
-
-			static vk::Extent2D getImageSize(std::string filename);
 
 			vk::Device getDevice() const { return device; }
 			vma::Allocator getAllocator() const { return allocator; }

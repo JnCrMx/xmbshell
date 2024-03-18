@@ -4,7 +4,7 @@
 
 #include <vk_mem_alloc.hpp>
 #include <spdlog/spdlog.h>
-#include <spng.h>
+#include <SDL_image.h>
 
 #include <fstream>
 #include <chrono>
@@ -70,32 +70,6 @@ namespace render
 		return f;
 	}
 
-	// Ugly hack to get PNG size BEFORE loading it, so we can create a vk::Image and a vk::ImageView in advance
-	vk::Extent2D resource_loader::getImageSize(std::string filename)
-	{
-		std::ifstream in("assets/textures/"+filename, std::ios_base::binary);
-
-		// 32 bytes is enough to capture the IHDR chunk (it's guaranteed to be the first chunk) which is all we need
-		std::vector<char> data(32);
-		in.read(data.data(), data.size());
-
-		spng_ctx* sizeCtx = spng_ctx_new(0);
-		spng_set_png_buffer(sizeCtx, data.data(), data.size());
-
-		struct spng_ihdr ihdr;
-    	spng_get_ihdr(sizeCtx, &ihdr);
-		spng_ctx_free(sizeCtx);
-
-		return vk::Extent2D{ihdr.width, ihdr.height};
-	}
-
-	struct spng_ctx_deleter
-	{
-		void operator()(spng_ctx* ctx) const
-		{
-			spng_ctx_free(ctx);
-		}
-	};
 	bool load_texture(
 		int index, LoadTask& task, std::mutex& lock,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
@@ -106,50 +80,49 @@ namespace render
 		if(std::holds_alternative<std::filesystem::path>(task.src))
 		{
 			const auto& path = std::get<std::filesystem::path>(task.src);
-			std::ifstream in(path, std::ios_base::ate | std::ios_base::binary);
-			if(!in.good())
+
+			SDL_Surface* surface = IMG_Load(path.c_str());
+			if(!surface)
 			{
-				spdlog::error("[Resource Loader {}] Failed to open file {}", index, path.string());
-				{
-					std::scoped_lock<std::mutex> l(lock);
-					tex->create_image(1, 1); // create fake image to avoid crash
-				}
+				spdlog::error("[Resource Loader {}] Failed to load image {}", index, path.string());
+				std::scoped_lock<std::mutex> l(lock);
+				tex->create_image(1, 1); // create fake image to avoid crash
 				return false;
 			}
-			size_t size = in.tellg();
-			std::vector<char> data(size);
-			in.seekg(0);
-			in.read(data.data(), size);
 
-			std::unique_ptr<spng_ctx, spng_ctx_deleter> ctx(spng_ctx_new(0));
-			spng_set_png_buffer(ctx.get(), data.data(), data.size());
+			if(surface->format->format != SDL_PIXELFORMAT_RGBA32)
+			{
+				SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+				SDL_FreeSurface(surface);
+				surface = newSurface;
+			}
 
-			struct spng_ihdr ihdr;
-    		if(spng_get_ihdr(ctx.get(), &ihdr) != 0) {
-				spdlog::error("[Resource Loader {}] Failed to get IHDR from {}", index, path.string());
-				{
-					std::scoped_lock<std::mutex> l(lock);
-					tex->create_image(1, 1); // create fake image to avoid crash
-				}
+			std::size_t size = surface->w * surface->h * surface->format->BytesPerPixel;
+			if(size > stagingSize)
+			{
+				spdlog::error("[Resource Loader {}] Image {} is too large ({} bytes)", index, path.string(), size);
+				SDL_FreeSurface(surface);
+				std::scoped_lock<std::mutex> l(lock);
+				tex->create_image(1, 1); // create fake image to avoid crash
 				return false;
 			}
 
 			{
 				std::scoped_lock<std::mutex> l(lock);
-				tex->create_image(ihdr.width, ihdr.height);
+				tex->create_image(surface->w, surface->h);
 			}
 
-			size_t decodedSize;
-			spng_decoded_image_size(ctx.get(), SPNG_FMT_RGBA8, &decodedSize);
-			assert(decodedSize <= stagingSize);
-			spng_decode_image(ctx.get(), decodeBuffer, decodedSize, SPNG_FMT_RGBA8, 0);
+			SDL_LockSurface(surface);
+			allocator.copyMemoryToAllocation(surface->pixels, allocation, 0, surface->w * surface->h * 4);
+			SDL_UnlockSurface(surface);
+			SDL_FreeSurface(surface);
 		}
 		else
 		{
 			std::fill(decodeBuffer, decodeBuffer+stagingSize, 0x00);
 			std::get<LoaderFunction>(task.src)(decodeBuffer, stagingSize);
+			allocator.copyMemoryToAllocation(decodeBuffer, allocation, 0, stagingSize);
 		}
-		allocator.copyMemoryToAllocation(decodeBuffer, allocation, 0, stagingSize);
 
 		commandBuffer.begin(vk::CommandBufferBeginInfo());
 

@@ -5,7 +5,7 @@ set -e
 # Install dependencies
 pacman -Sy
 pacman -S --noconfirm --needed git wget cmake ninja glslang \
-    vulkan-headers vulkan-icd-loader sdl2 sdl2_mixer freetype2 \
+    vulkan-headers vulkan-icd-loader sdl2 sdl2_mixer sdl2_image freetype2 \
     glm spdlog glibmm-2.68 gtk3 ttf-ubuntu-font-family
 
 cd /src
