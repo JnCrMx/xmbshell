@@ -4,8 +4,7 @@
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
-#include "blur.vert.h"
-#include "blur.frag.h"
+#include "blur.comp.h"
 
 #include <chrono>
 
@@ -36,11 +35,11 @@ namespace app
 				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
 					vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-					vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal),
+					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral),
 				vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-					vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal)
+					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral)
 			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
@@ -53,27 +52,11 @@ namespace app
 			debugName(device, backgroundRenderPass.get(), "Background Render Pass");
 		}
 		{
-			std::array<vk::AttachmentDescription, 1> attachments = {
-				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
-					vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
-					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-					vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal)
-			};
-			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
-			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
-				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-				{}, vk::AccessFlagBits::eColorAttachmentWrite);
-			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
-			blurRenderPass = device.createRenderPassUnique(renderpass_info);
-			debugName(device, blurRenderPass.get(), "Blur Render Pass");
-		}
-		{
 			std::array<vk::AttachmentDescription, 2> attachments = {
 				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
 					vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-					vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal),
+					vk::ImageLayout::eGeneral, vk::ImageLayout::eColorAttachmentOptimal),
 				vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
@@ -110,14 +93,9 @@ namespace app
 			debugName(device, popupRenderPass.get(), "Popup Render Pass");
 		}
 		{
-			vk::SamplerCreateInfo sampler_info({}, vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
-				vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge,
-				0.0f, false, 0.0f, false, vk::CompareOp::eNever, 0.0f, 0.0f, vk::BorderColor::eFloatTransparentBlack, false);
-			blurSampler = device.createSamplerUnique(sampler_info);
-    	}
-		{
-			std::array<vk::DescriptorSetLayoutBinding, 1> bindings = {
-				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment),
+			std::array<vk::DescriptorSetLayoutBinding, 2> bindings = {
+				vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute),
+				vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute),
 			};
 			vk::DescriptorSetLayoutCreateInfo info({}, bindings);
 			blurDescriptorSetLayout = device.createDescriptorSetLayoutUnique(info);
@@ -127,37 +105,10 @@ namespace app
 			blurPipelineLayout = device.createPipelineLayoutUnique(info);
 		}
 		{
-			vk::UniqueShaderModule vertexShader = createShader(device, shaders_blur_vert);
-			vk::UniqueShaderModule fragmentShader = createShader(device, shaders_blur_frag);
-			std::array<vk::PipelineShaderStageCreateInfo, 2> shaders = {
-				vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
-				vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, fragmentShader.get(), "main")
-			};
-
-			vk::PipelineVertexInputStateCreateInfo vertex_input{};
-			vk::PipelineInputAssemblyStateCreateInfo input_assembly({}, vk::PrimitiveTopology::eTriangleStrip);
-			vk::PipelineTessellationStateCreateInfo tesselation({}, {});
-
-			vk::Viewport v{};
-			vk::Rect2D s{};
-			vk::PipelineViewportStateCreateInfo viewport({}, v, s);
-
-			vk::PipelineRasterizationStateCreateInfo rasterization({}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone, vk::FrontFace::eCounterClockwise, false, 0.0f, 0.0f, 0.0f, 1.0f);
-			vk::PipelineMultisampleStateCreateInfo multisample({}, config::CONFIG.sampleCount);
-			vk::PipelineDepthStencilStateCreateInfo depthStencil({}, false, false);
-
-			vk::PipelineColorBlendAttachmentState attachment(true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
-				vk::BlendFactor::eOne, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
-				vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-			vk::PipelineColorBlendStateCreateInfo colorBlend({}, false, vk::LogicOp::eClear, attachment);
-
-			std::array<vk::DynamicState, 2> dynamicStates{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-			vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
-
-			vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
-				&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
-				blurPipelineLayout.get(), blurRenderPass.get());
-			blurPipeline = device.createGraphicsPipelineUnique({}, pipeline_info).value;
+			vk::UniqueShaderModule compShader = createShader(device, shaders_blur_comp);
+			vk::PipelineShaderStageCreateInfo shader({}, vk::ShaderStageFlagBits::eCompute, compShader.get(), "main");
+			vk::ComputePipelineCreateInfo info({}, shader, blurPipelineLayout.get());
+			blurPipeline = device.createComputePipelineUnique({}, info).value;
 			debugName(device, blurPipeline.get(), "Blur Pipeline");
 		}
 
@@ -181,7 +132,7 @@ namespace app
 		commandBuffers = device.allocateCommandBuffersUnique(
 			vk::CommandBufferAllocateInfo(pool.get(), vk::CommandBufferLevel::ePrimary, imageCount));
 		{
-			vk::DescriptorPoolSize size(vk::DescriptorType::eCombinedImageSampler, imageCount);
+			vk::DescriptorPoolSize size(vk::DescriptorType::eStorageImage, 2*imageCount);
 			vk::DescriptorPoolCreateInfo pool_info({}, imageCount, size);
 			blurDescriptorPool = device.createDescriptorPoolUnique(pool_info);
 
@@ -194,22 +145,27 @@ namespace app
 		renderImages.resize(imageCount);
 		renderAllocations.resize(imageCount);
 		renderViews.resize(imageCount);
+		blurSrcViews.resize(imageCount);
+		blurDstViews.resize(imageCount);
 
-		std::vector<vk::DescriptorImageInfo> imageInfos(imageCount);
+		std::vector<vk::DescriptorImageInfo> imageInfos(2*imageCount);
 		std::vector<vk::WriteDescriptorSet> writes(imageCount);
 
 		for(int i=0; i<imageCount; i++)
 		{
-			vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, win->swapchainFormat.format,
+			vk::ImageCreateInfo image_info(vk::ImageCreateFlagBits::eExtendedUsage | vk::ImageCreateFlagBits::eMutableFormat,
+				vk::ImageType::e2D, win->swapchainFormat.format,
 				vk::Extent3D(win->swapchainExtent, 1), 1, 1, config::CONFIG.sampleCount,
-				vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment,
+				vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage,
 				vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
 			vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
 			std::tie(renderImages[i], renderAllocations[i]) = allocator.createImage(image_info, alloc_info);
 			debugName(device, renderImages[i], "XMB Shell Render Image #"+std::to_string(i));
 
+			vk::ImageViewUsageCreateInfoKHR usage_info(vk::ImageUsageFlagBits::eColorAttachment);
 			vk::ImageViewCreateInfo view_info({}, renderImages[i], vk::ImageViewType::e2D, win->swapchainFormat.format,
-				vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+				vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1),
+				&usage_info);
 			renderViews[i] = device.createImageViewUnique(view_info);
 			debugName(device, renderViews[i].get(), "XMB Shell Render Image View #"+std::to_string(i));
 
@@ -219,15 +175,29 @@ namespace app
 			framebuffers.push_back(device.createFramebufferUnique(framebuffer_info));
 			debugName(device, framebuffers.back().get(), "XMB Shell Framebuffer #"+std::to_string(i));
 
-			vk::FramebufferCreateInfo blur_framebuffer_info({}, blurRenderPass.get(), renderViews[i].get(),
-				win->swapchainExtent.width, win->swapchainExtent.height, 1);
-			blurFramebuffers.push_back(device.createFramebufferUnique(blur_framebuffer_info));
-			debugName(device, blurFramebuffers.back().get(), "XMB Shell Blur Framebuffer #"+std::to_string(i));
-
 			debugName(device, commandBuffers[i].get(), "XMB Shell Command Buffer #"+std::to_string(i));
 
-			imageInfos[i] = vk::DescriptorImageInfo(blurSampler.get(), swapchainViews[i], vk::ImageLayout::eShaderReadOnlyOptimal);
-			writes[i] = vk::WriteDescriptorSet(blurDescriptorSets[i], 0, 0, 1, vk::DescriptorType::eCombinedImageSampler, &imageInfos[i]);
+			{
+				vk::ImageViewUsageCreateInfoKHR usage_info(vk::ImageUsageFlagBits::eStorage);
+				vk::ImageViewCreateInfo blur_src_view_info({}, swapchainImages[i], vk::ImageViewType::e2D, win->swapchainComputeFormat.format,
+					vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1),
+					&usage_info);
+				blurSrcViews[i] = device.createImageViewUnique(blur_src_view_info);
+				debugName(device, renderViews[i].get(), "XMB Shell Blur Src View #"+std::to_string(i));
+			}
+			{
+				vk::ImageViewUsageCreateInfoKHR usage_info(vk::ImageUsageFlagBits::eStorage);
+				vk::ImageViewCreateInfo blur_dst_view_info({}, renderImages[i], vk::ImageViewType::e2D, win->swapchainComputeFormat.format,
+					vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1),
+					&usage_info);
+				blurDstViews[i] = device.createImageViewUnique(blur_dst_view_info);
+				debugName(device, renderViews[i].get(), "XMB Shell Blur Dst View #"+std::to_string(i));
+			}
+
+			imageInfos[2*i] = vk::DescriptorImageInfo({}, blurSrcViews[i].get(), vk::ImageLayout::eGeneral);
+			imageInfos[2*i+1] = vk::DescriptorImageInfo({}, blurDstViews[i].get(), vk::ImageLayout::eGeneral);
+			writes[i] = vk::WriteDescriptorSet(blurDescriptorSets[i], 0, 0, 2, vk::DescriptorType::eStorageImage,
+				&imageInfos[2*i]);
 		}
 		device.updateDescriptorSets(writes, {});
 
@@ -269,20 +239,11 @@ namespace app
 			commandBuffer->endRenderPass();
 		}
 		{
-			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(blurRenderPass.get(), blurFramebuffers[frame].get(),
-				vk::Rect2D({0, 0}, win->swapchainExtent)), vk::SubpassContents::eInline);
-			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
-			vk::Rect2D scissor({0,0}, win->swapchainExtent);
-			commandBuffer->setViewport(0, viewport);
-			commandBuffer->setScissor(0, scissor);
-
 			if(blur_background) {
-				commandBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, blurPipeline.get());
-				commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, blurPipelineLayout.get(), 0, blurDescriptorSets[frame], {});
-				commandBuffer->draw(4, 1, 0, 0);
+				commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, blurPipeline.get());
+				commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, blurPipelineLayout.get(), 0, blurDescriptorSets[frame], {});
+				commandBuffer->dispatch(win->swapchainExtent.width/16, win->swapchainExtent.height/16, 1);
 			}
-
-			commandBuffer->endRenderPass();
 		}
 		{
 			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(shellRenderPass.get(), framebuffers[frame].get(),

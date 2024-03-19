@@ -261,6 +261,7 @@ namespace render
 			.setSampleRateShading(true)
 			.setFillModeNonSolid(true)
 			.setShaderSampledImageArrayDynamicIndexing(true)
+			.setShaderStorageImageMultisample(true)
 			.setWideLines(true);
 		vk::PhysicalDeviceDescriptorIndexingFeatures indexingFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures()
 			.setDescriptorBindingPartiallyBound(true)
@@ -272,7 +273,10 @@ namespace render
 		const std::vector<const char*> deviceExtensions = {
     		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+			VK_KHR_MAINTENANCE2_EXTENSION_NAME,
 			VK_KHR_MAINTENANCE3_EXTENSION_NAME,
+			VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME,
+			VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME,
 		};
 		vk::DeviceCreateInfo device_info = vk::DeviceCreateInfo()
 			.setQueueCreateInfos(queueInfos)
@@ -320,6 +324,24 @@ namespace render
 				vk::to_string(props.linearTilingFeatures), vk::to_string(props.optimalTilingFeatures),
 				vk::to_string(props.bufferFeatures));
 		}
+		auto swapchainComputeFormatIt = std::find_if(swapchainSupport.formats.begin(), swapchainSupport.formats.end(), [this](const vk::SurfaceFormatKHR& f){
+			auto props = physicalDevice.getFormatProperties(f.format);
+			return props.optimalTilingFeatures & vk::FormatFeatureFlagBits::eStorageImage;
+		});
+		if(swapchainComputeFormatIt == swapchainSupport.formats.end())
+		{
+			spdlog::error("No suitable format for compute shader found.");
+			throw std::runtime_error("no suitable format for compute shader");
+		}
+		swapchainComputeFormat = *swapchainComputeFormatIt;
+		if(spdlog::should_log(spdlog::level::debug))
+		{
+			auto props = physicalDevice.getFormatProperties(swapchainComputeFormat.format);
+			spdlog::debug("Swapchain compute format: {}, color space: {}, linear tiling features: {}, optimal tiling features: {}, buffer features: {}",
+				vk::to_string(swapchainComputeFormat.format), vk::to_string(swapchainComputeFormat.colorSpace),
+				vk::to_string(props.linearTilingFeatures), vk::to_string(props.optimalTilingFeatures),
+				vk::to_string(props.bufferFeatures));
+		}
 
 		auto presentModeIt = std::find_if(swapchainSupport.presentModes.begin(), swapchainSupport.presentModes.end(), [](auto p){
 			return p == CONFIG.preferredPresentMode;
@@ -340,20 +362,27 @@ namespace render
 			swapchainExtent.width, swapchainExtent.height, swapchainImageCount,
 			vk::to_string(swapchainSupport.capabilities.supportedCompositeAlpha));
 
-		vk::SwapchainCreateInfoKHR swapchain_info({}, surface.get(), swapchainImageCount,
+		std::array<vk::Format, 2> formats = {swapchainFormat.format, swapchainComputeFormat.format};
+		vk::ImageFormatListCreateInfo formatListInfo(formats);
+		vk::SwapchainCreateInfoKHR swapchain_info(vk::SwapchainCreateFlagBitsKHR::eMutableFormat, surface.get(), swapchainImageCount,
 			swapchainFormat.format, swapchainFormat.colorSpace,
-			swapchainExtent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
+			swapchainExtent, 1,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eStorage);
 		swapchain_info.setPresentMode(swapchainPresentMode);
 		swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eInherit);
 		if(swapchainSupport.capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
 			swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::ePreMultiplied);
+		swapchain_info.setPNext(&formatListInfo);
+
 		swapchain = device->createSwapchainKHRUnique(swapchain_info);
 		swapchainImages = device->getSwapchainImagesKHR(swapchain.get());
 
 		for(auto& image : swapchainImages)
 		{
+			vk::ImageViewUsageCreateInfoKHR usageInfo(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
 			vk::ImageViewCreateInfo view_info({}, image, vk::ImageViewType::e2D, swapchainFormat.format,
-				vk::ComponentMapping{}, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+				vk::ComponentMapping{}, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1),
+				&usageInfo);
 			swapchainImageViews.push_back(device->createImageViewUnique(view_info));
 			swapchainImageViewsRaw.push_back(swapchainImageViews.back().get());
 

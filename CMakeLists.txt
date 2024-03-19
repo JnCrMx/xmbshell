@@ -24,7 +24,7 @@ pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
-file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom)
+file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom shaders/*.comp)
 
 FetchContent_Declare(
   VulkanMemoryAllocator-Hpp

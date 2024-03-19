@@ -88,6 +88,7 @@ namespace render
 			std::vector<vk::Queue> transferQueues;
 
 			vk::SurfaceFormatKHR swapchainFormat;
+			vk::SurfaceFormatKHR swapchainComputeFormat;
 			vk::PresentModeKHR swapchainPresentMode;
 			vk::Extent2D swapchainExtent;
 			uint32_t swapchainImageCount;
