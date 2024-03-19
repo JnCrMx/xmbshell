@@ -16,7 +16,7 @@ inline std::once_flag themedIconPathsFlag;
 static void initialize_themed_icons(){
     std::unordered_map<std::string, std::filesystem::path> paths;
     auto process = [&paths](const std::string& dir) {
-        auto path = std::filesystem::path(dir) / "icons";
+        auto path = std::filesystem::path(dir) / "icons" / "hicolor";
         if(!std::filesystem::exists(path)) {
             return;
         }
