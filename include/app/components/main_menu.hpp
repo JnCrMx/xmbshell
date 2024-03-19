@@ -20,7 +20,7 @@ using SoundChunk = std::unique_ptr<Mix_Chunk, Mix_Chunk_Freer>;
 
 class main_menu : input::keyboard_handler, input::controller_handler {
     public:
-        main_menu();
+        main_menu(class xmbshell* shell);
         void preload(vk::Device device, vma::Allocator allocator, render::resource_loader& loader);
         void tick();
         void render(render::gui_renderer& renderer);
@@ -32,6 +32,8 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
         void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
     private:
+        class xmbshell* shell;
+
         void render_crossbar(render::gui_renderer& renderer);
         void render_submenu(render::gui_renderer& renderer);
 

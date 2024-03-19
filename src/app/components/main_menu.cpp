@@ -1,4 +1,6 @@
 #include "app/components/main_menu.hpp"
+
+#include "app/xmbshell.hpp"
 #include "config.hpp"
 #include "menu/applications_menu.hpp"
 #include "menu/users_menu.hpp"
@@ -8,7 +10,7 @@
 
 namespace app {
 
-main_menu::main_menu() {
+main_menu::main_menu(xmbshell* shell) : shell(shell) {
 
 }
 
@@ -169,6 +171,7 @@ bool main_menu::activate_current() {
     if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
         if(submenu->get_submenus_count() > 0) {
             in_submenu = true;
+            shell->blur_background = true;
             return true;
         }
     }
@@ -177,6 +180,7 @@ bool main_menu::activate_current() {
 bool main_menu::back() {
     if(in_submenu) {
         in_submenu = false;
+        shell->blur_background = false;
         return true;
     }
     return false;

@@ -30,12 +30,22 @@ namespace app
 			void button_down(SDL_GameController* controller, SDL_GameControllerButton button) override;
 			void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
 			void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
+
+			bool blur_background = false;
 		private:
 			std::unique_ptr<font_renderer> font_render;
 			std::unique_ptr<image_renderer> image_render;
 			std::unique_ptr<wave_renderer> wave_render;
 
-			vk::UniqueRenderPass backgroundRenderPass, shellRenderPass, popupRenderPass;
+			vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass, popupRenderPass;
+
+			vk::UniqueDescriptorSetLayout blurDescriptorSetLayout;
+			vk::UniqueDescriptorPool blurDescriptorPool;
+			std::vector<vk::DescriptorSet> blurDescriptorSets;
+			vk::UniqueSampler blurSampler;
+			vk::UniquePipelineLayout blurPipelineLayout;
+			vk::UniquePipeline blurPipeline;
+			std::vector<vk::UniqueFramebuffer> blurFramebuffers;
 
 			std::vector<vk::Image> renderImages;
 			std::vector<vma::Allocation> renderAllocations;
@@ -48,7 +58,7 @@ namespace app
 			std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
 			std::unique_ptr<texture> backgroundTexture;
-			main_menu menu;
+			main_menu menu{this};
 
 			void render_gui(gui_renderer& renderer);
 	};

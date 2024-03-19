@@ -312,6 +312,14 @@ namespace render
 			return f.format == vk::Format::eB8G8R8A8Srgb && f.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
 		});
 		swapchainFormat = formatIt == swapchainSupport.formats.end() ? swapchainSupport.formats[0] : *formatIt;
+		if(spdlog::should_log(spdlog::level::debug))
+		{
+			auto props = physicalDevice.getFormatProperties(swapchainFormat.format);
+			spdlog::debug("Swapchain format: {}, color space: {}, linear tiling features: {}, optimal tiling features: {}, buffer features: {}",
+				vk::to_string(swapchainFormat.format), vk::to_string(swapchainFormat.colorSpace),
+				vk::to_string(props.linearTilingFeatures), vk::to_string(props.optimalTilingFeatures),
+				vk::to_string(props.bufferFeatures));
+		}
 
 		auto presentModeIt = std::find_if(swapchainSupport.presentModes.begin(), swapchainSupport.presentModes.end(), [](auto p){
 			return p == CONFIG.preferredPresentMode;
@@ -334,7 +342,7 @@ namespace render
 
 		vk::SwapchainCreateInfoKHR swapchain_info({}, surface.get(), swapchainImageCount,
 			swapchainFormat.format, swapchainFormat.colorSpace,
-			swapchainExtent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
+			swapchainExtent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
 		swapchain_info.setPresentMode(swapchainPresentMode);
 		swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eInherit);
 		if(swapchainSupport.capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)
