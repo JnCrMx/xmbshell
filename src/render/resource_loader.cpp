@@ -70,6 +70,8 @@ namespace render
 		return f;
 	}
 
+	constexpr unsigned int safe_size = 256;
+
 	bool load_texture(
 		int index, LoadTask& task, std::mutex& lock,
 		vk::Device device, vma::Allocator allocator, vma::Allocation allocation,
@@ -100,11 +102,14 @@ namespace render
 			std::size_t size = surface->w * surface->h * surface->format->BytesPerPixel;
 			if(size > stagingSize)
 			{
-				spdlog::error("[Resource Loader {}] Image {} is too large ({} bytes)", index, path.string(), size);
+				spdlog::warn("[Resource Loader {}] Image {} is too large ({} bytes), scaling it to {}x{}", index, path.string(), size,
+					safe_size, safe_size);
+				SDL_Surface* newSurface = SDL_CreateRGBSurface(0, safe_size, safe_size, 32, 0, 0, 0, 0);
+				SDL_BlitScaled(surface, nullptr, newSurface, nullptr);
 				SDL_FreeSurface(surface);
-				std::scoped_lock<std::mutex> l(lock);
-				tex->create_image(1, 1); // create fake image to avoid crash
-				return false;
+				surface = newSurface;
+				size = surface->w * surface->h * surface->format->BytesPerPixel;
+				assert(size <= stagingSize);
 			}
 
 			{
