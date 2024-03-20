@@ -125,43 +125,45 @@ void main_menu::error_rumble(SDL_GameController* controller) {
 }
 
 bool main_menu::select_relative(direction dir) {
-    if(dir == direction::left) {
-        if(selected > 0) {
-            select(selected-1);
-            if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-            }
+    if(!in_submenu) {
+        if(dir == direction::left) {
+            if(selected > 0) {
+                select(selected-1);
+                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                }
 
-            return true;
-        }
-    } else if(dir == direction::right) {
-        if(selected < menus.size()-1) {
-            select(selected+1);
-            if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                return true;
             }
+        } else if(dir == direction::right) {
+            if(selected < menus.size()-1) {
+                select(selected+1);
+                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                }
 
-            return true;
-        }
-    } else if(dir == direction::up) {
-        auto& menu = menus[selected];
-        if(menu->get_selected_submenu() > 0) {
-            select_submenu(menu->get_selected_submenu()-1);
-            if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                return true;
             }
+        } else if(dir == direction::up) {
+            auto& menu = menus[selected];
+            if(menu->get_selected_submenu() > 0) {
+                select_submenu(menu->get_selected_submenu()-1);
+                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                }
 
-            return true;
-        }
-    } else if(dir == direction::down) {
-        auto& menu = menus[selected];
-        if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
-            select_submenu(menu->get_selected_submenu()+1);
-            if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                return true;
             }
+        } else if(dir == direction::down) {
+            auto& menu = menus[selected];
+            if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
+                select_submenu(menu->get_selected_submenu()+1);
+                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                }
 
-            return true;
+                return true;
+            }
         }
     }
     return false;
@@ -169,9 +171,9 @@ bool main_menu::select_relative(direction dir) {
 bool main_menu::activate_current() {
     auto& menu = *menus[selected];
     if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
-        if(submenu->get_submenus_count() > 0) {
+        if(submenu->get_submenus_count() > 0 && !in_submenu) {
             in_submenu = true;
-            shell->blur_background = true;
+            last_submenu_transition = std::chrono::system_clock::now();
             return true;
         }
     }
@@ -180,7 +182,7 @@ bool main_menu::activate_current() {
 bool main_menu::back() {
     if(in_submenu) {
         in_submenu = false;
-        shell->blur_background = false;
+        last_submenu_transition = std::chrono::system_clock::now();
         return true;
     }
     return false;
@@ -238,10 +240,19 @@ void main_menu::tick() {
 
 void main_menu::render(render::gui_renderer& renderer) {
     tick(); // TODO: This should be called from the outside
+
+    constexpr glm::vec4 active_color(1.0f, 1.0f, 1.0f, 1.0f);
+    constexpr glm::vec4 inactive_color(0.25f, 0.25f, 0.25f, 0.25f);
+
+    auto time_since_transition = std::chrono::duration<double>(std::chrono::system_clock::now() - last_submenu_transition);
+    double partial = std::clamp(time_since_transition / transition_submenu_activate_duration, 0.0, 1.0);
+    partial = in_submenu ? partial : 1.0 - partial;
+
+    renderer.set_color(glm::mix(active_color, inactive_color, partial));
+    render_crossbar(renderer);
+    renderer.set_color(active_color);
     if(in_submenu) {
         render_submenu(renderer);
-    } else {
-        render_crossbar(renderer);
     }
 }
 
@@ -266,6 +277,11 @@ void main_menu::render_crossbar(render::gui_renderer& renderer) {
     float x = selected_menu_x - 0.15f/renderer.aspect_ratio*real_selection;
 
     for (int i = 0; i < menus.size(); i++) {
+        if(i == selected && in_submenu) {
+            x += 0.15f/renderer.aspect_ratio;
+            continue; // the selected menu is rendered as part of the submenu
+        }
+
         auto& menu = menus[i];
         renderer.draw_image(menu->get_icon(), x, 0.25f, 0.1f, 0.1f);
         if(i == selected) {
@@ -294,7 +310,8 @@ void main_menu::render_crossbar(render::gui_renderer& renderer) {
         for(int i=selected_submenu-1; i >= 0 && y >= -0.065; i--) {
             auto& submenu = menu->get_submenu(i);
             renderer.draw_image(submenu.get_icon(), x+0.02f/renderer.aspect_ratio, y, 0.06f, 0.06f);
-            renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+0.03f, 0.04f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
+            if(!in_submenu)
+                renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+0.03f, 0.04f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
             y -= 0.065f;
         }
     }
@@ -308,20 +325,25 @@ void main_menu::render_crossbar(render::gui_renderer& renderer) {
         for(int i=selected_submenu, count = menu->get_submenus_count(); i<count && y < 1.0f; i++) {
             auto& submenu = menu->get_submenu(i);
             if(i == selected_submenu) {
-                double size = utils::mix(0.06, 0.12, partial_transition);
-                renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
-                renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+                if(!in_submenu) {
+                    double size = utils::mix(0.06, 0.12, partial_transition);
+                    renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
+                    if(!in_submenu)
+                        renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+                }
                 y += utils::mix(0.065f, 0.15f, partial_transition);
             }
             else if(i == last_selected_submenu) {
                 double size = utils::mix(0.06, 0.12, 1.0f-partial_transition);
                 renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
-                renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+                if(!in_submenu)
+                    renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
                 y += utils::mix(0.065f, 0.15f, 1.0f-partial_transition);
             }
             else {
                 renderer.draw_image(submenu.get_icon(), x+0.02f/renderer.aspect_ratio, y, 0.06f, 0.06f);
-                renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+0.03f, 0.04f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
+                if(!in_submenu)
+                    renderer.draw_text(submenu.get_name(), x+0.15f/renderer.aspect_ratio, y+0.03f, 0.04f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
                 y += 0.065f;
             }
         }

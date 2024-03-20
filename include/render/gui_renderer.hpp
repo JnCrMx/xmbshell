@@ -18,6 +18,10 @@ namespace render
             const vk::Extent2D frame_size;
             const double aspect_ratio;
 
+            void set_color(glm::vec4 color);
+            void set_alpha(float alpha);
+            void reset_color();
+
             void draw_text(std::string_view text, float x, float y, float scale = 1.0f,
                 glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0),
                 bool centerH = false, bool centerV = false);
@@ -35,5 +39,7 @@ namespace render
             image_renderer* m_imageRenderer;
             vk::CommandBuffer m_commandBuffer;
             int m_frame;
+
+            glm::vec4 m_color = glm::vec4(1.0, 1.0, 1.0, 1.0);
     };
 }
