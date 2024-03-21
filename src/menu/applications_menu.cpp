@@ -85,7 +85,7 @@ applications_menu::applications_menu(const std::string& name, render::texture&& 
             auto entry = std::make_unique<action_menu_entry>(desktop_app->get_display_name(), std::move(icon_texture),
                 [desktop_app](){
                     desktop_app->launch(std::vector<Glib::RefPtr<Gio::File>>());
-                    return true;
+                    return result::success;
                 });
             if(!icon_path.empty()) {
                 loader.loadTexture(&entry->get_icon(), icon_path);

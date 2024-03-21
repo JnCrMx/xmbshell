@@ -7,14 +7,21 @@
 
 namespace menu {
 
+enum class result {
+    unsupported,
+    success,
+    failure,
+    submenu
+};
+
 class menu_entry {
     public:
         virtual ~menu_entry() = default;
 
         virtual const std::string& get_name() const = 0;
         virtual const render::texture& get_icon() const = 0;
-        virtual bool activate() {
-            return false;
+        virtual result activate() {
+            return result::unsupported;
         }
 };
 
@@ -30,6 +37,10 @@ class menu : public menu_entry {
         }
         virtual menu_entry& get_submenu(unsigned int index) const {
             throw std::out_of_range("Index out of range");
+        }
+        virtual void on_open() {
+        }
+        virtual void on_close() {
         }
 };
 
@@ -58,15 +69,15 @@ using simple_menu_entry = simple<menu_entry>;
 
 class action_menu_entry : public simple_menu_entry {
     public:
-        action_menu_entry(const std::string& name, render::texture&& icon, std::function<bool()> on_activate)
+        action_menu_entry(const std::string& name, render::texture&& icon, std::function<result()> on_activate)
             : simple_menu_entry(name, std::move(icon)), on_activate(on_activate) {}
         ~action_menu_entry() override = default;
 
-        bool activate() override {
+        result activate() override {
             return on_activate();
         }
     private:
-        std::function<bool()> on_activate;
+        std::function<result()> on_activate;
 };
 
 class simple_menu : public simple_menu_shallow {
@@ -93,13 +104,23 @@ class simple_menu : public simple_menu_shallow {
         void select_submenu(unsigned int index) override {
             selected_submenu = index;
         }
-        bool activate() override {
+        result activate() override {
+            if(!is_open) {
+                return result::submenu;
+            }
             if(selected_submenu < entries.size()) {
                 return entries.at(selected_submenu)->activate();
             }
-            return false;
+            return result::unsupported;
+        }
+        void on_open() override {
+            is_open = true;
+        }
+        void on_close() override {
+            is_open = false;
         }
     protected:
+        bool is_open = false;
         std::vector<std::unique_ptr<menu_entry>> entries;
         unsigned int selected_submenu = 0;
 };

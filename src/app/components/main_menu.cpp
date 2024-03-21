@@ -32,6 +32,8 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, render::res
     menus.push_back(make_simple<menu::applications_menu>("Game", asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
     menus.push_back(make_simple_of<menu::menu>("Network", asset_directory/"icons/icon_category_network.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Friends", asset_directory/"icons/icon_category_friends.png", loader));
+
+    menus[selected]->on_open();
 }
 
 void main_menu::key_down(SDL_Keysym key) {
@@ -170,17 +172,27 @@ bool main_menu::select_relative(direction dir) {
 }
 bool main_menu::activate_current() {
     auto& menu = *menus[selected];
-    if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
-        if(submenu->get_submenus_count() > 0 && !in_submenu) {
-            in_submenu = true;
-            last_submenu_transition = std::chrono::system_clock::now();
-            return true;
+    auto res = menu.activate();
+    if(res == menu::result::submenu) {
+        if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
+            if(submenu->get_submenus_count() > 0 && !in_submenu) {
+                current_submenu = submenu;
+                current_submenu->on_open();
+
+                in_submenu = true;
+                last_submenu_transition = std::chrono::system_clock::now();
+                return true;
+            }
         }
+        return false;
     }
-    return menus[selected]->activate();
+    return menus[selected]->activate() == menu::result::success;
 }
 bool main_menu::back() {
     if(in_submenu) {
+        current_submenu->on_close();
+        current_submenu = nullptr;
+
         in_submenu = false;
         last_submenu_transition = std::chrono::system_clock::now();
         return true;
@@ -199,6 +211,9 @@ void main_menu::select(int index) {
     last_selected = selected;
     last_selected_transition = std::chrono::system_clock::now();
     selected = index;
+
+    menus[last_selected]->on_close();
+    menus[selected]->on_open();
 
     last_selected_submenu = menus[selected]->get_selected_submenu();
 }

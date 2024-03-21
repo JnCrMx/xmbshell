@@ -19,20 +19,20 @@ namespace menu {
             auto source = Gio::SettingsSchemaSource::get_default();
             if(!source) {
                 spdlog::error("Failed to get default settings schema source");
-                return false;
+                return result::failure;
             }
             auto schemaObj = source->lookup(schema, true);
             if(!schemaObj) {
                 spdlog::error("Failed to find schema for {}", schema);
-                return false;
+                return result::failure;
             }
             auto keyObj = schemaObj->get_key(key);
             if(!keyObj) {
                 spdlog::error("Failed to find key {} in schema {}", key, schema);
-                return false;
+                return result::failure;
             }
             auto type = keyObj->get_value_type();
-            return true;
+            return result::success;
         });
     }
 
@@ -57,18 +57,18 @@ namespace menu {
             auto source = Gio::SettingsSchemaSource::get_default();
             if(!source) {
                 spdlog::error("Failed to get default settings schema source");
-                return false;
+                return result::failure;
             }
             auto schema = source->lookup("re.jcm.xmbos.xmbshell", true);
             if(!schema) {
                 spdlog::error("Failed to find schema for re.jcm.xmbos.xmbshell");
-                return false;
+                return result::failure;
             }
             for(auto key : schema->list_keys()) {
                 shellSettings->reset(key);
             }
             config::CONFIG.load();
-            return true;
+            return result::success;
         }));
     }
 }

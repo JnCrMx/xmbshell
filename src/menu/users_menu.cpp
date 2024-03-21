@@ -18,7 +18,7 @@ namespace menu {
                 }
             };
             SDL_PushEvent(&event);
-            return true;
+            return result::success;
         }));
         {
             std::string real_name = Glib::get_real_name();
