@@ -17,10 +17,7 @@ namespace app
 
 	xmbshell::~xmbshell()
 	{
-		for(unsigned int i = 0; i<renderImages.size(); i++)
-		{
-			allocator.destroyImage(renderImages[i], renderAllocations[i]);
-		}
+		allocator.destroyImage(renderImage, renderAllocation);
 	}
 
 	void xmbshell::preload()
@@ -44,10 +41,12 @@ namespace app
 			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
-			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
-				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-				{}, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref, rref);
+			constexpr auto stages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			constexpr auto access = vk::AccessFlagBits::eColorAttachmentWrite;
+			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
+				stages, stages,
+				access, access);
 			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
 			backgroundRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, backgroundRenderPass.get(), "Background Render Pass");
@@ -60,11 +59,8 @@ namespace app
 					vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal)
 			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
-			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
-				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-				{}, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
+			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, {});
 			blurRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, blurRenderPass.get(), "Blur Render Pass");
 		}
@@ -80,11 +76,8 @@ namespace app
 					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral)
 			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
-			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
-				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-				{}, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
+			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, {});
 			shellRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, shellRenderPass.get(), "Shell Render Pass");
 		}
@@ -101,11 +94,8 @@ namespace app
 			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
-			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
-				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-				{}, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref, rref);
-			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
+			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, {});
 			popupRenderPass = device.createRenderPassUnique(renderpass_info);
 			debugName(device, popupRenderPass.get(), "Popup Render Pass");
 		}
@@ -161,11 +151,26 @@ namespace app
 			debugName(device, blurPipeline.get(), "Blur Pipeline");
 		}
 
+		{
+			vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, win->swapchainFormat.format,
+				vk::Extent3D(win->swapchainExtent, 1), 1, 1, config::CONFIG.sampleCount,
+				vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment,
+				vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
+			vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
+			std::tie(renderImage, renderAllocation) = allocator.createImage(image_info, alloc_info);
+			debugName(device, renderImage, "XMB Shell Render Image");
+
+			vk::ImageViewCreateInfo view_info({}, renderImage, vk::ImageViewType::e2D, win->swapchainFormat.format,
+				vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+			renderView = device.createImageViewUnique(view_info);
+			debugName(device, renderView.get(), "XMB Shell Render Image View");
+		}
+
 		FT_Library ft;
 		FT_Error err = FT_Init_FreeType(&ft);
 
 		font_render->preload(ft, loader, shellRenderPass.get());
-		image_render->preload(shellRenderPass.get());
+		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()});
 		wave_render->preload(backgroundRenderPass.get());
 		menu.preload(device, allocator, *loader);
 
@@ -191,38 +196,31 @@ namespace app
 		}
 		this->swapchainImages = swapchainImages;
 
-		renderImages.resize(imageCount);
-		renderAllocations.resize(imageCount);
-		renderViews.resize(imageCount);
-
 		std::vector<vk::DescriptorImageInfo> imageInfos(imageCount);
 		std::vector<vk::WriteDescriptorSet> writes(imageCount);
 
 		for(int i=0; i<imageCount; i++)
 		{
-			vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, win->swapchainFormat.format,
-				vk::Extent3D(win->swapchainExtent, 1), 1, 1, config::CONFIG.sampleCount,
-				vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment,
-				vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
-			vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
-			std::tie(renderImages[i], renderAllocations[i]) = allocator.createImage(image_info, alloc_info);
-			debugName(device, renderImages[i], "XMB Shell Render Image #"+std::to_string(i));
-
-			vk::ImageViewCreateInfo view_info({}, renderImages[i], vk::ImageViewType::e2D, win->swapchainFormat.format,
-				vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-			renderViews[i] = device.createImageViewUnique(view_info);
-			debugName(device, renderViews[i].get(), "XMB Shell Render Image View #"+std::to_string(i));
-
-			std::array<vk::ImageView, 2> attachments = {renderViews[i].get(), swapchainViews[i]};
-			vk::FramebufferCreateInfo framebuffer_info({}, shellRenderPass.get(), attachments,
-				win->swapchainExtent.width, win->swapchainExtent.height, 1);
-			framebuffers.push_back(device.createFramebufferUnique(framebuffer_info));
-			debugName(device, framebuffers.back().get(), "XMB Shell Framebuffer #"+std::to_string(i));
-
-			vk::FramebufferCreateInfo blur_framebuffer_info({}, blurRenderPass.get(), renderViews[i].get(),
-				win->swapchainExtent.width, win->swapchainExtent.height, 1);
-			blurFramebuffers.push_back(device.createFramebufferUnique(blur_framebuffer_info));
-			debugName(device, blurFramebuffers.back().get(), "XMB Shell Blur Framebuffer #"+std::to_string(i));
+			{
+				std::array<vk::ImageView, 2> attachments = {renderView.get(), swapchainViews[i]};
+				vk::FramebufferCreateInfo framebuffer_info({}, shellRenderPass.get(), attachments,
+					win->swapchainExtent.width, win->swapchainExtent.height, 1);
+				framebuffers.push_back(device.createFramebufferUnique(framebuffer_info));
+				debugName(device, framebuffers.back().get(), "XMB Shell Framebuffer #"+std::to_string(i));
+			}
+			{
+				std::array<vk::ImageView, 2> attachments = {renderView.get(), swapchainViews[i]};
+				vk::FramebufferCreateInfo framebuffer_info({}, backgroundRenderPass.get(), attachments,
+					win->swapchainExtent.width, win->swapchainExtent.height, 1);
+				backgroundFramebuffers.push_back(device.createFramebufferUnique(framebuffer_info));
+				debugName(device, backgroundFramebuffers.back().get(), "XMB Shell Background Framebuffer #"+std::to_string(i));
+			}
+			{
+				vk::FramebufferCreateInfo blur_framebuffer_info({}, blurRenderPass.get(), renderView.get(),
+					win->swapchainExtent.width, win->swapchainExtent.height, 1);
+				blurFramebuffers.push_back(device.createFramebufferUnique(blur_framebuffer_info));
+				debugName(device, blurFramebuffers.back().get(), "XMB Shell Blur Framebuffer #"+std::to_string(i));
+			}
 
 			debugName(device, commandBuffers[i].get(), "XMB Shell Command Buffer #"+std::to_string(i));
 
@@ -251,7 +249,7 @@ namespace app
 					1.0f
 				});
 			}
-			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), framebuffers[frame].get(),
+			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), backgroundFramebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
 			vk::Rect2D scissor({0,0}, win->swapchainExtent);
@@ -262,7 +260,7 @@ namespace app
 				wave_render->render(commandBuffer.get(), frame);
 			}
 			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
-				image_render->renderImageSized(commandBuffer.get(), frame, *backgroundTexture,
+				image_render->renderImageSized(commandBuffer.get(), frame, backgroundRenderPass.get(), *backgroundTexture,
 					0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
 			}
 
@@ -292,7 +290,7 @@ namespace app
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			gui_renderer ctx(commandBuffer.get(), frame, win->swapchainExtent, font_render.get(), image_render.get());
+			gui_renderer ctx(commandBuffer.get(), frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get());
 			render_gui(ctx);
 
 			commandBuffer->endRenderPass();
@@ -305,7 +303,8 @@ namespace app
 			commandBuffer->setViewport(0, viewport);
 			commandBuffer->setScissor(0, scissor);
 
-			gui_renderer ctx(commandBuffer.get(), frame, win->swapchainExtent, font_render.get(), image_render.get());
+			// Use shellRenderPass for now, because it is compatible with the popupRenderPass
+			gui_renderer ctx(commandBuffer.get(), frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get());
 			// TODO
 
 			commandBuffer->endRenderPass();

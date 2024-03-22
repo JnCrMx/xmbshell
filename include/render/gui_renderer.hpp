@@ -12,7 +12,7 @@ namespace render
     class gui_renderer
     {
         public:
-            gui_renderer(vk::CommandBuffer commandBuffer, int frame,
+            gui_renderer(vk::CommandBuffer commandBuffer, int frame, vk::RenderPass renderPass,
                 vk::Extent2D frameSize,
                 font_renderer* fontRenderer, image_renderer* imageRenderer);
             const vk::Extent2D frame_size;
@@ -39,6 +39,7 @@ namespace render
             image_renderer* m_imageRenderer;
             vk::CommandBuffer m_commandBuffer;
             int m_frame;
+            vk::RenderPass m_renderPass;
 
             glm::vec4 m_color = glm::vec4(1.0, 1.0, 1.0, 1.0);
     };

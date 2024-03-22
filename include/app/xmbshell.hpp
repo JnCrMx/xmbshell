@@ -39,6 +39,8 @@ namespace app
 
 			vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass, popupRenderPass;
 
+			std::vector<vk::UniqueFramebuffer> backgroundFramebuffers;
+
 			vk::UniqueDescriptorSetLayout blurDescriptorSetLayout;
 			vk::UniqueDescriptorPool blurDescriptorPool;
 			std::vector<vk::DescriptorSet> blurDescriptorSets;
@@ -47,9 +49,9 @@ namespace app
 			vk::UniquePipeline blurPipeline;
 			std::vector<vk::UniqueFramebuffer> blurFramebuffers;
 
-			std::vector<vk::Image> renderImages;
-			std::vector<vma::Allocation> renderAllocations;
-			std::vector<vk::UniqueImageView> renderViews;
+			vk::Image renderImage;
+			vma::Allocation renderAllocation;
+			vk::UniqueImageView renderView;
 
 			std::vector<vk::Image> swapchainImages;
 			std::vector<vk::UniqueFramebuffer> framebuffers;

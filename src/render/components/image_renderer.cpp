@@ -22,7 +22,7 @@ namespace {
 
 image_renderer::~image_renderer() = default;
 
-void image_renderer::preload(vk::RenderPass renderPass) {
+void image_renderer::preload(const std::vector<vk::RenderPass>& renderPasses) {
     {
         vk::SamplerCreateInfo sampler_info({}, vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
             vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat,
@@ -78,10 +78,23 @@ void image_renderer::preload(vk::RenderPass renderPass) {
         std::array<vk::DynamicState, 2> dynamicStates{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
         vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
 
-        vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
-            &input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), renderPass);
-        pipeline = device.createGraphicsPipelineUnique({}, pipeline_info).value;
-        debugName(device, pipeline.get(), "Image Renderer Pipeline");
+        std::vector<vk::GraphicsPipelineCreateInfo> infos(renderPasses.size());
+        infos[0] = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlagBits::eAllowDerivatives,
+            shaders, &vertex_input, &input_assembly, &tesselation, &viewport,
+            &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
+            pipelineLayout.get(), renderPasses[0], 0, {}, {});
+        for(size_t i = 1; i < renderPasses.size(); i++) {
+            infos[i] = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlagBits::eDerivative,
+                shaders, &vertex_input, &input_assembly, &tesselation, &viewport,
+                &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
+                pipelineLayout.get(), renderPasses[i], 0, {}, 0);
+        }
+
+        auto res = device.createGraphicsPipelinesUnique({}, infos);
+        for(size_t i=0; i<res.value.size(); i++) {
+            const auto& v = pipelines[renderPasses[i]] = std::move(res.value[i]);
+            debugName(device, v.get(), "Image Renderer Pipeline");
+        }
     }
 }
 
@@ -100,14 +113,14 @@ void image_renderer::prepare(int frameCount) {
     imageInfos.resize(frameCount);
 }
 
-void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, float scaleX, float scaleY, glm::vec4 color) {
+void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass, vk::ImageView view, float x, float y, float scaleX, float scaleY, glm::vec4 color) {
     if(!view)
         return;
     vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);
 
-    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
+    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelines[renderPass].get());
     cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], {});
 
     glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
@@ -124,14 +137,14 @@ void image_renderer::renderImage(vk::CommandBuffer cmd, int frame, vk::ImageView
     cmd.draw(4, 1, 0, 0);
 }
 
-void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color) {
+void image_renderer::renderImageSized(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass, vk::ImageView view, float x, float y, int width, int height, glm::vec4 color) {
     if(!view)
         return;
     vk::DescriptorImageInfo image_info(sampler.get(), view, vk::ImageLayout::eShaderReadOnlyOptimal);
     int index = imageInfos[frame].size();
     imageInfos[frame].push_back(image_info);
 
-    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
+    cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelines[renderPass].get());
     cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], {});
 
     double scaleX = static_cast<double>(width) / frameSize.width;

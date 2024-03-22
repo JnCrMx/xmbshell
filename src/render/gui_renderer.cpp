@@ -2,8 +2,9 @@
 
 namespace render
 {
-    gui_renderer::gui_renderer(vk::CommandBuffer commandBuffer, int frame, vk::Extent2D frameSize, font_renderer* fontRenderer, image_renderer* imageRenderer)
-        : m_fontRenderer(fontRenderer), m_imageRenderer(imageRenderer), m_commandBuffer(commandBuffer), m_frame(frame),
+    gui_renderer::gui_renderer(vk::CommandBuffer commandBuffer, int frame, vk::RenderPass renderPass, vk::Extent2D frameSize, font_renderer* fontRenderer, image_renderer* imageRenderer)
+        : m_fontRenderer(fontRenderer), m_imageRenderer(imageRenderer),
+        m_commandBuffer(commandBuffer), m_frame(frame), m_renderPass(renderPass),
         frame_size(frameSize), aspect_ratio(static_cast<double>(frameSize.width) / frameSize.height)
     {
     }
@@ -35,19 +36,19 @@ namespace render
 
     void gui_renderer::draw_image(const texture& texture, float x, float y, float scaleX, float scaleY, glm::vec4 color)
     {
-        m_imageRenderer->renderImage(m_commandBuffer, m_frame, texture, x, y, scaleX, scaleY, color*m_color);
+        m_imageRenderer->renderImage(m_commandBuffer, m_frame, m_renderPass, texture, x, y, scaleX, scaleY, color*m_color);
     }
     void gui_renderer::draw_image(vk::ImageView view, float x, float y, float scaleX, float scaleY, glm::vec4 color)
     {
-        m_imageRenderer->renderImage(m_commandBuffer, m_frame, view, x, y, scaleX, scaleY, color*m_color);
+        m_imageRenderer->renderImage(m_commandBuffer, m_frame, m_renderPass, view, x, y, scaleX, scaleY, color*m_color);
     }
 
     void gui_renderer::draw_image_sized(const texture& texture, float x, float y, int width, int height, glm::vec4 color)
     {
-        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, texture, x, y, width, height, color*m_color);
+        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, m_renderPass, texture, x, y, width, height, color*m_color);
     }
     void gui_renderer::draw_image_sized(vk::ImageView view, float x, float y, int width, int height, glm::vec4 color)
     {
-        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, view, x, y, width, height, color*m_color);
+        m_imageRenderer->renderImageSized(m_commandBuffer, m_frame, m_renderPass, view, x, y, width, height, color*m_color);
     }
 }
