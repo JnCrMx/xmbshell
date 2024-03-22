@@ -8,7 +8,7 @@
 namespace render
 {
 	template<class T>
-	void debugName(vk::Device device, T object, std::string name)
+	void debugName(vk::Device device, T object, const std::string& name)
 	{
 #ifndef NDEBUG
 		using CType = typename T::CType;

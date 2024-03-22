@@ -1,8 +1,8 @@
 #pragma once
 
 #include "render/texture.hpp"
+#include "render/utils.hpp"
 #include <glm/vec4.hpp>
-#include <map>
 
 namespace render
 {
@@ -44,7 +44,7 @@ namespace render
 			std::vector<vk::DescriptorSet> descriptorSets;
 
 			vk::UniquePipelineLayout pipelineLayout;
-			std::map<vk::RenderPass, vk::UniquePipeline> pipelines;
+			UniquePipelineMap pipelines;
 
 			std::vector<
 				std::vector<vk::DescriptorImageInfo>

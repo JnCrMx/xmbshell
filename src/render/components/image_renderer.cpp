@@ -78,23 +78,11 @@ void image_renderer::preload(const std::vector<vk::RenderPass>& renderPasses) {
         std::array<vk::DynamicState, 2> dynamicStates{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
         vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
 
-        std::vector<vk::GraphicsPipelineCreateInfo> infos(renderPasses.size());
-        infos[0] = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlagBits::eAllowDerivatives,
+        vk::GraphicsPipelineCreateInfo info({},
             shaders, &vertex_input, &input_assembly, &tesselation, &viewport,
             &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
             pipelineLayout.get(), renderPasses[0], 0, {}, {});
-        for(size_t i = 1; i < renderPasses.size(); i++) {
-            infos[i] = vk::GraphicsPipelineCreateInfo(vk::PipelineCreateFlagBits::eDerivative,
-                shaders, &vertex_input, &input_assembly, &tesselation, &viewport,
-                &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
-                pipelineLayout.get(), renderPasses[i], 0, {}, 0);
-        }
-
-        auto res = device.createGraphicsPipelinesUnique({}, infos);
-        for(size_t i=0; i<res.value.size(); i++) {
-            const auto& v = pipelines[renderPasses[i]] = std::move(res.value[i]);
-            debugName(device, v.get(), "Image Renderer Pipeline");
-        }
+        pipelines = render::createPipelines(device, {}, info, renderPasses, "Image Renderer Pipeline");
     }
 }
 
