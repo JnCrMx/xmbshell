@@ -105,6 +105,8 @@ namespace render
 			std::vector<vk::Fence> imagesInFlight;
 			std::vector<vk::Fence> inFlightFences;
 
+			vk::UniquePipelineCache pipelineCache;
+
 			decltype(std::chrono::high_resolution_clock::now()) startTime;
 			decltype(std::chrono::high_resolution_clock::now()) lastFrame;
 

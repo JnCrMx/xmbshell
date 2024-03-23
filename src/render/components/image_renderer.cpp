@@ -22,7 +22,7 @@ namespace {
 
 image_renderer::~image_renderer() = default;
 
-void image_renderer::preload(const std::vector<vk::RenderPass>& renderPasses) {
+void image_renderer::preload(const std::vector<vk::RenderPass>& renderPasses, vk::PipelineCache pipelineCache) {
     {
         vk::SamplerCreateInfo sampler_info({}, vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
             vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat,
@@ -82,7 +82,7 @@ void image_renderer::preload(const std::vector<vk::RenderPass>& renderPasses) {
             shaders, &vertex_input, &input_assembly, &tesselation, &viewport,
             &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
             pipelineLayout.get(), renderPasses[0], 0, {}, {});
-        pipelines = render::createPipelines(device, {}, info, renderPasses, "Image Renderer Pipeline");
+        pipelines = render::createPipelines(device, pipelineCache, info, renderPasses, "Image Renderer Pipeline");
     }
 }
 

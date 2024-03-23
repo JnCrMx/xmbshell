@@ -15,7 +15,7 @@ namespace render
                 aspectRatio(static_cast<double>(frameSize.width)/frameSize.height) {}
             ~wave_renderer();
 
-            void preload(const std::vector<vk::RenderPass>& renderPass);
+            void preload(const std::vector<vk::RenderPass>& renderPass, vk::PipelineCache pipelineCache = {});
             void prepare(int imageCount);
             void finish(int frame);
 

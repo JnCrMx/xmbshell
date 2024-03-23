@@ -55,7 +55,7 @@ namespace render {
 		}
 	}
 
-    void wave_renderer::preload(const std::vector<vk::RenderPass>& renderPasses) {
+    void wave_renderer::preload(const std::vector<vk::RenderPass>& renderPasses, vk::PipelineCache pipelineCache) {
 		{
 			std::vector<glm::vec3> vertices;
 			std::vector<uint16_t> indices;
@@ -122,7 +122,7 @@ namespace render {
 
 				vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
 					&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), {});
-				pipelines = createPipelines(device, {}, pipeline_info, renderPasses, "Wave Renderer Pipeline");
+				pipelines = createPipelines(device, pipelineCache, pipeline_info, renderPasses, "Wave Renderer Pipeline");
 			}
         }
     }

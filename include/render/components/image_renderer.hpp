@@ -13,7 +13,7 @@ namespace render
 				aspectRatio(static_cast<double>(frameSize.width)/frameSize.height) {}
 			~image_renderer();
 
-			void preload(const std::vector<vk::RenderPass>& renderPasses);
+			void preload(const std::vector<vk::RenderPass>& renderPasses, vk::PipelineCache pipelineCache = {});
 			void prepare(int imageCount);
 
 			void renderImage(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass, const texture& texture, float x, float y, float scaleX = 1.0, float scaleY = 1.0, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0)) {

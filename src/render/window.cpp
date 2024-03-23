@@ -4,16 +4,18 @@
 
 #include "render/debug.hpp"
 
-#include <memory>
 #include <spdlog/spdlog.h>
 #include <SDL_events.h>
 #include <SDL_rect.h>
 #include <SDL_video.h>
 #include <SDL_vulkan.h>
 #include <SDL_mixer.h>
+#include <glibmm/miscutils.h>
 
 #include <cxxabi.h>
 
+#include <memory>
+#include <fstream>
 #include <iterator>
 #include <map>
 #include <set>
@@ -375,6 +377,24 @@ namespace render
 			debugName(device.get(), fences[i].get(), "Render Fence #"+std::to_string(i));
 		}
 #endif
+
+		{
+			std::filesystem::path cache_dir = Glib::get_user_cache_dir();
+			auto path = cache_dir / constants::name / constants::pipeline_cache_file;
+
+			std::ifstream in(path, std::ios::binary);
+			if(in) {
+				std::vector<uint8_t> data((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+				spdlog::debug("Loaded pipeline cache of {} bytes", data.size()*sizeof(decltype(data)::value_type));
+				vk::PipelineCacheCreateInfo cache_info({}, data.size(), data.data());
+				pipelineCache = device->createPipelineCacheUnique(cache_info);
+			}
+			else {
+				spdlog::debug("No existing pipeline cache found");
+				vk::PipelineCacheCreateInfo cache_info({}, 0, nullptr);
+				pipelineCache = device->createPipelineCacheUnique(cache_info);
+			}
+		}
 	}
 
 	void window::set_phase(phase* renderer, input::keyboard_handler* keyboard, input::controller_handler* controller)
@@ -593,6 +613,19 @@ namespace render
 	window::~window()
 	{
 		device->waitIdle();
+
+		{
+			auto data = device->getPipelineCacheData(pipelineCache.get());
+			spdlog::debug("Saving pipeline cache of {} bytes", data.size()*sizeof(decltype(data)::value_type));
+			std::filesystem::path cache_dir = Glib::get_user_cache_dir();
+			auto path = cache_dir / constants::name / constants::pipeline_cache_file;
+
+			if(!std::filesystem::exists(path.parent_path()))
+				std::filesystem::create_directories(path.parent_path());
+
+			std::ofstream out(path, std::ios::binary);
+			std::copy(data.begin(), data.end(), std::ostream_iterator<uint8_t>(out));
+		}
 
 		current_renderer.reset();
 		loader.reset();

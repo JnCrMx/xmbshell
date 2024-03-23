@@ -30,7 +30,7 @@ namespace render
 			font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator, vk::Extent2D frameSize);
 			~font_renderer();
 
-			void preload(FT_Library ft, resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses);
+			void preload(FT_Library ft, resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses, vk::PipelineCache pipelineCache = {});
 			void prepare(int imageCount);
 			void finish(int frame);
 

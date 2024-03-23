@@ -47,7 +47,7 @@ namespace render
 		}
 	}
 
-	void font_renderer::preload(FT_Library ft, resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses)
+	void font_renderer::preload(FT_Library ft, resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses, vk::PipelineCache pipelineCache)
 	{
 		FT_Error err = FT_New_Face(ft, name.c_str(), 0, &face);
 		if(err != 0) {
@@ -206,7 +206,7 @@ namespace render
 
 			vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
 				&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), {});
-			pipelines = createPipelines(device, {}, pipeline_info, renderPasses, "Font Renderer Pipeline");
+			pipelines = createPipelines(device, pipelineCache, pipeline_info, renderPasses, "Font Renderer Pipeline");
 		}
 	}
 

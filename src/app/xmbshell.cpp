@@ -169,9 +169,9 @@ namespace app
 		FT_Library ft;
 		FT_Error err = FT_Init_FreeType(&ft);
 
-		font_render->preload(ft, loader, {shellRenderPass.get()});
-		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()});
-		wave_render->preload({backgroundRenderPass.get()});
+		font_render->preload(ft, loader, {shellRenderPass.get()}, win->pipelineCache.get());
+		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->pipelineCache.get());
+		wave_render->preload({backgroundRenderPass.get()}, win->pipelineCache.get());
 		menu.preload(device, allocator, *loader);
 
 		if(config::CONFIG.backgroundType == config::config::background_type::image) {
