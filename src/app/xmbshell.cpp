@@ -169,9 +169,9 @@ namespace app
 		FT_Library ft;
 		FT_Error err = FT_Init_FreeType(&ft);
 
-		font_render->preload(ft, loader, shellRenderPass.get());
+		font_render->preload(ft, loader, {shellRenderPass.get()});
 		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()});
-		wave_render->preload(backgroundRenderPass.get());
+		wave_render->preload({backgroundRenderPass.get()});
 		menu.preload(device, allocator, *loader);
 
 		if(config::CONFIG.backgroundType == config::config::background_type::image) {
@@ -257,7 +257,7 @@ namespace app
 			commandBuffer->setScissor(0, scissor);
 
 			if(config::CONFIG.backgroundType == config::config::background_type::wave) {
-				wave_render->render(commandBuffer.get(), frame);
+				wave_render->render(commandBuffer.get(), frame, backgroundRenderPass.get());
 			}
 			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
 				image_render->renderImageSized(commandBuffer.get(), frame, backgroundRenderPass.get(), *backgroundTexture,

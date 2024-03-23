@@ -11,6 +11,7 @@
 
 #include "render/texture.hpp"
 #include "render/resource_loader.hpp"
+#include "render/utils.hpp"
 #include "utils.hpp"
 
 namespace render
@@ -29,11 +30,11 @@ namespace render
 			font_renderer(std::string name, int size, vk::Device device, vma::Allocator allocator, vk::Extent2D frameSize);
 			~font_renderer();
 
-			void preload(FT_Library ft, resource_loader* loader, vk::RenderPass renderPass);
+			void preload(FT_Library ft, resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses);
 			void prepare(int imageCount);
 			void finish(int frame);
 
-			void renderText(vk::CommandBuffer cmd, int frame, std::string_view text, float x, float y, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
+			void renderText(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass, std::string_view text, float x, float y, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));
 			glm::vec2 measureText(std::string_view text, float scale = 1.0f);
 
 			double aspectRatio;
@@ -43,7 +44,7 @@ namespace render
 			vk::UniqueSampler sampler;
 
 			vk::UniquePipelineLayout pipelineLayout;
-			vk::UniquePipeline pipeline;
+			UniquePipelineMap pipelines;
 
 			vk::UniqueDescriptorSetLayout descriptorLayout;
 			vk::UniqueDescriptorPool descriptorPool;

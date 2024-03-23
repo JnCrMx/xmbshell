@@ -55,7 +55,7 @@ namespace render {
 		}
 	}
 
-    void wave_renderer::preload(vk::RenderPass renderPass) {
+    void wave_renderer::preload(const std::vector<vk::RenderPass>& renderPasses) {
 		{
 			std::vector<glm::vec3> vertices;
 			std::vector<uint16_t> indices;
@@ -121,8 +121,8 @@ namespace render {
 				};
 
 				vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
-					&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), renderPass);
-				pipeline = device.createGraphicsPipelineUnique({}, pipeline_info).value;
+					&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), {});
+				pipelines = createPipelines(device, {}, pipeline_info, renderPasses, "Wave Renderer Pipeline");
 			}
         }
     }
@@ -134,12 +134,12 @@ namespace render {
     }
 
 	static auto startTime = std::chrono::high_resolution_clock::now();
-    void wave_renderer::render(vk::CommandBuffer cmd, int frame) {
+    void wave_renderer::render(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass) {
 		auto time = std::chrono::high_resolution_clock::now() - startTime;
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(time);
 		auto partialSeconds = std::chrono::duration<float>(time-seconds);
 
-		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
+		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelines[renderPass].get());
 
         push_constants push{
 			glm::vec4(config::CONFIG.waveColor, 1.0),

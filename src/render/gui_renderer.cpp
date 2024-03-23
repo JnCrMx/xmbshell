@@ -31,7 +31,7 @@ namespace render
             if(centerV)
                 y -= size.y / 2.0f;
         }
-        m_fontRenderer->renderText(m_commandBuffer, m_frame, text, x, y, scale, color*m_color);
+        m_fontRenderer->renderText(m_commandBuffer, m_frame, m_renderPass, text, x, y, scale, color*m_color);
     }
 
     void gui_renderer::draw_image(const texture& texture, float x, float y, float scaleX, float scaleY, glm::vec4 color)

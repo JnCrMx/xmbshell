@@ -1,5 +1,6 @@
 #pragma once
 
+#include "render/utils.hpp"
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include <vk_mem_alloc.hpp>
@@ -14,11 +15,11 @@ namespace render
                 aspectRatio(static_cast<double>(frameSize.width)/frameSize.height) {}
             ~wave_renderer();
 
-            void preload(vk::RenderPass renderPass);
+            void preload(const std::vector<vk::RenderPass>& renderPass);
             void prepare(int imageCount);
             void finish(int frame);
 
-            void render(vk::CommandBuffer cmd, int frame);
+            void render(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass);
 
             float speed = 1.0;
         private:
@@ -37,6 +38,6 @@ namespace render
             vma::Allocation indexAllocation;
 
             vk::UniquePipelineLayout pipelineLayout;
-            vk::UniquePipeline pipeline;
+            UniquePipelineMap pipelines;
     };
 }

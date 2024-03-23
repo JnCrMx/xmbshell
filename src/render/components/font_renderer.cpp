@@ -1,7 +1,6 @@
 #include "render/components/font_renderer.hpp"
 
 #include "config.hpp"
-#include "constants.hpp"
 #include "render/utils.hpp"
 #include "render/debug.hpp"
 #include "utils.hpp"
@@ -48,7 +47,7 @@ namespace render
 		}
 	}
 
-	void font_renderer::preload(FT_Library ft, resource_loader* loader, vk::RenderPass renderPass)
+	void font_renderer::preload(FT_Library ft, resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses)
 	{
 		FT_Error err = FT_New_Face(ft, name.c_str(), 0, &face);
 		if(err != 0) {
@@ -206,9 +205,8 @@ namespace render
 			vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
 
 			vk::GraphicsPipelineCreateInfo pipeline_info({}, shaders, &vertex_input,
-				&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), renderPass);
-			pipeline = device.createGraphicsPipelineUnique({}, pipeline_info).value;
-			debugName(device, pipeline.get(), "Font Renderer Pipeline");
+				&input_assembly, &tesselation, &viewport, &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic, pipelineLayout.get(), {});
+			pipelines = createPipelines(device, {}, pipeline_info, renderPasses, "Font Renderer Pipeline");
 		}
 	}
 
@@ -263,7 +261,7 @@ namespace render
 		vertexOffsets.resize(imageCount);
 	}
 
-	void font_renderer::renderText(vk::CommandBuffer cmd, int frame, std::string_view text, float x, float y, float scale, glm::vec4 color)
+	void font_renderer::renderText(vk::CommandBuffer cmd, int frame, vk::RenderPass renderPass, std::string_view text, float x, float y, float scale, glm::vec4 color)
 	{
 		if(!utils::is_ready(textureReady))
 			return;
@@ -291,7 +289,7 @@ namespace render
 			uni.matrix = glm::scale(uni.matrix, glm::vec3(scale / aspectRatio, scale, 1.0f));
 			uni.textureSize = {fontTexture->width/lineHeight, fontTexture->height/lineHeight};
 		}
-		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
+		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelines[renderPass].get());
 		cmd.bindVertexBuffers(0, vertexBuffers[frame], vertexOffsets[frame]*sizeof(VertexCharacter));
 		cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout.get(), 0, descriptorSets[frame], uniformPointers[frame].offset(uniformOffsets[frame]));
 		cmd.draw(text.size(), 1, 0, 0);
