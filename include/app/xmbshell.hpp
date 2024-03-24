@@ -37,7 +37,7 @@ namespace app
 			std::unique_ptr<image_renderer> image_render;
 			std::unique_ptr<wave_renderer> wave_render;
 
-			vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass, popupRenderPass;
+			vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass;
 
 			std::vector<vk::UniqueFramebuffer> backgroundFramebuffers;
 
@@ -49,9 +49,8 @@ namespace app
 			vk::UniquePipeline blurPipeline;
 			std::vector<vk::UniqueFramebuffer> blurFramebuffers;
 
-			vk::Image renderImage;
-			vma::Allocation renderAllocation;
-			vk::UniqueImageView renderView;
+			std::unique_ptr<texture> renderImage;
+			std::unique_ptr<texture> blurImage;
 
 			std::vector<vk::Image> swapchainImages;
 			std::vector<vk::UniqueFramebuffer> framebuffers;

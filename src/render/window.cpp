@@ -342,9 +342,12 @@ namespace render
 			swapchainExtent.width, swapchainExtent.height, swapchainImageCount,
 			vk::to_string(swapchainSupport.capabilities.supportedCompositeAlpha));
 
+		auto usage = vk::ImageUsageFlagBits::eColorAttachment
+			| vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc
+			| vk::ImageUsageFlagBits::eSampled;
 		vk::SwapchainCreateInfoKHR swapchain_info({}, surface.get(), swapchainImageCount,
 			swapchainFormat.format, swapchainFormat.colorSpace,
-			swapchainExtent, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
+			swapchainExtent, 1, usage);
 		swapchain_info.setPresentMode(swapchainPresentMode);
 		swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eInherit);
 		if(swapchainSupport.capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied)

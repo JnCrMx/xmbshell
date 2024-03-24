@@ -5,7 +5,7 @@ layout(binding = 0) uniform sampler2D frame;
 layout(location = 0) in vec2 inTexCoord;
 layout(location = 0) out vec4 outColor;
 
-const int blurCount = 8;
+const int blurCount = 4;
 
 void main() {
     vec2 texelSize = 1.0 / textureSize(frame, 0);
