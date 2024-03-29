@@ -264,11 +264,12 @@ void main_menu::render(render::gui_renderer& renderer) {
     auto time_since_transition = std::chrono::duration<double>(now - last_submenu_transition);
     double partial = std::clamp(time_since_transition / transition_submenu_activate_duration, 0.0, 1.0);
     partial = in_submenu ? partial : 1.0 - partial;
+    bool in_submenu_now = in_submenu || partial > 0.0;
 
     renderer.set_color(glm::mix(active_color, inactive_color, partial));
     render_crossbar(renderer, now);
     renderer.set_color(active_color);
-    if(in_submenu) {
+    if(in_submenu_now) {
         render_submenu(renderer, now);
     }
 }
@@ -277,6 +278,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
     double submenu_transition = std::clamp(
         std::chrono::duration<double>(now - last_submenu_transition) / transition_submenu_activate_duration, 0.0, 1.0);
     submenu_transition = in_submenu ? submenu_transition : 1.0 - submenu_transition;
+    bool in_submenu_now = in_submenu || submenu_transition > 0.0;
 
     const glm::vec2 base_pos = glm::mix(
         glm::vec2(0.35f/renderer.aspect_ratio, 0.25f),
@@ -304,7 +306,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
     float x = selected_menu_x - (base_size*1.5f)/renderer.aspect_ratio*real_selection;
 
     for (int i = 0; i < menus.size(); i++) {
-        if(i == selected && in_submenu) {
+        if(i == selected && in_submenu_now) {
             x += (base_size*1.5f)/renderer.aspect_ratio;
             continue; // the selected menu is rendered as part of the submenu
         }
@@ -337,7 +339,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
         for(int i=selected_submenu-1; i >= 0 && y >= -base_size*0.65f; i--) {
             auto& submenu = menu->get_submenu(i);
             renderer.draw_image(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
-            if(!in_submenu)
+            if(!in_submenu_now)
                 renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+(base_size*0.3f), base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
             y -= base_size*0.65f;
         }
@@ -352,10 +354,10 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
         for(int i=selected_submenu, count = menu->get_submenus_count(); i<count && y < 1.0f; i++) {
             auto& submenu = menu->get_submenu(i);
             if(i == selected_submenu) {
-                if(!in_submenu) {
+                if(!in_submenu_now) {
                     double size = base_size*glm::mix(0.6, 1.2, partial_transition);
                     renderer.draw_image(submenu.get_icon(), x+(base_size*0.5f-size/2.0f)/renderer.aspect_ratio, y, size, size);
-                    if(!in_submenu)
+                    if(!in_submenu_now)
                         renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
                 }
                 y += base_size*glm::mix(0.65f, 1.5f, partial_transition);
@@ -363,13 +365,13 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
             else if(i == last_selected_submenu) {
                 double size = base_size*glm::mix(0.6, 1.2, 1.0f-partial_transition);
                 renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
-                if(!in_submenu)
+                if(!in_submenu_now)
                     renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
                 y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
             }
             else {
                 renderer.draw_image(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
-                if(!in_submenu)
+                if(!in_submenu_now)
                     renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+base_size*0.3f, base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
                 y += base_size*0.65f;
             }
@@ -378,7 +380,21 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
 }
 
 void main_menu::render_submenu(render::gui_renderer& renderer, time_point now) {
-    // TODO
+    double submenu_transition = std::clamp(
+        std::chrono::duration<double>(now - last_submenu_transition) / transition_submenu_activate_duration, 0.0, 1.0);
+    submenu_transition = in_submenu ? submenu_transition : 1.0 - submenu_transition;
+
+    constexpr auto offset = (0.1f-0.075f)/2.0f;
+    const glm::vec2 base_pos = glm::mix(
+        glm::vec2(0.35f/renderer.aspect_ratio, 0.25f),
+        glm::vec2((0.15f-offset)/renderer.aspect_ratio, 0.20f-2*offset),
+        submenu_transition);
+
+    const auto& selected_menu = *menus[selected];
+    const auto& selected_submenu = selected_menu.get_submenu(selected_menu.get_selected_submenu());
+
+    renderer.draw_image(selected_menu.get_icon(), base_pos.x, base_pos.y, 0.1f, 0.1f);
+    renderer.draw_image(selected_submenu.get_icon(), base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);
 }
 
 }
