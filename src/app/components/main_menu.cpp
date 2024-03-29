@@ -282,7 +282,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
 
     const glm::vec2 base_pos = glm::mix(
         glm::vec2(0.35f/renderer.aspect_ratio, 0.25f),
-        glm::vec2(0.30f/renderer.aspect_ratio, 0.20f),
+        glm::vec2(0.30f/renderer.aspect_ratio, 0.25f),
         submenu_transition);
     const double base_size = glm::mix(0.1, 0.075, submenu_transition);
 
@@ -387,7 +387,7 @@ void main_menu::render_submenu(render::gui_renderer& renderer, time_point now) {
     constexpr auto offset = (0.1f-0.075f)/2.0f;
     const glm::vec2 base_pos = glm::mix(
         glm::vec2(0.35f/renderer.aspect_ratio, 0.25f),
-        glm::vec2((0.15f-offset)/renderer.aspect_ratio, 0.20f-2*offset),
+        glm::vec2((0.15f-offset)/renderer.aspect_ratio, 0.25f-2*offset),
         submenu_transition);
 
     const auto& selected_menu = *menus[selected];
