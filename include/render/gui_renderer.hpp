@@ -22,6 +22,14 @@ namespace render
             void set_alpha(float alpha);
             void reset_color();
 
+            void set_clip(float x, float y, float width, float height);
+            void reset_clip();
+
+            void reset() {
+                reset_color();
+                reset_clip();
+            }
+
             void draw_text(std::string_view text, float x, float y, float scale = 1.0f,
                 glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0),
                 bool centerH = false, bool centerV = false);

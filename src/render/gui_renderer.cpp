@@ -22,6 +22,23 @@ namespace render
         m_color = glm::vec4(1.0, 1.0, 1.0, 1.0);
     }
 
+    void gui_renderer::set_clip(float x, float y, float width, float height)
+    {
+        vk::Rect2D scissor(
+            vk::Offset2D(x*frame_size.width, y*frame_size.height),
+            vk::Extent2D(width*frame_size.width, height*frame_size.height)
+        );
+        m_commandBuffer.setScissor(0, scissor);
+    }
+    void gui_renderer::reset_clip()
+    {
+        vk::Rect2D scissor(
+            vk::Offset2D(0, 0),
+            frame_size
+        );
+        m_commandBuffer.setScissor(0, scissor);
+    }
+
     void gui_renderer::draw_text(std::string_view text, float x, float y, float scale, glm::vec4 color, bool centerH, bool centerV)
     {
         if(centerH || centerV) {
