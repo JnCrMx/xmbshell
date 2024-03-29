@@ -69,7 +69,7 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         bool in_submenu = false;
         menu::menu* current_submenu = nullptr;
         time_point last_submenu_transition;
-        constexpr static auto transition_submenu_activate_duration = std::chrono::milliseconds(200);
+        constexpr static auto transition_submenu_activate_duration = std::chrono::milliseconds(100);
 
         constexpr static int controller_axis_input_threshold = 10000;
         time_point last_controller_axis_input_time[2];
