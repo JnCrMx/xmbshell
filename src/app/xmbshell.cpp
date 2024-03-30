@@ -157,7 +157,9 @@ namespace app
 		font_render->preload(ft, loader, {shellRenderPass.get()}, win->pipelineCache.get());
 		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->pipelineCache.get());
 		wave_render->preload({backgroundRenderPass.get()}, win->pipelineCache.get());
+
 		menu.preload(device, allocator, *loader);
+		news.preload(device, allocator, *loader);
 
 		if(config::CONFIG.backgroundType == config::config::background_type::image) {
 			backgroundTexture = std::make_unique<texture>(device, allocator);
@@ -356,6 +358,8 @@ namespace app
     	auto now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
 		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(now)),
 			0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
+
+		news.render(renderer);
 
 		double debug_y = 0.0;
 		if(config::CONFIG.showFPS) {

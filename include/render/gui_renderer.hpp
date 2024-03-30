@@ -33,6 +33,7 @@ namespace render
             void draw_text(std::string_view text, float x, float y, float scale = 1.0f,
                 glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0),
                 bool centerH = false, bool centerV = false);
+            glm::vec2 measure_text(std::string_view text, float scale) const;
 
             void draw_image(const texture& texture, float x, float y, float scaleX = 1.0f, float scaleY = 1.0f,
                 glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0));

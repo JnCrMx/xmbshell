@@ -42,13 +42,17 @@ namespace render
     void gui_renderer::draw_text(std::string_view text, float x, float y, float scale, glm::vec4 color, bool centerH, bool centerV)
     {
         if(centerH || centerV) {
-            glm::vec2 size = m_fontRenderer->measureText(text, scale);
+            glm::vec2 size = measure_text(text, scale);
             if(centerH)
                 x -= size.x / 2.0f;
             if(centerV)
                 y -= size.y / 2.0f;
         }
         m_fontRenderer->renderText(m_commandBuffer, m_frame, m_renderPass, text, x, y, scale, color*m_color);
+    }
+    glm::vec2 gui_renderer::measure_text(std::string_view text, float scale) const
+    {
+        return m_fontRenderer->measureText(text, scale);
     }
 
     void gui_renderer::draw_image(const texture& texture, float x, float y, float scaleX, float scaleY, glm::vec4 color)

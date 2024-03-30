@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/components/main_menu.hpp"
+#include "app/components/news_display.hpp"
 #include "render/phase.hpp"
 #include "render/window.hpp"
 #include "render/components/font_renderer.hpp"
@@ -60,6 +61,7 @@ namespace app
 
 			std::unique_ptr<texture> backgroundTexture;
 			main_menu menu{this};
+			news_display news{this};
 
 			void render_gui(gui_renderer& renderer);
 	};
