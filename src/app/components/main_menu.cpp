@@ -149,7 +149,7 @@ bool main_menu::select_relative(direction dir) {
         } else if(dir == direction::up) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() > 0) {
-                select_submenu(menu->get_selected_submenu()-1);
+                select_menu_item(menu->get_selected_submenu()-1);
                 if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
                     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
                 }
@@ -159,7 +159,28 @@ bool main_menu::select_relative(direction dir) {
         } else if(dir == direction::down) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
-                select_submenu(menu->get_selected_submenu()+1);
+                select_menu_item(menu->get_selected_submenu()+1);
+                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                }
+
+                return true;
+            }
+        }
+    } else {
+        auto& menu = current_submenu;
+        if(dir == direction::up) {
+            if(menu->get_selected_submenu() > 0) {
+                select_submenu_item(menu->get_selected_submenu()-1);
+                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                }
+
+                return true;
+            }
+        } else if(dir == direction::down) {
+            if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
+                select_submenu_item(menu->get_selected_submenu()+1);
                 if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
                     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
                 }
@@ -215,9 +236,9 @@ void main_menu::select(int index) {
     menus[last_selected]->on_close();
     menus[selected]->on_open();
 
-    last_selected_submenu = menus[selected]->get_selected_submenu();
+    last_selected_menu_item = menus[selected]->get_selected_submenu();
 }
-void main_menu::select_submenu(int index) {
+void main_menu::select_menu_item(int index) {
     auto& menu = menus[selected];
     if(index == menu->get_selected_submenu()) {
         return;
@@ -226,8 +247,21 @@ void main_menu::select_submenu(int index) {
         return;
     }
 
-    last_selected_submenu = menu->get_selected_submenu();
-    last_selected_submenu_transition = std::chrono::system_clock::now();
+    last_selected_menu_item = menu->get_selected_submenu();
+    last_selected_menu_item_transition = std::chrono::system_clock::now();
+    menu->select_submenu(index);
+}
+void main_menu::select_submenu_item(int index) {
+    auto& menu = current_submenu;
+    if(index == menu->get_selected_submenu()) {
+        return;
+    }
+    if(index < 0 || index >= menu->get_submenus_count()) {
+        return;
+    }
+
+    last_selected_submenu_item = menu->get_selected_submenu();
+    last_selected_submenu_item_transition = std::chrono::system_clock::now();
     menu->select_submenu(index);
 }
 
@@ -325,17 +359,24 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
     int selected_submenu = menu->get_selected_submenu();
     float partial_transition = 1.0f;
     float partial_y = 0.0f;
-    if(selected_submenu != last_selected_submenu) {
-        auto time_since_transition = std::chrono::duration<double>(now - last_selected_submenu_transition);
-        if(time_since_transition > transition_duration) {
-            last_selected_submenu = selected_submenu;
+    if(selected_submenu != last_selected_menu_item) {
+        auto time_since_transition = std::chrono::duration<double>(now - last_selected_menu_item_transition);
+        if(time_since_transition > transition_menu_item_duration) {
+            last_selected_menu_item = selected_submenu;
         } else {
-            partial_transition = time_since_transition / transition_duration;
-            partial_y = (selected_submenu - last_selected_submenu) * (1.0f - partial_transition);
+            partial_transition = time_since_transition / transition_menu_item_duration;
+            partial_y = (selected_submenu - last_selected_menu_item) * (1.0f - partial_transition);
         }
     }
     {
-        float y = base_pos.y - (base_size*1.5f) + partial_y*base_size*1.5f;
+        float y = base_pos.y - (base_size*1.5f) - (base_size*0.65f) + partial_y*base_size*1.5f;
+        if(last_selected_menu_item > selected_submenu) {
+            y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
+        } else if(last_selected_menu_item < selected_submenu) {
+            y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
+        } else {
+            y += base_size*0.65f;
+        }
         for(int i=selected_submenu-1; i >= 0 && y >= -base_size*0.65f; i--) {
             auto& submenu = menu->get_submenu(i);
             renderer.draw_image(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
@@ -346,7 +387,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
     }
     {
         float y = base_pos.y + (base_size*1.5f) - (base_size*0.65f) + partial_y*base_size*1.5f;
-        if(last_selected_submenu > selected_submenu) {
+        if(last_selected_menu_item > selected_submenu) {
             y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
         } else {
             y += base_size*0.65f;
@@ -362,7 +403,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
                 }
                 y += base_size*glm::mix(0.65f, 1.5f, partial_transition);
             }
-            else if(i == last_selected_submenu) {
+            else if(i == last_selected_menu_item) {
                 double size = base_size*glm::mix(0.6, 1.2, 1.0f-partial_transition);
                 renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                 if(!in_submenu_now)
@@ -389,12 +430,33 @@ void main_menu::render_submenu(render::gui_renderer& renderer, time_point now) {
         glm::vec2(0.35f/renderer.aspect_ratio, 0.25f),
         glm::vec2((0.15f-offset)/renderer.aspect_ratio, 0.25f-2*offset),
         submenu_transition);
+    const double base_size = 0.1;
 
     const auto& selected_menu = *menus[selected];
     const auto& selected_submenu = selected_menu.get_submenu(selected_menu.get_selected_submenu());
 
     renderer.draw_image(selected_menu.get_icon(), base_pos.x, base_pos.y, 0.1f, 0.1f);
     renderer.draw_image(selected_submenu.get_icon(), base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);
+
+    if(!in_submenu)
+        return;
+    if(const auto* submenu = dynamic_cast<const menu::menu*>(&selected_submenu)) {
+        int selected = submenu->get_selected_submenu();
+
+        for(int i=0; i<submenu->get_submenus_count(); i++) {
+            double partial_selection = 0.0;
+            if(i == selected) {
+                auto time_since_transition = std::chrono::duration<double>(now - last_selected_submenu_item_transition);
+                partial_selection = std::clamp(time_since_transition / transition_submenu_item_duration, 0.0, 1.0);
+            }
+
+            double size = base_size*glm::mix(0.75, 1.0, partial_selection);
+
+            auto& entry = submenu->get_submenu(i);
+            renderer.draw_image(entry.get_icon(), base_pos.x + 0.1, base_pos.y+0.15f+0.15f*i, size, size);
+            renderer.draw_text(entry.get_name(), base_pos.x + 0.2, base_pos.y+0.15f+0.15f*i+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+        }
+    }
 }
 
 }

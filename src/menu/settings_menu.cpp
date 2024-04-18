@@ -15,7 +15,7 @@ namespace menu {
     {
         std::string filename = std::format("icon_settings_{}.png", key);
         return make_simple<action_menu_entry>(name, config::CONFIG.asset_directory/"icons"/filename, loader, [key, schema](){
-            spdlog::info("Opening setting {} in schema {}", key, schema);
+            spdlog::debug("Opening setting {} in schema {}", key, schema);
             auto source = Gio::SettingsSchemaSource::get_default();
             if(!source) {
                 spdlog::error("Failed to get default settings schema source");
@@ -32,6 +32,7 @@ namespace menu {
                 return result::failure;
             }
             auto type = keyObj->get_value_type();
+            spdlog::trace("Type of key {} in schema {} is {}", key, schema, type.get_string());
             return result::success;
         });
     }
@@ -50,6 +51,10 @@ namespace menu {
                 make_settings_entry(loader, "Show Memory Usage", "re.jcm.xmbos.xmbshell.render", "show-mem"),
             }
         ));
+        entries.push_back(make_simple<action_menu_entry>("Check for Updates", config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [](){
+            spdlog::info("Update request from XMB");
+            return result::unsupported;
+        }));
         entries.push_back(make_simple<action_menu_entry>("Reset", config::CONFIG.asset_directory/"icons/icon_settings_reset.png", loader, [](){
             spdlog::info("Settings reset request from XMB");
             Glib::RefPtr<Gio::Settings> shellSettings =
