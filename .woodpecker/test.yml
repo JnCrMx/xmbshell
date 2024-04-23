@@ -20,7 +20,12 @@ steps:
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev
       - .woodpecker/download_unlicensed.sh
-      - cmake -B build -G Ninja -DDOWNLOAD_DEPENDENCIES_SHALLOW=ON
+      - >-
+        cmake -B build -G Ninja
+        -DDOWNLOAD_DEPENDENCIES_SHALLOW=ON
+        -DCMAKE_CXX_FLAGS_ASAN="-g -fsanitize=address -fno-omit-frame-pointer"
+        -DCMAKE_EXE_LINKER_FLAGS_ASAN="-fsanitize=address"
+        -DCMAKE_BUILD_TYPE=ASAN
       - cmake --build build --parallel 1
       - glib-compile-schemas schemas
   test:
@@ -30,7 +35,7 @@ steps:
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
-        libspdlog1.10 libglibmm-2.68-1 libsdbus-c++1
+        libspdlog1.10 libglibmm-2.68-1 libsdbus-c++1 libasan8
         vulkan-validationlayers ffmpeg fonts-ubuntu xdotool
       - ./test/record_video.sh
   upload:
