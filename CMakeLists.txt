@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_CXX_FLAGS_DEBUGASAN "-g -fsanitize=address -fno-omit-frame-pointer -g" CACHE STRING "Flags used by the C++ compiler during AddressSanitizer builds." FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_DEBUGASAN "-fsanitize=address" CACHE STRING "Flags used for linking binaries during AddressSanitizer builds." FORCE)
+mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGASAN CMAKE_EXE_LINKER_FLAGS_DEBUGASAN)
+
 include(FetchContent)
 include(cmake/AddShader.cmake)
 
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
-
-set(CMAKE_CXX_FLAGS_DebugAsan "-fsanitize=address -fno-omit-frame-pointer -g")
-set(CMAKE_EXE_LINKER_FLAGS_DebugAsan "-fsanitize=address")
 
 option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shallow" OFF)
 
