@@ -32,15 +32,7 @@ steps:
         xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
         libspdlog1.10 libglibmm-2.68-1 libsdbus-c++1
         vulkan-validationlayers ffmpeg fonts-ubuntu xdotool
-      - Xvfb :99 -screen 0 1920x1080x24 -reset -terminate &
-      - export DISPLAY=:99
-      - export GSETTINGS_SCHEMA_DIR="$PWD/schemas:$GSETTINGS_SCHEMA_DIR"
-      - export XMB_ASSET_DIR=.
-      - dbus-launch timeout 60 ./build/xmbshell | tee build/test-log.txt &
-      - sleep 15
-      - ffmpeg -threads 1 -video_size 1920x1080 -framerate 30 -f x11grab -i :99 -preset ultrafast -qp 0 -t 45 -y build/test-output.mp4 &
-      - xdotool key --delay 500 Up Down Right Return Down Down Up Escape Down Return Down Up Escape Right Right Right Right Right Down Down Down Up Up Up
-      - wait
+      - ./test/record_video.sh
   upload:
     image: woodpeckerci/plugin-s3
     settings:
