@@ -55,6 +55,10 @@ namespace menu {
             spdlog::info("Update request from XMB");
             return result::unsupported;
         }));
+        entries.push_back(make_simple<action_menu_entry>("Report bug", config::CONFIG.asset_directory/"icons/icon_bug.png", loader, [](){
+            spdlog::info("Bug report request from XMB");
+            return result::unsupported;
+        }));
         entries.push_back(make_simple<action_menu_entry>("Reset", config::CONFIG.asset_directory/"icons/icon_settings_reset.png", loader, [](){
             spdlog::info("Settings reset request from XMB");
             Glib::RefPtr<Gio::Settings> shellSettings =
