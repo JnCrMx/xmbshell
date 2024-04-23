@@ -5,6 +5,9 @@ include(cmake/AddShader.cmake)
 
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
 
+set(CMAKE_CXX_FLAGS_DebugAsan "-fsanitize=address -fno-omit-frame-pointer -g")
+set(CMAKE_EXE_LINKER_FLAGS_DebugAsan "-fsanitize=address")
+
 option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shallow" OFF)
 
 set(CMAKE_CXX_STANDARD 23)
