@@ -228,7 +228,7 @@ namespace render
 			std::tie(stagingBuffer, allocation) = allocator.createBuffer(buffer_info, alloc_info);
 		}
 
-		uint8_t* cpuBuffer = new uint8_t[stagingSize];
+		std::unique_ptr<uint8_t[]> cpuBuffer = std::make_unique<uint8_t[]>(stagingSize);
 
 		spdlog::info("[Resource Loader {}]: Started", index);
 		std::unique_lock<std::mutex> l(lock);
@@ -251,7 +251,7 @@ namespace render
 					bool okay;
 					if(task.type == Texture)
 					{
-						okay = load_texture(index, task, lock, device, allocator, allocation, commandBuffer.get(), cpuBuffer, stagingSize, stagingBuffer);
+						okay = load_texture(index, task, lock, device, allocator, allocation, commandBuffer.get(), cpuBuffer.get(), stagingSize, stagingBuffer);
 					}
 					else if(task.type == Model)
 					{
