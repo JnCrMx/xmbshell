@@ -441,20 +441,27 @@ void main_menu::render_submenu(render::gui_renderer& renderer, time_point now) {
     if(!in_submenu)
         return;
     if(const auto* submenu = dynamic_cast<const menu::menu*>(&selected_submenu)) {
-        int selected = submenu->get_selected_submenu();
+        double selected = submenu->get_selected_submenu();
+        auto time_since_transition = std::chrono::duration<double>(now - last_selected_submenu_item_transition);
+        if(time_since_transition < transition_submenu_item_duration) {
+            selected = last_selected_submenu_item + (selected - last_selected_submenu_item) *
+                time_since_transition / transition_submenu_item_duration;
+        }
+
+        double offsetY = 0.15f - selected*0.15f;
 
         for(int i=0; i<submenu->get_submenus_count(); i++) {
             double partial_selection = 0.0;
             if(i == selected) {
-                auto time_since_transition = std::chrono::duration<double>(now - last_selected_submenu_item_transition);
                 partial_selection = std::clamp(time_since_transition / transition_submenu_item_duration, 0.0, 1.0);
             }
 
             double size = base_size*glm::mix(0.75, 1.0, partial_selection);
+            double offset = (base_size - size) / 4.0;
 
             auto& entry = submenu->get_submenu(i);
-            renderer.draw_image(entry.get_icon(), base_pos.x + 0.1, base_pos.y+0.15f+0.15f*i, size, size);
-            renderer.draw_text(entry.get_name(), base_pos.x + 0.2, base_pos.y+0.15f+0.15f*i+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+            renderer.draw_image(entry.get_icon(), base_pos.x + 0.1 + offset, base_pos.y+offsetY+0.15f*i, size, size);
+            renderer.draw_text(entry.get_name(), base_pos.x + 0.2, base_pos.y+offsetY+0.15f*i+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
         }
     }
 }
