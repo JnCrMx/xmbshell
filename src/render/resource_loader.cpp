@@ -1,6 +1,7 @@
 #include "render/resource_loader.hpp"
 #include "render/debug.hpp"
 #include "render/obj_loader.hpp"
+#include "support/sdl.hpp"
 
 #include <vk_mem_alloc.hpp>
 #include <spdlog/spdlog.h>
@@ -83,7 +84,7 @@ namespace render
 		{
 			const auto& path = std::get<std::filesystem::path>(task.src);
 
-			SDL_Surface* surface = IMG_Load(path.c_str());
+			sdl::unique_surface surface = sdl::unique_surface{IMG_Load(path.c_str())};
 			if(!surface)
 			{
 				spdlog::error("[Resource Loader {}] Failed to load image {}", index, path.string());
@@ -94,9 +95,8 @@ namespace render
 
 			if(surface->format->format != SDL_PIXELFORMAT_RGBA32)
 			{
-				SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
-				SDL_FreeSurface(surface);
-				surface = newSurface;
+				sdl::unique_surface newSurface = sdl::unique_surface{SDL_ConvertSurfaceFormat(surface.get(), SDL_PIXELFORMAT_RGBA32, 0)};
+				surface = std::move(newSurface);
 			}
 
 			std::size_t size = surface->w * surface->h * surface->format->BytesPerPixel;
@@ -104,10 +104,9 @@ namespace render
 			{
 				spdlog::warn("[Resource Loader {}] Image {} is too large ({} bytes), scaling it to {}x{}", index, path.string(), size,
 					safe_size, safe_size);
-				SDL_Surface* newSurface = SDL_CreateRGBSurface(0, safe_size, safe_size, 32, 0, 0, 0, 0);
-				SDL_BlitScaled(surface, nullptr, newSurface, nullptr);
-				SDL_FreeSurface(surface);
-				surface = newSurface;
+				sdl::unique_surface newSurface = sdl::unique_surface{SDL_CreateRGBSurface(0, safe_size, safe_size, 32, 0, 0, 0, 0)};
+				SDL_BlitScaled(surface.get(), nullptr, newSurface.get(), nullptr);
+				surface = std::move(newSurface);
 				size = surface->w * surface->h * surface->format->BytesPerPixel;
 				assert(size <= stagingSize);
 			}
@@ -117,10 +116,8 @@ namespace render
 				tex->create_image(surface->w, surface->h);
 			}
 
-			SDL_LockSurface(surface);
-			allocator.copyMemoryToAllocation(surface->pixels, allocation, 0, surface->w * surface->h * 4);
-			SDL_UnlockSurface(surface);
-			SDL_FreeSurface(surface);
+			sdl::surface_lock lock{surface.get()};
+			allocator.copyMemoryToAllocation(lock.pixels(), allocation, 0, surface->w * surface->h * 4);
 		}
 		else
 		{

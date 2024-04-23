@@ -26,7 +26,7 @@ using namespace config;
 
 namespace render
 {
-	window::sdl_initializer window::sdl_init{};
+	sdl::initializer window::sdl_init{};
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -76,7 +76,7 @@ namespace render
 		SDL_Rect rect;
 		SDL_GetDisplayBounds(display_index, &rect);
 
-		win = std::unique_ptr<SDL_Window, sdl_window_deleter>(
+		win = sdl::unique_window(
 			SDL_CreateWindow(constants::displayname, rect.x, rect.y, rect.w, rect.h,
 				SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_VULKAN)
 		);

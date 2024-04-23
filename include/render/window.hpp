@@ -14,6 +14,7 @@
 #include "phase.hpp"
 #include "resource_loader.hpp"
 #include "input.hpp"
+#include "support/sdl.hpp"
 
 namespace render
 {
@@ -51,24 +52,8 @@ namespace render
 			input::keyboard_handler* keyboard_handler;
 			input::controller_handler* controller_handler;
 
-			struct sdl_initializer {
-                sdl_initializer() {
-                    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
-						SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_JOYSTICK |
-						SDL_INIT_AUDIO);
-                }
-                ~sdl_initializer() {
-                    SDL_Quit();
-                }
-            };
-            static sdl_initializer sdl_init;
-
-            struct sdl_window_deleter {
-                void operator()(SDL_Window* ptr) const {
-                    SDL_DestroyWindow(ptr);
-                }
-            };
-            std::unique_ptr<SDL_Window, sdl_window_deleter> win;
+            static sdl::initializer sdl_init;
+            sdl::unique_window win;
 			uint32_t window_width, window_height;
 
 			vk::UniqueInstance instance;

@@ -8,6 +8,7 @@
 #include "render/components/image_renderer.hpp"
 #include "render/components/wave_renderer.hpp"
 #include "render/gui_renderer.hpp"
+#include "support/freetype.hpp"
 
 #include <memory>
 
@@ -34,6 +35,7 @@ namespace app
 
 			bool blur_background = false;
 		private:
+			freetype::ft_library freetype;
 			std::unique_ptr<font_renderer> font_render;
 			std::unique_ptr<image_renderer> image_render;
 			std::unique_ptr<wave_renderer> wave_render;
