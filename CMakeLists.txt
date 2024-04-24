@@ -13,6 +13,7 @@ option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shall
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_options(-Wno-nullability-completeness)
 
 find_package(Vulkan REQUIRED)
 find_package(SDL2 REQUIRED)
