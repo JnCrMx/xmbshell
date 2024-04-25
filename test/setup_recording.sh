@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RESOLUTION=1280x720
+RESOLUTION=406x720
 
 Xvfb :99 -screen 0 ${RESOLUTION}x24 -reset -terminate &
 export DISPLAY=:99
