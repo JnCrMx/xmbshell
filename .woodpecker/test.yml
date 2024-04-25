@@ -10,22 +10,39 @@ variables:
     region: eu-central-jcm
 
 steps:
+  restore-cache:
+    image: meltwater/drone-cache
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker-cache
+      restore: true
+      mount:
+        - 'ccache'
   build:
     image: ubuntu:mantic
     commands:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang cmake ninja-build git glslang-tools xxd patch curl ca-certificates libglib2.0-bin
+        clang cmake ccache ninja-build git glslang-tools xxd patch curl ca-certificates libglib2.0-bin
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libclang-rt-dev
       - .woodpecker/download_unlicensed.sh
       - >-
         cmake -B build -G Ninja
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         -DDOWNLOAD_DEPENDENCIES_SHALLOW=ON
         -DCMAKE_BUILD_TYPE=DebugAsan
-      - cmake --build build --parallel 1
+      - cmake --build build --parallel 2
       - glib-compile-schemas schemas
+  rebuild-cache:
+    image: meltwater/drone-cache
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker-cache
+      rebuild: true
+      mount:
+        - 'ccache'
   test:
     image: ubuntu:mantic
     commands:
