@@ -51,4 +51,11 @@ namespace utils
 			std::byte* data;
 			std::size_t alignment;
 	};
+
+	std::string demangle(const char* name);
+
+    template <class T>
+    std::string type_name(const T& t) {
+        return demangle(typeid(t).name());
+    }
 }

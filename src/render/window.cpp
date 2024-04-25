@@ -3,6 +3,7 @@
 #include "config.hpp"
 
 #include "render/debug.hpp"
+#include "utils.hpp"
 
 #include <spdlog/spdlog.h>
 #include <SDL_events.h>
@@ -430,9 +431,7 @@ namespace render
 		auto dInit = std::chrono::duration_cast<std::chrono::milliseconds>(tInit - tWaitLoad).count();
 		auto dTotal = std::chrono::duration_cast<std::chrono::milliseconds>(tInit - t0).count();
 
-		auto& type = typeid(*renderer);
-		char* name = abi::__cxa_demangle(type.name(), 0, 0, 0);
-
+		auto name = utils::type_name(*renderer);
 		spdlog::debug("Timing for phase \"{}\": preload/prepare/load/init/total: {}/{}/{}/{}/{} ms", name, dPreload, dPrepare, dWaitLoad, dInit, dTotal);
 	}
 

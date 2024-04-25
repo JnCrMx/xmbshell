@@ -96,11 +96,11 @@ namespace render
 			decltype(std::chrono::high_resolution_clock::now()) lastFrame;
 
 			static constexpr int fpsSampleRate = 10;
-			uint64_t framesInSecond;
+			uint64_t framesInSecond{};
 			decltype(std::chrono::high_resolution_clock::now()) lastFPS;
-			int fpsCount;
-			double currentFPS;
-			int refreshRate;
+			int fpsCount{};
+			double currentFPS{};
+			int refreshRate{};
 
 			struct sdl_controller_closer {
 				void operator()(SDL_GameController* ptr) const {
