@@ -9,6 +9,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <giomm/settings.h>
 
 namespace config
 {
@@ -51,6 +52,7 @@ namespace config
             bool controllerAnalogStick;
 
             void load();
+            void reload();
 
             void setSampleCount(vk::SampleCountFlagBits count);
             void setMaxFPS(double fps);
@@ -65,6 +67,8 @@ namespace config
             void setWaveColor(std::string_view hex);
             void setWaveColor(const std::string& hex);
             void setDateTimeFormat(const std::string& format);
+        private:
+            Glib::RefPtr<Gio::Settings> shellSettings, renderSettings;
     };
     inline class config CONFIG;
 }

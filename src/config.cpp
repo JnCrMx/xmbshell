@@ -21,28 +21,28 @@ std::optional<glm::vec3> parse_color(std::string_view hex) {
     );
 }
 
+static void on_update(config* config, const Glib::ustring& key) {
+    spdlog::trace("Config key changed: {}", key.c_str());
+    config->reload();
+}
+
 void config::load() {
-    Glib::RefPtr<Gio::Settings> shellSettings =
-        Gio::Settings::create("re.jcm.xmbos.xmbshell");
+    shellSettings = Gio::Settings::create("re.jcm.xmbos.xmbshell");
+    shellSettings->signal_changed().connect(std::bind_front(sigc::ptr_fun(&on_update), this));
+
     setFontPath(shellSettings->get_string("font-path"));
     setBackgroundType(shellSettings->get_string("background-type"));
-    setBackgroundColor(shellSettings->get_string("background-color"));
     backgroundImage = shellSettings->get_string("background-image");
-    setWaveColor(shellSettings->get_string("wave-color"));
-    setDateTimeFormat(shellSettings->get_string("date-time-format"));
-    dateTimeOffset = shellSettings->get_double("date-time-x-offset");
-    controllerRumble = shellSettings->get_boolean("controller-rumble");
-    controllerAnalogStick = shellSettings->get_boolean("controller-analog-stick");
 
-    Glib::RefPtr<Gio::Settings> renderSettings =
-        Gio::Settings::create("re.jcm.xmbos.xmbshell.render");
+    renderSettings = Gio::Settings::create("re.jcm.xmbos.xmbshell.render");
+    renderSettings->signal_changed().connect(std::bind_front(sigc::ptr_fun(&on_update), this));
+
     bool vsync = renderSettings->get_boolean("vsync");
     if(vsync) {
         preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed;
     } else {
         preferredPresentMode = vk::PresentModeKHR::eMailbox;
     }
-    setMaxFPS(renderSettings->get_int("max-fps"));
 
     int sampleCount = renderSettings->get_int("sample-count");
     switch(sampleCount) {
@@ -55,6 +55,20 @@ void config::load() {
         case 64: setSampleCount(vk::SampleCountFlagBits::e64); break;
         default: setSampleCount(vk::SampleCountFlagBits::e1); break;
     }
+
+    reload();
+}
+
+void config::reload() {
+    setBackgroundColor(shellSettings->get_string("background-color"));
+
+    setWaveColor(shellSettings->get_string("wave-color"));
+    setDateTimeFormat(shellSettings->get_string("date-time-format"));
+    dateTimeOffset = shellSettings->get_double("date-time-x-offset");
+    controllerRumble = shellSettings->get_boolean("controller-rumble");
+    controllerAnalogStick = shellSettings->get_boolean("controller-analog-stick");
+
+    setMaxFPS(renderSettings->get_int("max-fps"));
 
     showFPS = renderSettings->get_boolean("show-fps");
     showMemory = renderSettings->get_boolean("show-mem");

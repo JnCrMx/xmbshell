@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/cfg/env.h>
 #include <giomm/init.h>
+#include <glibmm/main.h>
 
 #include "config.hpp"
 #include "dbus.hpp"
@@ -10,6 +11,13 @@
 int main(int argc, char *argv[])
 {
 	Gio::init();
+
+	Glib::RefPtr<Glib::MainLoop> loop;
+	std::jthread main_loop_thread([&loop]() {
+		loop = Glib::MainLoop::create();
+		loop->run();
+	});
+
 	config::CONFIG.load();
 
 #ifndef NDEBUG
@@ -29,6 +37,8 @@ int main(int argc, char *argv[])
 	window.set_phase(shell, shell, shell);
 
 	window.loop();
+
+	loop->quit();
 
 	return 0;
 }
