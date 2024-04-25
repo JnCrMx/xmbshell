@@ -9,7 +9,15 @@
 
 #include <chrono>
 #include <filesystem>
-#include <giomm/settings.h>
+#include <memory>
+
+namespace Glib {
+    template <class T_CppObject>
+    using RefPtr = std::shared_ptr<T_CppObject>;
+}
+namespace Gio {
+    class Settings;
+}
 
 namespace config
 {
