@@ -28,6 +28,8 @@ steps:
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libclang-rt-dev
       - .woodpecker/download_unlicensed.sh
+      - export CCACHE_DIR="$PWD/ccache"
+      - export CCACHE_MAXSIZE=2G
       - >-
         cmake -B build -G Ninja
         -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
