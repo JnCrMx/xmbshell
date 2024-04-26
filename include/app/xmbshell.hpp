@@ -33,6 +33,9 @@ namespace app
 			void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
 			void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
 
+			void reload_background();
+			void reload_fonts();
+
 			bool blur_background = false;
 		private:
 			freetype::ft_library freetype;

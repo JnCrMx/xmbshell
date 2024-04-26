@@ -162,6 +162,20 @@ namespace app
 			backgroundTexture = std::make_unique<texture>(device, allocator);
 			loader->loadTexture(backgroundTexture.get(), config::CONFIG.backgroundImage);
 		}
+		config::CONFIG.addCallback("background-type", [this](const std::string&){
+			if(config::CONFIG.backgroundType == config::config::background_type::image) {
+				reload_background();
+			} else {
+				backgroundTexture.reset();
+			}
+		});
+		config::CONFIG.addCallback("background-image", [this](const std::string&){
+			if(config::CONFIG.backgroundType == config::config::background_type::image) {
+				reload_background();
+			} else {
+				backgroundTexture.reset();
+			}
+		});
 	}
 
 	void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -244,8 +258,10 @@ namespace app
 				wave_render->render(commandBuffer.get(), frame, backgroundRenderPass.get());
 			}
 			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
-				image_render->renderImageSized(commandBuffer.get(), frame, backgroundRenderPass.get(), *backgroundTexture,
-					0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+				if(backgroundTexture) {
+					image_render->renderImageSized(commandBuffer.get(), frame, backgroundRenderPass.get(), *backgroundTexture,
+						0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+				}
 			}
 
 			commandBuffer->endRenderPass();
@@ -372,6 +388,13 @@ namespace app
 			constexpr double mb = 1024.0*1024.0;
 			renderer.draw_text(std::format("Memory: {:.2f}/{:.2f} MB", usage/mb, budget/mb), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 			debug_y += 0.025f;
+		}
+	}
+
+	void xmbshell::reload_background() {
+		if(config::CONFIG.backgroundType == config::config::background_type::image) {
+			backgroundTexture = std::make_unique<texture>(device, allocator);
+			loader->loadTexture(backgroundTexture.get(), config::CONFIG.backgroundImage);
 		}
 	}
 

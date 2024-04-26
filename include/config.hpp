@@ -9,11 +9,13 @@
 
 #include <chrono>
 #include <filesystem>
+#include <map>
 #include <memory>
 
 namespace Glib {
     template <class T_CppObject>
     using RefPtr = std::shared_ptr<T_CppObject>;
+    class ustring;
 }
 namespace Gio {
     class Settings;
@@ -61,6 +63,7 @@ namespace config
 
             void load();
             void reload();
+            void addCallback(const std::string& key, std::function<void(const std::string&)> callback);
 
             void setSampleCount(vk::SampleCountFlagBits count);
             void setMaxFPS(double fps);
@@ -77,6 +80,8 @@ namespace config
             void setDateTimeFormat(const std::string& format);
         private:
             Glib::RefPtr<Gio::Settings> shellSettings, renderSettings;
+            std::multimap<std::string, std::function<void(const std::string&)>> callbacks;
+            void on_update(const Glib::ustring& key);
     };
     inline class config CONFIG;
 }

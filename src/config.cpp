@@ -21,40 +21,21 @@ std::optional<glm::vec3> parse_color(std::string_view hex) {
     );
 }
 
-static void on_update(config* config, const Glib::ustring& key) {
+void config::on_update(const Glib::ustring& key) {
+    reload();
     spdlog::trace("Config key changed: {}", key.c_str());
-    config->reload();
+    auto cbs = callbacks.equal_range(key);
+    for(auto it = cbs.first; it != cbs.second; ++it) {
+        it->second(key);
+    }
 }
 
 void config::load() {
     shellSettings = Gio::Settings::create("re.jcm.xmbos.xmbshell");
-    shellSettings->signal_changed().connect(std::bind_front(sigc::ptr_fun(&on_update), this));
-
-    setFontPath(shellSettings->get_string("font-path"));
-    setBackgroundType(shellSettings->get_string("background-type"));
-    backgroundImage = shellSettings->get_string("background-image");
+    shellSettings->signal_changed().connect(sigc::mem_fun(*this, &config::on_update));
 
     renderSettings = Gio::Settings::create("re.jcm.xmbos.xmbshell.render");
-    renderSettings->signal_changed().connect(std::bind_front(sigc::ptr_fun(&on_update), this));
-
-    bool vsync = renderSettings->get_boolean("vsync");
-    if(vsync) {
-        preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed;
-    } else {
-        preferredPresentMode = vk::PresentModeKHR::eMailbox;
-    }
-
-    int sampleCount = renderSettings->get_int("sample-count");
-    switch(sampleCount) {
-        case 1: setSampleCount(vk::SampleCountFlagBits::e1); break;
-        case 2: setSampleCount(vk::SampleCountFlagBits::e2); break;
-        case 4: setSampleCount(vk::SampleCountFlagBits::e4); break;
-        case 8: setSampleCount(vk::SampleCountFlagBits::e8); break;
-        case 16: setSampleCount(vk::SampleCountFlagBits::e16); break;
-        case 32: setSampleCount(vk::SampleCountFlagBits::e32); break;
-        case 64: setSampleCount(vk::SampleCountFlagBits::e64); break;
-        default: setSampleCount(vk::SampleCountFlagBits::e1); break;
-    }
+    renderSettings->signal_changed().connect(sigc::mem_fun(*this, &config::on_update));
 
     reload();
 }
@@ -68,10 +49,35 @@ void config::reload() {
     controllerRumble = shellSettings->get_boolean("controller-rumble");
     controllerAnalogStick = shellSettings->get_boolean("controller-analog-stick");
 
+    setFontPath(shellSettings->get_string("font-path"));
+    setBackgroundType(shellSettings->get_string("background-type"));
+    backgroundImage = shellSettings->get_string("background-image");
+
+    int sampleCount = renderSettings->get_int("sample-count");
+    switch(sampleCount) {
+        case 1: setSampleCount(vk::SampleCountFlagBits::e1); break;
+        case 2: setSampleCount(vk::SampleCountFlagBits::e2); break;
+        case 4: setSampleCount(vk::SampleCountFlagBits::e4); break;
+        case 8: setSampleCount(vk::SampleCountFlagBits::e8); break;
+        case 16: setSampleCount(vk::SampleCountFlagBits::e16); break;
+        case 32: setSampleCount(vk::SampleCountFlagBits::e32); break;
+        case 64: setSampleCount(vk::SampleCountFlagBits::e64); break;
+        default: setSampleCount(vk::SampleCountFlagBits::e1); break;
+    }
     setMaxFPS(renderSettings->get_int("max-fps"));
+    bool vsync = renderSettings->get_boolean("vsync");
+    if(vsync) {
+        preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed;
+    } else {
+        preferredPresentMode = vk::PresentModeKHR::eMailbox;
+    }
 
     showFPS = renderSettings->get_boolean("show-fps");
     showMemory = renderSettings->get_boolean("show-mem");
+}
+
+void config::addCallback(const std::string& key, std::function<void(const std::string&)> callback) {
+    callbacks.emplace(key, callback);
 }
 
 void config::setSampleCount(vk::SampleCountFlagBits count) {
