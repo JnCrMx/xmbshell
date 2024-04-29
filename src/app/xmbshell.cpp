@@ -7,7 +7,8 @@
 #include "blur.vert.h"
 #include "blur.frag.h"
 
-#include <chrono>
+#include <i18n/simple.hpp>
+using namespace mfk::i18n::literals;
 
 namespace app
 {
@@ -376,7 +377,7 @@ namespace app
 
 		double debug_y = 0.0;
 		if(config::CONFIG.showFPS) {
-			renderer.draw_text(std::format("FPS: {:.2f}", win->currentFPS), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+			renderer.draw_text("FPS: {:.2f}"_(win->currentFPS), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 			debug_y += 0.025f;
 		}
 		if(config::CONFIG.showMemory) {
@@ -386,7 +387,7 @@ namespace app
 				usage += b.usage;
 			}
 			constexpr double mb = 1024.0*1024.0;
-			renderer.draw_text(std::format("Memory: {:.2f}/{:.2f} MB", usage/mb, budget/mb), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+			renderer.draw_text("Memory: {:.2f}/{:.2f} MB"_(usage/mb, budget/mb), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 			debug_y += 0.025f;
 		}
 	}

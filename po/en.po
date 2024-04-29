@@ -1,0 +1,102 @@
+# English translations for xmbshell package.
+# Copyright (C) 2024 THE xmbshell'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the xmbshell package.
+# JCM <jcm@jcm.re>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xmbshell 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-07-14 02:40+0000\n"
+"PO-Revision-Date: 2024-04-29 15:12+0200\n"
+"Last-Translator: JCM <jcm@jcm.re>\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/app/components/main_menu.cpp:29
+msgid "Users"
+msgstr "Users"
+
+#: src/app/components/main_menu.cpp:30
+msgid "Settings"
+msgstr "Settings"
+
+#: src/app/components/main_menu.cpp:31
+msgid "Photo"
+msgstr "Photo"
+
+#: src/app/components/main_menu.cpp:32
+msgid "Music"
+msgstr "Music"
+
+#: src/app/components/main_menu.cpp:33
+msgid "Video"
+msgstr "Video"
+
+#: src/app/components/main_menu.cpp:34
+msgid "TV"
+msgstr "TV"
+
+#: src/app/components/main_menu.cpp:35
+msgid "Game"
+msgstr "Game"
+
+#: src/app/components/main_menu.cpp:36
+msgid "Network"
+msgstr "Network"
+
+#: src/app/components/main_menu.cpp:37
+msgid "Friends"
+msgstr "Friends"
+
+#: src/app/xmbshell.cpp:380
+msgid "FPS: {:.2f}"
+msgstr "FPS: {:.2f}"
+
+#: src/app/xmbshell.cpp:390
+msgid "Memory: {:.2f}/{:.2f} MB"
+msgstr "Memory: {:.2f}/{:.2f} MB"
+
+#: src/menu/settings_menu.cpp:44
+msgid "Video Settings"
+msgstr "Video Settings"
+
+#: src/menu/settings_menu.cpp:46
+msgid "VSync"
+msgstr "VSync"
+
+#: src/menu/settings_menu.cpp:47
+msgid "Sample Count"
+msgstr "Sample Count"
+
+#: src/menu/settings_menu.cpp:48
+msgid "Max FPS"
+msgstr "Max FPS"
+
+#: src/menu/settings_menu.cpp:51
+msgid "Debug Settings"
+msgstr "Debug Settings"
+
+#: src/menu/settings_menu.cpp:53
+msgid "Show FPS"
+msgstr "Show FPS"
+
+#: src/menu/settings_menu.cpp:54
+msgid "Show Memory Usage"
+msgstr "Show Memory Usage"
+
+#: src/menu/settings_menu.cpp:57
+msgid "Check for Updates"
+msgstr "Check for Updates"
+
+#: src/menu/settings_menu.cpp:61
+msgid "Report bug"
+msgstr "Report bug"
+
+#: src/menu/settings_menu.cpp:65
+msgid "Reset"
+msgstr "Reset"

@@ -8,6 +8,9 @@
 #include "menu/utils.hpp"
 #include <spdlog/spdlog.h>
 
+#include <i18n/simple.hpp>
+using namespace mfk::i18n::literals;
+
 namespace app {
 
 main_menu::main_menu(xmbshell* shell) : shell(shell) {
@@ -23,15 +26,15 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, render::res
     using ::menu::make_simple_of;
 
     const auto& asset_directory = config::CONFIG.asset_directory;
-    menus.push_back(make_simple<menu::users_menu>("Users", asset_directory/"icons/icon_category_users.png", loader, loader));
-    menus.push_back(make_simple<menu::settings_menu>("Settings", asset_directory/"icons/icon_category_settings.png", loader, loader));
-    menus.push_back(make_simple_of<menu::menu>("Photo", asset_directory/"icons/icon_category_photo.png", loader));
-    menus.push_back(make_simple_of<menu::menu>("Music", asset_directory/"icons/icon_category_music.png", loader));
-    menus.push_back(make_simple_of<menu::menu>("Video", asset_directory/"icons/icon_category_video.png", loader));
-    menus.push_back(make_simple_of<menu::menu>("TV", asset_directory/"icons/icon_category_tv.png", loader));
-    menus.push_back(make_simple<menu::applications_menu>("Game", asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
-    menus.push_back(make_simple_of<menu::menu>("Network", asset_directory/"icons/icon_category_network.png", loader));
-    menus.push_back(make_simple_of<menu::menu>("Friends", asset_directory/"icons/icon_category_friends.png", loader));
+    menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, loader));
+    menus.push_back(make_simple<menu::settings_menu>("Settings"_(), asset_directory/"icons/icon_category_settings.png", loader, loader));
+    menus.push_back(make_simple_of<menu::menu>("Photo"_(), asset_directory/"icons/icon_category_photo.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("TV"_(), asset_directory/"icons/icon_category_tv.png", loader));
+    menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
+    menus.push_back(make_simple_of<menu::menu>("Network"_(), asset_directory/"icons/icon_category_network.png", loader));
+    menus.push_back(make_simple_of<menu::menu>("Friends"_(), asset_directory/"icons/icon_category_friends.png", loader));
 
     menus[selected]->on_open();
 }

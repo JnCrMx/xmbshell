@@ -9,6 +9,9 @@
 #include <giomm/settingsschema.h>
 #include <giomm/settingsschemasource.h>
 
+#include <i18n/simple.hpp>
+using namespace mfk::i18n::literals;
+
 namespace menu {
     std::unique_ptr<action_menu_entry> make_settings_entry(render::resource_loader& loader,
         const std::string& name, const std::string& schema, const std::string& key)
@@ -38,28 +41,28 @@ namespace menu {
     }
 
     settings_menu::settings_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader) : simple_menu(name, std::move(icon)) {
-        entries.push_back(make_simple<simple_menu>("Video Settings", config::CONFIG.asset_directory/"icons/icon_settings_video.png", loader,
+        entries.push_back(make_simple<simple_menu>("Video Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_video.png", loader,
             std::array{
-                make_settings_entry(loader, "VSync", "re.jcm.xmbos.xmbshell.render", "vsync"),
-                make_settings_entry(loader, "Sample Count", "re.jcm.xmbos.xmbshell.render", "sample-count"),
-                make_settings_entry(loader, "Max FPS", "re.jcm.xmbos.xmbshell.render", "max-fps"),
+                make_settings_entry(loader, "VSync"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
+                make_settings_entry(loader, "Sample Count"_(), "re.jcm.xmbos.xmbshell.render", "sample-count"),
+                make_settings_entry(loader, "Max FPS"_(), "re.jcm.xmbos.xmbshell.render", "max-fps"),
             }
         ));
-        entries.push_back(make_simple<simple_menu>("Debug Settings", config::CONFIG.asset_directory/"icons/icon_settings_debug.png", loader,
+        entries.push_back(make_simple<simple_menu>("Debug Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_debug.png", loader,
             std::array{
-                make_settings_entry(loader, "Show FPS", "re.jcm.xmbos.xmbshell.render", "show-fps"),
-                make_settings_entry(loader, "Show Memory Usage", "re.jcm.xmbos.xmbshell.render", "show-mem"),
+                make_settings_entry(loader, "Show FPS"_(), "re.jcm.xmbos.xmbshell.render", "show-fps"),
+                make_settings_entry(loader, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
             }
         ));
-        entries.push_back(make_simple<action_menu_entry>("Check for Updates", config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [](){
             spdlog::info("Update request from XMB");
             return result::unsupported;
         }));
-        entries.push_back(make_simple<action_menu_entry>("Report bug", config::CONFIG.asset_directory/"icons/icon_bug.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Report bug"_(), config::CONFIG.asset_directory/"icons/icon_bug.png", loader, [](){
             spdlog::info("Bug report request from XMB");
             return result::unsupported;
         }));
-        entries.push_back(make_simple<action_menu_entry>("Reset", config::CONFIG.asset_directory/"icons/icon_settings_reset.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Reset"_(), config::CONFIG.asset_directory/"icons/icon_settings_reset.png", loader, [](){
             spdlog::info("Settings reset request from XMB");
             Glib::RefPtr<Gio::Settings> shellSettings =
                 Gio::Settings::create("re.jcm.xmbos.xmbshell");

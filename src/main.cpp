@@ -2,6 +2,7 @@
 #include <spdlog/cfg/env.h>
 #include <giomm/init.h>
 #include <glibmm/main.h>
+#include <libintl.h>
 
 #include "config.hpp"
 #include "dbus.hpp"
@@ -11,6 +12,8 @@
 int main(int argc, char *argv[])
 {
 	Gio::init();
+	setlocale (LC_ALL, "");
+	textdomain("xmbshell");
 
 	Glib::RefPtr<Glib::MainLoop> loop;
 	std::jthread main_loop_thread([&loop]() {

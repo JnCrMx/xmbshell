@@ -24,6 +24,8 @@ find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(sdbus-c++ QUIET)
 find_package(PkgConfig REQUIRED)
+find_package(i18n++ REQUIRED)
+find_package(Gettext REQUIRED)
 
 pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
 
@@ -74,13 +76,21 @@ target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
 target_link_libraries(xmbshell PRIVATE ${GIOMM_LIBRARIES})
+target_use_i18n(xmbshell NODOMAIN)
+
+include(GNUInstallDirs)
+
+# read po/LINGUAS file
+file(STRINGS po/LINGUAS LINGUAS)
+foreach(LING ${LINGUAS})
+  gettext_process_po_files(${LING} ALL PO_FILES po/${LING}.po)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LING}.gmo DESTINATION ${CMAKE_INSTALL_LOCALEDIR}/${LING}/LC_MESSAGES/ RENAME xmbshell.mo)
+endforeach()
 
 foreach(shader ${shaders})
 	add_shader(xmbshell ${shader})
 endforeach()
 target_include_directories(xmbshell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaders)
-
-include(GNUInstallDirs)
 
 install(TARGETS xmbshell)
 install(FILES xmbshell.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
