@@ -1,0 +1,18 @@
+steps:
+  docker:
+    image: plugins/kaniko
+    settings:
+      username: jcm
+      password:
+        from_secret: gitea_package_token
+      repo: git.jcm.re/jcm/xmbshell:test
+      registry: git.jcm.re
+      tags: latest
+      snapshot-mode: redo
+      context: .woodpecker
+      dockerfile: .woodpecker/test.Dockerfile
+
+when:
+  - path: ".woodpecker/test-image.yml"
+  - path: ".woodpecker/test.Dockerfile"
+  - cron: "update_dockerfiles"
