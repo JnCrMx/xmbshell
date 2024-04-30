@@ -11,8 +11,10 @@ steps:
       snapshot-mode: redo
       context: .woodpecker
       dockerfile: .woodpecker/build.Dockerfile
+    when:
+      - event: cron
+        cron: update_dockerfiles
 
 when:
   - path: ".woodpecker/build-image.yml"
   - path: ".woodpecker/build.Dockerfile"
-  - cron: "update_dockerfiles"
