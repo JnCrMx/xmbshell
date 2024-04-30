@@ -55,3 +55,7 @@ steps:
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
     when:
       - status: [ success, failure ]
+
+depends_on:
+  - build-image
+  - test-image
