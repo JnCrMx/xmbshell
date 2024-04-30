@@ -10,6 +10,7 @@ include(cmake/AddShader.cmake)
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
 
 option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shallow" OFF)
+option(GENERATE_POT "Generate .pot file" OFF)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,12 +23,25 @@ find_package(SDL2_image REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(sdbus-c++ QUIET)
 find_package(PkgConfig REQUIRED)
-find_package(i18n++ REQUIRED)
+find_package(i18n++ QUIET)
 find_package(Gettext REQUIRED)
 
-pkg_check_modules(GIOMM giomm-2.68 REQUIRED)
+if(NOT i18n++_FOUND)
+  set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+  set(BUILD_PLUGIN ${GENERATE_POT} CACHE BOOL "" FORCE)
+  set(BUILD_MERGE ${GENERATE_POT} CACHE BOOL "" FORCE)
+
+  FetchContent_Declare(
+    i18n++
+    GIT_REPOSITORY https://github.com/JnCrMx/i18n-cpp.git
+    GIT_TAG        trunk
+    GIT_SUBMODULES_RECURSE FALSE
+  )
+  FetchContent_MakeAvailable(i18n++)
+endif()
+
+pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
@@ -43,16 +57,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(VulkanMemoryAllocator-Hpp)
 
-if(NOT sdbus-c++_FOUND)
-message(STATUS "sdbus-c++ not found, downloading and building it.")
-  FetchContent_Declare(
-    sdbus-cpp
-    GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
-    GIT_TAG        v1.2.0
-  )
-  FetchContent_MakeAvailable(sdbus-cpp)
-  add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
-endif()
+FetchContent_Declare(
+  sdbus-cpp
+  GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
+  GIT_TAG        v1.2.0
+)
+FetchContent_MakeAvailable(sdbus-cpp)
+add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 
 add_executable(xmbshell ${sources})
 
@@ -63,7 +74,6 @@ target_compile_options(optimized_components PRIVATE -O3)
 
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
-target_include_directories(xmbshell PRIVATE ${GIOMM_INCLUDE_DIRS})
 
 target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
 target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
@@ -75,8 +85,12 @@ target_link_libraries(xmbshell PRIVATE dl)
 target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
-target_link_libraries(xmbshell PRIVATE ${GIOMM_LIBRARIES})
-target_use_i18n(xmbshell NODOMAIN)
+target_link_libraries(xmbshell PRIVATE PkgConfig::giomm)
+if(GENERATE_POT)
+  target_use_i18n(xmbshell NODOMAIN)
+else()
+  target_link_libraries(xmbshell PRIVATE i18n::i18n-lib)
+endif()
 
 include(GNUInstallDirs)
 

@@ -13,3 +13,17 @@ buildType:
       short: DebugAsan
       long: Instrument with Address Sanitizer
       buildType: DebugAsan
+
+generatePOT:
+  default: yes
+  choices:
+    yes:
+      short: GeneratePOT
+      long: Generate .pot file
+      settings:
+        GENERATE_POT: true
+    no:
+      short: NoPOT
+      long: Do not generate .pot file
+      settings:
+        GENERATE_POT: false
