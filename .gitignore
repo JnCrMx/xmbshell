@@ -3,3 +3,4 @@
 build/
 build-*/
 schemas/gschemas.compiled
+po/*~

@@ -101,3 +101,7 @@ msgstr "Fehler melden"
 #: src/menu/settings_menu.cpp:65
 msgid "Reset"
 msgstr "Zurücksetzen"
+
+#: src/menu/users_menu.cpp:15
+msgid "Quit"
+msgstr "Beenden"

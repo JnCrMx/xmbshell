@@ -100,3 +100,7 @@ msgstr "Report bug"
 #: src/menu/settings_menu.cpp:65
 msgid "Reset"
 msgstr "Reset"
+
+#: src/menu/users_menu.cpp:15
+msgid "Quit"
+msgstr "Quit"
