@@ -5,9 +5,9 @@ steps:
       username: jcm
       password:
         from_secret: gitea_package_token
-      repo: git.jcm.re/jcm/xmbshell:build
+      repo: git.jcm.re/jcm/xmbshell
       registry: git.jcm.re
-      tags: latest
+      tags: build
       snapshot-mode: redo
       context: .woodpecker
       dockerfile: .woodpecker/build.Dockerfile
