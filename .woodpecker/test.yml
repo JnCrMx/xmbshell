@@ -60,7 +60,7 @@ steps:
     settings:
       <<: *minio-settings
       bucket: woodpecker
-      source: build/test-output.mkv
+      source: build/test-output.mp4
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
 
