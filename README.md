@@ -1,1 +1,1 @@
-![preview](https://git.jcm.re/xmblinux/xmbshell/-/jobs/artifacts/main/raw/build/output.gif?job=convert-job)
+<video src="https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.mkv"/>
