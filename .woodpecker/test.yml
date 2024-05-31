@@ -55,6 +55,14 @@ steps:
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
     when:
       - status: [ success, failure ]
+  upload-branch:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/test-output.mkv
+      strip_prefix: build/
+      target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
 
 depends_on:
   - build-image
