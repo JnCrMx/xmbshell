@@ -72,7 +72,7 @@ msgstr "VSync"
 
 #: src/menu/settings_menu.cpp:47
 msgid "Sample Count"
-msgstr ""
+msgstr "MSAA Qualität"
 
 #: src/menu/settings_menu.cpp:48
 msgid "Max FPS"
