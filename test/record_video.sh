@@ -8,4 +8,4 @@ ffmpeg -threads 1 -video_size $RESOLUTION -framerate 30 -f x11grab -i :99 -prese
 xdotool key --delay 500 Up Down Right Return Down Down Up Escape Down Return Down Up Escape Right Right Right Right Right Down Down Down Up Up Up
 wait
 
-ffmpeg -threads 1 -i build/test-output.mkv build/test-output.mp4
+ffmpeg -threads 1 -i build/test-output.mkv build/test-output.webm
