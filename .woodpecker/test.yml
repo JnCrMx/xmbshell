@@ -45,6 +45,9 @@ steps:
     pull: true
     commands:
       - ./test/record_video.sh
+    volumes:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    privileged: true
   upload:
     image: woodpeckerci/plugin-s3
     settings:
