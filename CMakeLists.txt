@@ -113,7 +113,7 @@ install(FILES schemas/re.jcm.xmbos.xmbshell.gschema.xml DESTINATION ${CMAKE_INST
 install(DIRECTORY icons DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
 install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
 
-set(CPACK_PACKAGE_NAME "xmbhell")
+set(CPACK_PACKAGE_NAME "xmbshell")
 set(CPACK_PACKAGE_CONTACT "JCM <jcm@jcm.re>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A shell mimicking the XMB interface of the PlayStation 3")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://git.jcm.re/XMB-OS/xmbshell")
