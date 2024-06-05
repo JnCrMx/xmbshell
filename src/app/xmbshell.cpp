@@ -387,7 +387,9 @@ namespace app
 				usage += b.usage;
 			}
 			constexpr double mb = 1024.0*1024.0;
-			renderer.draw_text("Memory: {:.2f}/{:.2f} MB"_(usage/mb, budget/mb), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+			auto u = usage/mb;
+			auto b = budget/mb;
+			renderer.draw_text("Memory: {:.2f}/{:.2f} MB"_(u, b), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 			debug_y += 0.025f;
 		}
 	}
