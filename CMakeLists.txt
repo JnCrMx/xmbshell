@@ -50,7 +50,7 @@ file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom)
 FetchContent_Declare(
   VulkanMemoryAllocator-Hpp
   GIT_REPOSITORY https://github.com/YaaZ/VulkanMemoryAllocator-Hpp.git
-  GIT_TAG        master
+  GIT_TAG        73cdd838c425637c874d343ab0ceba5148189cbf
   GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
   GIT_SUBMODULES_RECURSE FALSE
   PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
