@@ -28,7 +28,6 @@ steps:
       - >-
         cmake -B build -G Ninja
         -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        -DDOWNLOAD_DEPENDENCIES_SHALLOW=ON
         -DCMAKE_BUILD_TYPE=DebugAsan
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas

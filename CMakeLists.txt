@@ -9,7 +9,6 @@ include(cmake/AddShader.cmake)
 
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
 
-option(DOWNLOAD_DEPENDENCIES_SHALLOW "Download dependency git repositories shallow" OFF)
 option(GENERATE_POT "Generate .pot file" OFF)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -51,7 +50,6 @@ FetchContent_Declare(
   VulkanMemoryAllocator-Hpp
   GIT_REPOSITORY https://github.com/YaaZ/VulkanMemoryAllocator-Hpp.git
   GIT_TAG        73cdd838c425637c874d343ab0ceba5148189cbf
-  GIT_SHALLOW    ${DOWNLOAD_DEPENDENCIES_SHALLOW}
   GIT_SUBMODULES_RECURSE FALSE
   PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
 )
