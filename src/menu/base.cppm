@@ -1,11 +1,15 @@
-#pragma once
+module;
 
+#include <string>
+#include <stdexcept>
 #include <functional>
 #include <memory>
-#include <string>
+
 #include "render/texture.hpp"
 
-namespace menu {
+export module xmbshell.menu:base;
+
+export namespace menu {
 
 enum class result {
     unsupported,
@@ -124,5 +128,4 @@ class simple_menu : public simple_menu_shallow {
         std::vector<std::unique_ptr<menu_entry>> entries;
         unsigned int selected_submenu = 0;
 };
-
 }

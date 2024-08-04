@@ -1,5 +1,18 @@
-#include "config.hpp"
-#include <giomm/settings.h>
+module;
+
+#include <glm/vec3.hpp>
+
+#include <chrono>
+#include <filesystem>
+#include <map>
+#include <functional>
+
+module xmbshell.config;
+
+import spdlog;
+import giomm;
+import vulkan_hpp;
+import xmbshell.constants;
 
 namespace config {
 

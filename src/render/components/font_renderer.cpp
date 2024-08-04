@@ -1,25 +1,24 @@
 #include "render/components/font_renderer.hpp"
 
-#include "config.hpp"
 #include "render/utils.hpp"
 #include "render/debug.hpp"
-#include "utils.hpp"
 
 #include <freetype2/ft2build.h>
 #include <freetype/freetype.h>
 
-#include <spdlog/spdlog.h>
 #include <string_view>
 #include <glm/ext/matrix_transform.hpp>
-
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
 
 #include <cmath>
 
 #include "text.vert.h"
 #include "text.geom.h"
 #include "text.frag.h"
+
+import xmbshell.config;
+import xmbshell.utils;
+import spdlog;
+import vulkan_hpp;
 
 namespace render
 {

@@ -1,8 +1,10 @@
-#pragma once
+module;
 
 #include <cstdint>
 
-namespace constants
+export module xmbshell.constants;
+
+export namespace constants
 {
 	constexpr auto displayname = "XMB Shell";
 	constexpr auto name = "xmbshell";

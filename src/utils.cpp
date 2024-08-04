@@ -1,7 +1,14 @@
-#include "utils.hpp"
+module;
 
 #include <sstream>
 #include <iomanip>
+#include <memory>
+
+#ifdef __GNUG__
+#include <cxxabi.h>
+#endif
+
+module xmbshell.utils;
 
 namespace utils
 {
@@ -14,7 +21,6 @@ namespace utils
 }
 
 #ifdef __GNUG__
-#include <cxxabi.h>
 namespace utils
 {
 	std::string demangle(const char *name) {

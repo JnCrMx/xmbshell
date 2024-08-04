@@ -1,8 +1,7 @@
 #pragma once
 
 #include "render/utils.hpp"
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
+import vulkan_hpp;
 #include <vk_mem_alloc.hpp>
 
 namespace render

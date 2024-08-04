@@ -1,6 +1,5 @@
 #include "render/components/image_renderer.hpp"
 
-#include "config.hpp"
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
@@ -9,6 +8,8 @@
 
 #include "image.vert.h"
 #include "image.frag.h"
+
+import xmbshell.config;
 
 namespace render {
 

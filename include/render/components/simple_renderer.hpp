@@ -3,8 +3,7 @@
 #include "render/utils.hpp"
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float4.hpp>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
+import vulkan_hpp;
 #include <vk_mem_alloc.hpp>
 
 namespace render

@@ -1,9 +1,11 @@
-#pragma once
+module;
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_gamecontroller.h>
 
-namespace input {
+export module xmbshell.input;
+
+export namespace input {
     class keyboard_handler {
         public:
             virtual void key_down(SDL_Keysym key) {};

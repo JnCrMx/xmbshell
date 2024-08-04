@@ -1,27 +1,20 @@
-#pragma once
+module;
 
-#include "constants.hpp"
-
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
 #include <glm/vec3.hpp>
-#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <filesystem>
 #include <map>
-#include <memory>
+#include <functional>
 
-namespace Glib {
-    template <class T_CppObject>
-    using RefPtr = std::shared_ptr<T_CppObject>;
-    class ustring;
-}
-namespace Gio {
-    class Settings;
-}
+export module xmbshell.config;
 
-namespace config
+import glibmm;
+import giomm;
+import vulkan_hpp;
+import xmbshell.constants;
+
+export namespace config
 {
     class config
     {

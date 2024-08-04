@@ -12,7 +12,8 @@
 #include "render/texture.hpp"
 #include "render/resource_loader.hpp"
 #include "render/utils.hpp"
-#include "utils.hpp"
+
+import xmbshell.utils;
 
 namespace render
 {

@@ -1,17 +1,12 @@
 #include "render/window.hpp"
-#include "constants.hpp"
-#include "config.hpp"
 
 #include "render/debug.hpp"
-#include "utils.hpp"
 
-#include <spdlog/spdlog.h>
 #include <SDL_events.h>
 #include <SDL_rect.h>
 #include <SDL_video.h>
 #include <SDL_vulkan.h>
 #include <SDL_mixer.h>
-#include <glibmm/miscutils.h>
 
 #include <cxxabi.h>
 
@@ -22,6 +17,12 @@
 #include <set>
 #include <stdexcept>
 #include <thread>
+
+import xmbshell.config;
+import xmbshell.constants;
+import xmbshell.utils;
+import spdlog;
+import glibmm;
 
 using namespace config;
 

@@ -1,13 +1,16 @@
 #pragma once
 
-#include "menu/menu.hpp"
 #include "render/gui_renderer.hpp"
 #include "render/resource_loader.hpp"
-#include "input.hpp"
 
 #include <SDL_mixer.h>
+#include <SDL_keyboard.h>
+#include <SDL_gamecontroller.h>
 
 #include <optional>
+
+import xmbshell.menu;
+import xmbshell.input;
 
 namespace app {
 

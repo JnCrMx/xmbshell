@@ -1,12 +1,45 @@
-#include "menu/applications_menu.hpp"
+module;
 
-#include <filesystem>
-#include <glibmm/miscutils.h>
-#include <giomm/appinfo.h>
-#include <giomm/desktopappinfo.h>
-#include <giomm/themedicon.h>
-#include <giomm/fileicon.h>
-#include <spdlog/spdlog.h>
+#include "render/resource_loader.hpp"
+
+#include <functional>
+
+export module xmbshell.menu:applications_menu;
+import :base;
+import glibmm;
+import giomm;
+import spdlog;
+
+export namespace menu {
+    using AppFilter = std::function<bool(const Gio::DesktopAppInfo&)>;
+
+    constexpr auto noFilter() {
+        return [](const Gio::DesktopAppInfo&) {
+            return true;
+        };
+    }
+    constexpr auto categoryFilter(const std::string& category) {
+        return [category](const Gio::DesktopAppInfo& app) {
+            std::istringstream iss(app.get_categories());
+            std::string c;
+            while(std::getline(iss, c, ';')) {
+                if(c == category) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    class applications_menu : public simple_menu {
+        public:
+            applications_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader, AppFilter filter = noFilter());
+            ~applications_menu() override = default;
+        private:
+            std::vector<Glib::RefPtr<Gio::DesktopAppInfo>> apps;
+    };
+
+}
 
 namespace menu {
 

@@ -1,13 +1,14 @@
 #include "render/components/wave_renderer.hpp"
 
-#include "config.hpp"
 #include "render/utils.hpp"
 
 #include "wave.vert.h"
 #include "wave.frag.h"
 
 #include <glm/glm.hpp>
-#include <spdlog/spdlog.h>
+
+import xmbshell.config;
+import spdlog;
 
 namespace render {
     namespace {

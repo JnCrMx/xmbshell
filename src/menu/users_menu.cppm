@@ -1,14 +1,29 @@
-#include "menu/users_menu.hpp"
-#include "config.hpp"
-#include "menu/utils.hpp"
+module;
 
 #include <SDL_events.h>
 #include <SDL_timer.h>
-#include <spdlog/spdlog.h>
-#include <glibmm/miscutils.h>
 
-#include <i18n/simple.hpp>
+#include "render/texture.hpp"
+#include "render/resource_loader.hpp"
+
+export module xmbshell.menu:users_menu;
+
+import :utils;
+import xmbshell.config;
+import glibmm;
+import i18n;
+import spdlog;
 using namespace mfk::i18n::literals;
+
+export namespace menu {
+
+class users_menu : public simple_menu {
+    public:
+        users_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader);
+        ~users_menu() override = default;
+};
+
+}
 
 namespace menu {
     users_menu::users_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader) : simple_menu(name, std::move(icon)) {

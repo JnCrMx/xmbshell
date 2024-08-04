@@ -3,8 +3,9 @@
 #include <filesystem>
 #include <map>
 #include <span>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
+#include <vector>
+
+import vulkan_hpp;
 
 namespace render
 {

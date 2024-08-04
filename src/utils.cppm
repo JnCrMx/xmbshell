@@ -1,10 +1,12 @@
-#pragma once
+module;
 
 #include <future>
 
 #include <glm/glm.hpp>
 
-namespace utils
+export module xmbshell.utils;
+
+export namespace utils
 {
 	template<typename R>
 	bool is_ready(std::future<R> const& f)

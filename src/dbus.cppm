@@ -1,10 +1,11 @@
-#pragma once
+module;
 
 #include "render/window.hpp"
-
 #include <sdbus-c++/sdbus-c++.h>
 
-namespace dbus
+export module xmbshell.dbus;
+
+export namespace dbus
 {
 	class dbus_server
 	{

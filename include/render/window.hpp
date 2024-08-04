@@ -1,7 +1,6 @@
 #pragma once
 
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
+import vulkan_hpp;
 #include <vk_mem_alloc.hpp>
 
 #include <SDL.h>
@@ -13,8 +12,9 @@
 
 #include "phase.hpp"
 #include "resource_loader.hpp"
-#include "input.hpp"
 #include "support/sdl.hpp"
+
+import xmbshell.input;
 
 namespace render
 {

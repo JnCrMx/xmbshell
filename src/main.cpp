@@ -1,13 +1,13 @@
-#include <spdlog/spdlog.h>
-#include <spdlog/cfg/env.h>
-#include <giomm/init.h>
-#include <glibmm/main.h>
 #include <libintl.h>
 
-#include "config.hpp"
-#include "dbus.hpp"
 #include "render/window.hpp"
 #include "app/xmbshell.hpp"
+
+import spdlog;
+import glibmm;
+import giomm;
+import xmbshell.dbus;
+import xmbshell.config;
 
 int main(int argc, char *argv[])
 {

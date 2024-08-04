@@ -1,9 +1,13 @@
-#include "dbus.hpp"
+module;
+
 #include "render/window.hpp"
-#include "config.hpp"
 
 #include <sdbus-c++/sdbus-c++.h>
-#include <spdlog/spdlog.h>
+
+module xmbshell.dbus;
+
+import spdlog;
+import xmbshell.config;
 
 namespace dbus
 {

@@ -8,6 +8,7 @@ include(FetchContent)
 include(cmake/AddShader.cmake)
 
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
 option(GENERATE_POT "Generate .pot file" OFF)
 
@@ -40,6 +41,7 @@ if(NOT i18n++_FOUND)
   FetchContent_MakeAvailable(i18n++)
 endif()
 
+pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
 pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
@@ -63,27 +65,87 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(sdbus-cpp)
 add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 
+add_library(VulkanHppModule STATIC)
+target_sources(VulkanHppModule PUBLIC
+  FILE_SET CXX_MODULES
+  BASE_DIRS ${Vulkan_INCLUDE_DIR}
+  FILES ${Vulkan_INCLUDE_DIR}/vulkan/vulkan.cppm
+)
+target_compile_features(VulkanHppModule PUBLIC cxx_std_20)
+target_link_libraries(VulkanHppModule PUBLIC Vulkan::Headers)
+target_compile_definitions(VulkanHppModule PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+target_compile_options(VulkanHppModule PRIVATE -pthread)
+
+add_library(glibmmModule STATIC)
+target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES modules/glibmm.cppm)
+target_compile_features(glibmmModule PUBLIC cxx_std_20)
+target_link_libraries(glibmmModule PUBLIC PkgConfig::glibmm)
+target_compile_options(glibmmModule PRIVATE -pthread)
+
+add_library(giommModule STATIC)
+target_sources(giommModule PUBLIC FILE_SET CXX_MODULES FILES modules/giomm.cppm)
+target_compile_features(giommModule PUBLIC cxx_std_20)
+target_link_libraries(giommModule PUBLIC PkgConfig::giomm)
+target_compile_options(giommModule PRIVATE -pthread)
+
+add_library(spdlogModule STATIC)
+target_sources(spdlogModule PUBLIC FILE_SET CXX_MODULES FILES modules/spdlog.cppm)
+target_compile_features(spdlogModule PUBLIC cxx_std_20)
+target_link_libraries(spdlogModule PUBLIC spdlog::spdlog)
+target_compile_options(spdlogModule PRIVATE -pthread)
+
+add_library(i18nModule STATIC)
+target_sources(i18nModule PUBLIC FILE_SET CXX_MODULES FILES modules/i18n.cppm)
+target_compile_features(i18nModule PUBLIC cxx_std_20)
+target_link_libraries(i18nModule PUBLIC i18n::i18n-lib)
+target_compile_options(i18nModule PRIVATE -pthread)
+
+set(XMBSHELL_MODULE_SOURCES
+  src/config.cppm
+  src/constants.cppm
+  src/dbus.cppm
+  src/input.cppm
+  src/menu/applications_menu.cppm
+  src/menu/base.cppm
+  src/menu.cppm
+  src/menu/settings_menu.cppm
+  src/menu/users_menu.cppm
+  src/menu/utils.cppm
+  src/render.cppm
+  src/utils.cppm
+)
+
 add_executable(xmbshell ${sources})
+target_sources(xmbshell PUBLIC
+  FILE_SET CXX_MODULES
+  BASE_DIRS src
+  FILES ${XMBSHELL_MODULE_SOURCES}
+)
 
 add_library(optimized_components STATIC ${opt_sources})
 target_include_directories(optimized_components PRIVATE include/)
+target_link_libraries(optimized_components PRIVATE VulkanHppModule)
 target_link_libraries(optimized_components PRIVATE VulkanMemoryAllocator-Hpp)
 target_compile_options(optimized_components PRIVATE -O3)
+target_compile_options(optimized_components PRIVATE -pthread)
 
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
 
-target_link_libraries(xmbshell PRIVATE Vulkan::Vulkan)
+target_link_libraries(xmbshell PRIVATE VulkanHppModule)
 target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
 target_link_libraries(xmbshell PRIVATE SDL2::SDL2)
 target_link_libraries(xmbshell PRIVATE SDL2_mixer::SDL2_mixer)
 target_link_libraries(xmbshell PRIVATE SDL2_image::SDL2_image)
-target_link_libraries(xmbshell PRIVATE spdlog::spdlog)
 target_link_libraries(xmbshell PRIVATE dl)
 target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE optimized_components)
-target_link_libraries(xmbshell PRIVATE PkgConfig::giomm)
+target_link_libraries(xmbshell PRIVATE glibmmModule)
+target_link_libraries(xmbshell PRIVATE giommModule)
+target_link_libraries(xmbshell PRIVATE spdlogModule)
+target_link_libraries(xmbshell PRIVATE i18nModule)
+
 if(GENERATE_POT)
   target_use_i18n(xmbshell NODOMAIN)
 else()

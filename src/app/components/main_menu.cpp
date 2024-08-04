@@ -1,15 +1,13 @@
 #include "app/components/main_menu.hpp"
 
 #include "app/xmbshell.hpp"
-#include "config.hpp"
-#include "menu/applications_menu.hpp"
-#include "menu/users_menu.hpp"
-#include "menu/settings_menu.hpp"
-#include "menu/utils.hpp"
-#include <spdlog/spdlog.h>
 
-#include <i18n/simple.hpp>
+import spdlog;
+import i18n;
 using namespace mfk::i18n::literals;
+
+import xmbshell.config;
+import xmbshell.menu;
 
 namespace app {
 

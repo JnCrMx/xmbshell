@@ -4,11 +4,12 @@
 #include "support/sdl.hpp"
 
 #include <vk_mem_alloc.hpp>
-#include <spdlog/spdlog.h>
 #include <SDL_image.h>
 
 #include <fstream>
 #include <chrono>
+
+import spdlog;
 
 namespace render
 {

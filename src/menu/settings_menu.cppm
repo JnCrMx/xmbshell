@@ -1,15 +1,27 @@
-#include "menu/settings_menu.hpp"
+module;
 
-#include "config.hpp"
-#include "menu/utils.hpp"
+#include "render/resource_loader.hpp"
 
-#include <spdlog/spdlog.h>
+export module xmbshell.menu:settings_menu;
 
-#include <giomm/settings.h>
-#include <giomm/settingsschema.h>
-#include <giomm/settingsschemasource.h>
+import spdlog;
+import glibmm;
+import giomm;
+import i18n;
+import xmbshell.config;
+import :base;
+import :utils;
 
-#include <i18n/simple.hpp>
+export namespace menu {
+
+class settings_menu : public simple_menu {
+    public:
+        settings_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader);
+        ~settings_menu() override = default;
+};
+
+}
+
 using namespace mfk::i18n::literals;
 
 namespace menu {

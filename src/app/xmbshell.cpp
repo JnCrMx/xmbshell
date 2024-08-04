@@ -1,14 +1,16 @@
 #include "app/xmbshell.hpp"
 
-#include "config.hpp"
 #include "render/debug.hpp"
 #include "render/utils.hpp"
 
 #include "blur.vert.h"
 #include "blur.frag.h"
 
-#include <i18n/simple.hpp>
+import i18n;
+import spdlog;
 using namespace mfk::i18n::literals;
+
+import xmbshell.config;
 
 namespace app
 {
