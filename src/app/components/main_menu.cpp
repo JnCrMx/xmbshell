@@ -18,10 +18,10 @@ main_menu::main_menu(xmbshell* shell) : shell(shell) {
 }
 
 void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader) {
-    // ok_sound = SoundChunk(Mix_LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str()));
-    // if(!ok_sound) {
-    //     spdlog::error("Mix_LoadWAV: {}", Mix_GetError());
-    // }
+    ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str())};
+    if(!ok_sound) {
+        spdlog::error("sdl::mix::LoadWAV: {}", sdl::mix::GetError());
+    }
     using ::menu::make_simple;
     using ::menu::make_simple_of;
 
@@ -134,18 +134,18 @@ bool main_menu::select_relative(direction dir) {
         if(dir == direction::left) {
             if(selected > 0) {
                 select(selected-1);
-                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                // }
+                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+                }
 
                 return true;
             }
         } else if(dir == direction::right) {
             if(selected < menus.size()-1) {
                 select(selected+1);
-                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                // }
+                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+                }
 
                 return true;
             }
@@ -153,9 +153,9 @@ bool main_menu::select_relative(direction dir) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() > 0) {
                 select_menu_item(menu->get_selected_submenu()-1);
-                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                // }
+                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+                }
 
                 return true;
             }
@@ -163,9 +163,9 @@ bool main_menu::select_relative(direction dir) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
                 select_menu_item(menu->get_selected_submenu()+1);
-                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                // }
+                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+                }
 
                 return true;
             }
@@ -175,18 +175,18 @@ bool main_menu::select_relative(direction dir) {
         if(dir == direction::up) {
             if(menu->get_selected_submenu() > 0) {
                 select_submenu_item(menu->get_selected_submenu()-1);
-                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                // }
+                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+                }
 
                 return true;
             }
         } else if(dir == direction::down) {
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
                 select_submenu_item(menu->get_selected_submenu()+1);
-                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                // }
+                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+                }
 
                 return true;
             }

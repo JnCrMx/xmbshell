@@ -12,13 +12,6 @@ import vma;
 
 namespace app {
 
-// struct Mix_Chunk_Freer {
-//     void operator()(Mix_Chunk* chunk) {
-//         Mix_FreeChunk(chunk);
-//     }
-// };
-// using SoundChunk = std::unique_ptr<Mix_Chunk, Mix_Chunk_Freer>;
-
 class main_menu : input::keyboard_handler, input::controller_handler {
     public:
         main_menu(class xmbshell* shell);
@@ -55,7 +48,7 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         bool back();
         void error_rumble(sdl::GameController* controller);
 
-        //SoundChunk ok_sound;
+        sdl::mix::unique_chunk ok_sound;
 
         std::vector<std::unique_ptr<menu::menu>> menus;
         int selected = 0;

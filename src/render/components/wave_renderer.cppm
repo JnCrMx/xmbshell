@@ -4,9 +4,10 @@ module;
 #include <cstdint>
 #include <vector>
 
-export module xmbshell:wave_renderer;
+export module xmbshell.render:wave_renderer;
 
 import dreamrender;
+import :shaders;
 
 import glm;
 import spdlog;
@@ -19,21 +20,6 @@ struct push_constants {
     glm::vec4 color;
     float time;
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wc23-extensions"
-constexpr char shaders_wave_vert[] = {
-    //#embed "wave.vert.spv"
-    0, 0, 0, 0
-};
-constexpr char shaders_wave_frag[] = {
-    //#embed "wave.frag.spv"
-    0, 0, 0, 0
-};
-#pragma clang diagnostic pop
-
-constexpr std::array shaders_wave_vert_code = dreamrender::convert<std::to_array(shaders_wave_vert), uint32_t>();
-constexpr std::array shaders_wave_frag_code = dreamrender::convert<std::to_array(shaders_wave_frag), uint32_t>();
 
 void generate_grid(int N, std::vector<glm::vec3> &vertices, std::vector<uint16_t> &indices)
 {
@@ -142,8 +128,8 @@ export class wave_renderer {
                 vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
 
                 {
-                    vk::UniqueShaderModule vertexShader = dreamrender::createShader(device, shaders_wave_vert_code);
-                    vk::UniqueShaderModule fragmentShader = dreamrender::createShader(device, shaders_wave_frag_code);
+                    vk::UniqueShaderModule vertexShader = shaders::wave_renderer::vert(device);
+                    vk::UniqueShaderModule fragmentShader = shaders::wave_renderer::frag(device);
                     std::array<vk::PipelineShaderStageCreateInfo, 2> shaders = {
                         vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
                         vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, fragmentShader.get(), "main")

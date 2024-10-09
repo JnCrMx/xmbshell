@@ -27,7 +27,7 @@ namespace app
 
 		font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
-		//wave_render = std::make_unique<wave_renderer>(device, allocator, win->swapchainExtent);
+		wave_render = std::make_unique<render::wave_renderer>(device, allocator, win->swapchainExtent);
 
 		{
 			std::array<vk::AttachmentDescription, 2> attachments = {
@@ -155,7 +155,7 @@ namespace app
 
 		font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
 		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
-		//wave_render->preload({backgroundRenderPass.get()}, win->pipelineCache.get());
+		wave_render->preload({backgroundRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
 
 		menu.preload(device, allocator, *loader);
 		news.preload(device, allocator, *loader);
@@ -229,7 +229,7 @@ namespace app
 
 		font_render->prepare(swapchainViews.size());
 		image_render->prepare(swapchainViews.size());
-		//wave_render->prepare(swapchainViews.size());
+		wave_render->prepare(swapchainViews.size());
 	}
 
 	void xmbshell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
@@ -255,7 +255,7 @@ namespace app
 			commandBuffer.setScissor(0, scissor);
 
 			if(config::CONFIG.backgroundType == config::config::background_type::wave) {
-				//wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
+				wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
 			}
 			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
 				if(backgroundTexture) {

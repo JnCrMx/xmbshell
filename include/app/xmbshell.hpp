@@ -6,6 +6,7 @@
 
 #include <memory>
 
+import xmbshell.render;
 import dreamrender;
 import sdl2;
 import vulkan_hpp;
@@ -38,7 +39,7 @@ namespace app
 		private:
 			std::unique_ptr<font_renderer> font_render;
 			std::unique_ptr<image_renderer> image_render;
-			//std::unique_ptr<render::wave_renderer> wave_render; TODO!
+			std::unique_ptr<render::wave_renderer> wave_render;
 
 			vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass;
 
