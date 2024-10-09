@@ -68,9 +68,8 @@ add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 
 FetchContent_Declare(
   dreamrender
-  #GIT_REPOSITORY https://github.com/JnCrMx/dreamrender.git
-  GIT_REPOSITORY file:///home/jcm/Projects/dreamrender
-  GIT_TAG        cmake-integration
+  GIT_REPOSITORY https://git.jcm.re/jcm/dreamrender.git
+  GIT_TAG        main
 )
 set(DREAMS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(DREAMS_BUILD_WITH_POSIX_THREADS ON CACHE BOOL "" FORCE)
