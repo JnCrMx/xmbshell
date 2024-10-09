@@ -1,13 +1,12 @@
 #include "app/xmbshell.hpp"
 
-#include "render/debug.hpp"
-#include "render/utils.hpp"
-
 #include "blur.vert.h"
 #include "blur.frag.h"
 
 import i18n;
 import spdlog;
+import dreamrender;
+import glm;
 using namespace mfk::i18n::literals;
 
 import xmbshell.config;
@@ -24,15 +23,15 @@ namespace app
 
 	void xmbshell::preload()
 	{
+		phase::preload();
+
 		font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
-		wave_render = std::make_unique<wave_renderer>(device, allocator, win->swapchainExtent);
-
-		pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsFamily));
+		//wave_render = std::make_unique<wave_renderer>(device, allocator, win->swapchainExtent);
 
 		{
 			std::array<vk::AttachmentDescription, 2> attachments = {
-				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
+				vk::AttachmentDescription({}, win->swapchainFormat.format, win->config.sampleCount,
 					vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
 					vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal),
@@ -45,10 +44,10 @@ namespace app
 			vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref, rref);
 			std::array<vk::SubpassDependency, 2> deps{
-				vk::SubpassDependency(VK_SUBPASS_EXTERNAL, 0,
+				vk::SubpassDependency(vk::SubpassExternal, 0,
 					vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 					vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eColorAttachmentWrite),
-				vk::SubpassDependency(0, VK_SUBPASS_EXTERNAL,
+				vk::SubpassDependency(0, vk::SubpassExternal,
 					vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
 					vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead)
 			};
@@ -65,7 +64,7 @@ namespace app
 			};
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-			vk::SubpassDependency dep(0, VK_SUBPASS_EXTERNAL,
+			vk::SubpassDependency dep(0, vk::SubpassExternal,
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
 				vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead);
 			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
@@ -74,7 +73,7 @@ namespace app
 		}
 		{
 			std::array<vk::AttachmentDescription, 2> attachments = {
-				vk::AttachmentDescription({}, win->swapchainFormat.format, config::CONFIG.sampleCount,
+				vk::AttachmentDescription({}, win->swapchainFormat.format, win->config.sampleCount,
 					vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
 					vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
 					vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal),
@@ -86,7 +85,7 @@ namespace app
 			vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
 			vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref, rref);
-			vk::SubpassDependency dep(VK_SUBPASS_EXTERNAL, 0,
+			vk::SubpassDependency dep(vk::SubpassExternal, 0,
 				vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eColorAttachmentWrite);
 			vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
@@ -148,15 +147,15 @@ namespace app
 		{
 			renderImage = std::make_unique<texture>(device, allocator,
 				win->swapchainExtent, vk::ImageUsageFlagBits::eColorAttachment,
-				win->swapchainFormat.format, config::CONFIG.sampleCount, false, vk::ImageAspectFlagBits::eColor);
+				win->swapchainFormat.format, win->config.sampleCount, false, vk::ImageAspectFlagBits::eColor);
 			blurImage = std::make_unique<texture>(device, allocator,
 				win->swapchainExtent, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 				win->swapchainFormat.format, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
 		}
 
-		font_render->preload(freetype.get(), loader, {shellRenderPass.get()}, win->pipelineCache.get());
-		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->pipelineCache.get());
-		wave_render->preload({backgroundRenderPass.get()}, win->pipelineCache.get());
+		font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
+		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
+		//wave_render->preload({backgroundRenderPass.get()}, win->pipelineCache.get());
 
 		menu.preload(device, allocator, *loader);
 		news.preload(device, allocator, *loader);
@@ -183,9 +182,9 @@ namespace app
 
 	void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
 	{
+		phase::prepare(swapchainImages, swapchainViews);
+
 		const int imageCount = swapchainImages.size();
-		commandBuffers = device.allocateCommandBuffersUnique(
-			vk::CommandBufferAllocateInfo(pool.get(), vk::CommandBufferLevel::ePrimary, imageCount));
 		{
 			vk::DescriptorPoolSize size(vk::DescriptorType::eCombinedImageSampler, imageCount);
 			vk::DescriptorPoolCreateInfo pool_info({}, imageCount, size);
@@ -223,8 +222,6 @@ namespace app
 				debugName(device, blurFramebuffers.back().get(), "XMB Shell Blur Framebuffer #"+std::to_string(i));
 			}
 
-			debugName(device, commandBuffers[i].get(), "XMB Shell Command Buffer #"+std::to_string(i));
-
 			imageInfos[i] = vk::DescriptorImageInfo(blurSampler.get(), swapchainViews[i], vk::ImageLayout::eShaderReadOnlyOptimal);
 			writes[i] = vk::WriteDescriptorSet(blurDescriptorSets[i], 0, 0, 1, vk::DescriptorType::eCombinedImageSampler, &imageInfos[i]);
 		}
@@ -232,14 +229,14 @@ namespace app
 
 		font_render->prepare(swapchainViews.size());
 		image_render->prepare(swapchainViews.size());
-		wave_render->prepare(swapchainViews.size());
+		//wave_render->prepare(swapchainViews.size());
 	}
 
 	void xmbshell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
 	{
-		vk::UniqueCommandBuffer& commandBuffer = commandBuffers[frame];
+		vk::CommandBuffer commandBuffer = commandBuffers[frame];
 
-		commandBuffer->begin(vk::CommandBufferBeginInfo());
+		commandBuffer.begin(vk::CommandBufferBeginInfo());
 		{
 			vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f});
 			if(config::CONFIG.backgroundType == config::config::background_type::color) {
@@ -250,54 +247,54 @@ namespace app
 					1.0f
 				});
 			}
-			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), backgroundFramebuffers[frame].get(),
+			commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), backgroundFramebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
 			vk::Rect2D scissor({0,0}, win->swapchainExtent);
-			commandBuffer->setViewport(0, viewport);
-			commandBuffer->setScissor(0, scissor);
+			commandBuffer.setViewport(0, viewport);
+			commandBuffer.setScissor(0, scissor);
 
 			if(config::CONFIG.backgroundType == config::config::background_type::wave) {
-				wave_render->render(commandBuffer.get(), frame, backgroundRenderPass.get());
+				//wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
 			}
 			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
 				if(backgroundTexture) {
-					image_render->renderImageSized(commandBuffer.get(), frame, backgroundRenderPass.get(), *backgroundTexture,
+					image_render->renderImageSized(commandBuffer, frame, backgroundRenderPass.get(), *backgroundTexture,
 						0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
 				}
 			}
 
-			commandBuffer->endRenderPass();
+			commandBuffer.endRenderPass();
 		}
 		if(blur_background) {
-			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(blurRenderPass.get(), blurFramebuffers[frame].get(),
+			commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(blurRenderPass.get(), blurFramebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent)), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
 			vk::Rect2D scissor({0,0}, win->swapchainExtent);
-			commandBuffer->setViewport(0, viewport);
-			commandBuffer->setScissor(0, scissor);
+			commandBuffer.setViewport(0, viewport);
+			commandBuffer.setScissor(0, scissor);
 
-			commandBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, blurPipeline.get());
-			commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, blurPipelineLayout.get(), 0, blurDescriptorSets[frame], {});
-			commandBuffer->draw(4, 1, 0, 0);
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, blurPipeline.get());
+			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, blurPipelineLayout.get(), 0, blurDescriptorSets[frame], {});
+			commandBuffer.draw(4, 1, 0, 0);
 
-			commandBuffer->endRenderPass();
+			commandBuffer.endRenderPass();
 		}
 		else {
-			commandBuffer->pipelineBarrier(
+			commandBuffer.pipelineBarrier(
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eTransfer,
 				{}, {}, {},
 				{
 					vk::ImageMemoryBarrier(
 						{}, vk::AccessFlagBits::eTransferRead,
 						vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eTransferSrcOptimal,
-						VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+						vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
 						swapchainImages[frame], vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
 					),
 					vk::ImageMemoryBarrier(
 						{}, vk::AccessFlagBits::eTransferWrite,
 						vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-						VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+						vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
 						blurImage->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
 					),
 				}
@@ -307,22 +304,22 @@ namespace app
 				vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), vk::Offset3D(0, 0, 0),
 				vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), vk::Offset3D(0, 0, 0),
 				vk::Extent3D(win->swapchainExtent, 1));
-			commandBuffer->copyImage(swapchainImages[frame], vk::ImageLayout::eTransferSrcOptimal,
+			commandBuffer.copyImage(swapchainImages[frame], vk::ImageLayout::eTransferSrcOptimal,
 				blurImage->image, vk::ImageLayout::eTransferDstOptimal, region);
 
-			commandBuffer->pipelineBarrier(
+			commandBuffer.pipelineBarrier(
 				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
 				{}, {}, {},
 				{
 					vk::ImageMemoryBarrier(
 						vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
 						vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-						VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+						vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
 						blurImage->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
 					),
 				}
 			);
-			/*commandBuffer->pipelineBarrier(
+			/*commandBuffer.pipelineBarrier(
 				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				{}, {}, {},
 				{
@@ -337,27 +334,27 @@ namespace app
 		}
 		{
 			vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f});
-			commandBuffer->beginRenderPass(vk::RenderPassBeginInfo(shellRenderPass.get(), framebuffers[frame].get(),
+			commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(shellRenderPass.get(), framebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
 			vk::Rect2D scissor({0,0}, win->swapchainExtent);
-			commandBuffer->setViewport(0, viewport);
-			commandBuffer->setScissor(0, scissor);
+			commandBuffer.setViewport(0, viewport);
+			commandBuffer.setScissor(0, scissor);
 
-			image_render->renderImageSized(commandBuffer.get(), frame, shellRenderPass.get(), blurImage->imageView.get(),
+			image_render->renderImageSized(commandBuffer, frame, shellRenderPass.get(), blurImage->imageView.get(),
 				0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
 
-			gui_renderer ctx(commandBuffer.get(), frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get());
+			gui_renderer ctx(commandBuffer, frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get());
 			render_gui(ctx);
 
-			commandBuffer->endRenderPass();
+			commandBuffer.endRenderPass();
 		}
 		font_render->finish(frame);
 		image_render->finish(frame);
-		commandBuffer->end();
+		commandBuffer.end();
 
 		vk::PipelineStageFlags waitFlags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		vk::SubmitInfo submit_info(imageAvailable, waitFlags, commandBuffer.get(), renderFinished);
+		vk::SubmitInfo submit_info(imageAvailable, waitFlags, commandBuffer, renderFinished);
 		graphicsQueue.submit(submit_info, fence);
 	}
 
@@ -403,34 +400,34 @@ namespace app
 		}
 	}
 
-	void xmbshell::key_up(SDL_Keysym key)
+	void xmbshell::key_up(sdl::Keysym key)
 	{
 		spdlog::trace("Key up: {}", key.sym);
 		menu.key_up(key);
 	}
-	void xmbshell::key_down(SDL_Keysym key)
+	void xmbshell::key_down(sdl::Keysym key)
 	{
 		spdlog::trace("Key down: {}", key.sym);
 		menu.key_down(key);
 	}
 
-	void xmbshell::add_controller(SDL_GameController* controller)
+	void xmbshell::add_controller(sdl::GameController* controller)
 	{
 	}
-	void xmbshell::remove_controller(SDL_GameController* controller)
+	void xmbshell::remove_controller(sdl::GameController* controller)
 	{
 	}
-	void xmbshell::button_down(SDL_GameController* controller, SDL_GameControllerButton button)
+	void xmbshell::button_down(sdl::GameController* controller, sdl::GameControllerButton button)
 	{
 		spdlog::trace("Button down: {}", fmt::underlying(button));
 		menu.button_down(controller, button);
 	}
-	void xmbshell::button_up(SDL_GameController* controller, SDL_GameControllerButton button)
+	void xmbshell::button_up(sdl::GameController* controller, sdl::GameControllerButton button)
 	{
 		spdlog::trace("Button up: {}", fmt::underlying(button));
 		menu.button_up(controller, button);
 	}
-	void xmbshell::axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value)
+	void xmbshell::axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value)
 	{
 		spdlog::trace("Axis motion: {} {}", fmt::underlying(axis), value);
 		menu.axis_motion(controller, axis, value);

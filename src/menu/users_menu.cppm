@@ -1,41 +1,42 @@
 module;
 
-#include <SDL_events.h>
-#include <SDL_timer.h>
-
-#include "render/texture.hpp"
-#include "render/resource_loader.hpp"
+#include <filesystem>
+#include <string>
 
 export module xmbshell.menu:users_menu;
 
+import :base;
 import :utils;
 import xmbshell.config;
+
+import dreamrender;
 import glibmm;
 import i18n;
 import spdlog;
+import sdl2;
 using namespace mfk::i18n::literals;
 
 export namespace menu {
 
 class users_menu : public simple_menu {
     public:
-        users_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader);
+        users_menu(const std::string& name, dreamrender::texture&& icon, dreamrender::resource_loader& loader);
         ~users_menu() override = default;
 };
 
 }
 
 namespace menu {
-    users_menu::users_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader) : simple_menu(name, std::move(icon)) {
+    users_menu::users_menu(const std::string& name, dreamrender::texture&& icon, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
         entries.push_back(make_simple<action_menu_entry>("Quit"_(), config::CONFIG.asset_directory/"icons/icon_action_quit.png", loader, [](){
             spdlog::info("Exit request from XMB");
-            SDL_Event event = {
+            sdl::Event event = {
                 .quit = {
-                    .type = SDL_QUIT,
-                    .timestamp = SDL_GetTicks()
+                    .type = sdl::EventType::SDL_QUIT,
+                    .timestamp = sdl::GetTicks()
                 }
             };
-            SDL_PushEvent(&event);
+            sdl::PushEvent(&event);
             return result::success;
         }));
         {

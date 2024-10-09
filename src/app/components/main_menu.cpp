@@ -2,8 +2,10 @@
 
 #include "app/xmbshell.hpp"
 
+import sdl2;
 import spdlog;
 import i18n;
+import glm;
 using namespace mfk::i18n::literals;
 
 import xmbshell.config;
@@ -15,11 +17,11 @@ main_menu::main_menu(xmbshell* shell) : shell(shell) {
 
 }
 
-void main_menu::preload(vk::Device device, vma::Allocator allocator, render::resource_loader& loader) {
-    ok_sound = SoundChunk(Mix_LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str()));
-    if(!ok_sound) {
-        spdlog::error("Mix_LoadWAV: {}", Mix_GetError());
-    }
+void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader) {
+    // ok_sound = SoundChunk(Mix_LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str()));
+    // if(!ok_sound) {
+    //     spdlog::error("Mix_LoadWAV: {}", Mix_GetError());
+    // }
     using ::menu::make_simple;
     using ::menu::make_simple_of;
 
@@ -37,7 +39,7 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, render::res
     menus[selected]->on_open();
 }
 
-void main_menu::key_down(SDL_Keysym key) {
+void main_menu::key_down(sdl::Keysym key) {
     switch(key.sym) {
         case SDLK_LEFT:
             select_relative(direction::left);
@@ -59,55 +61,55 @@ void main_menu::key_down(SDL_Keysym key) {
             break;
     }
 }
-void main_menu::key_up(SDL_Keysym key) {
+void main_menu::key_up(sdl::Keysym key) {
 
 }
-void main_menu::button_down(SDL_GameController* controller, SDL_GameControllerButton button) {
+void main_menu::button_down(sdl::GameController* controller, sdl::GameControllerButton button) {
     last_controller_button_input = std::make_tuple(controller, button);
     last_controller_button_input_time = std::chrono::system_clock::now();
 
-    if(button == SDL_CONTROLLER_BUTTON_DPAD_LEFT) {
+    if(button == sdl::GameControllerButtonValues::DPAD_LEFT) {
         if(!select_relative(direction::left)) {
             error_rumble(controller);
         }
-    } else if(button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT) {
+    } else if(button == sdl::GameControllerButtonValues::DPAD_RIGHT) {
         if(!select_relative(direction::right)) {
             error_rumble(controller);
         }
-    } else if(button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
+    } else if(button == sdl::GameControllerButtonValues::DPAD_UP) {
         if(!select_relative(direction::up)) {
             error_rumble(controller);
         }
-    } else if(button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
+    } else if(button == sdl::GameControllerButtonValues::DPAD_DOWN) {
         if(!select_relative(direction::down)) {
             error_rumble(controller);
         }
-    } else if(button == SDL_CONTROLLER_BUTTON_A) {
+    } else if(button == sdl::GameControllerButtonValues::A) {
         if(!activate_current()) {
             error_rumble(controller);
         }
-    } else if(button == SDL_CONTROLLER_BUTTON_B) {
+    } else if(button == sdl::GameControllerButtonValues::B) {
         if(!back()) {
             error_rumble(controller);
         }
     }
 }
-void main_menu::button_up(SDL_GameController* controller, SDL_GameControllerButton button) {
+void main_menu::button_up(sdl::GameController* controller, sdl::GameControllerButton button) {
     last_controller_button_input = std::nullopt;
 }
-void main_menu::axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) {
+void main_menu::axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) {
     if(!config::CONFIG.controllerAnalogStick) {
         return;
     }
 
-    if(axis == SDL_CONTROLLER_AXIS_LEFTX || axis == SDL_CONTROLLER_AXIS_LEFTY) {
-        unsigned int index = axis == SDL_CONTROLLER_AXIS_LEFTX ? 0 : 1;
+    if(axis == sdl::GameControllerAxisValues::LEFTX || axis == sdl::GameControllerAxisValues::LEFTY) {
+        unsigned int index = axis == sdl::GameControllerAxisValues::LEFTX  ? 0 : 1;
         if(std::abs(value) < controller_axis_input_threshold) {
             last_controller_axis_input[index] = std::nullopt;
             last_controller_axis_input_time[index] = std::chrono::system_clock::now();
             return;
         }
-        direction dir = axis == SDL_CONTROLLER_AXIS_LEFTX ? (value > 0 ? direction::right : direction::left)
+        direction dir = axis == sdl::GameControllerAxisValues::LEFTX  ? (value > 0 ? direction::right : direction::left)
             : (value > 0 ? direction::down : direction::up);
         if(last_controller_axis_input[index] && std::get<1>(*last_controller_axis_input[index]) == dir) {
             return;
@@ -120,11 +122,11 @@ void main_menu::axis_motion(SDL_GameController* controller, SDL_GameControllerAx
     }
 }
 
-void main_menu::error_rumble(SDL_GameController* controller) {
+void main_menu::error_rumble(sdl::GameController* controller) {
     if(!config::CONFIG.controllerRumble) {
         return;
     }
-    SDL_GameControllerRumble(controller, 1000, 10000, 100);
+    sdl::GameControllerRumble(controller, 1000, 10000, 100);
 }
 
 bool main_menu::select_relative(direction dir) {
@@ -132,18 +134,18 @@ bool main_menu::select_relative(direction dir) {
         if(dir == direction::left) {
             if(selected > 0) {
                 select(selected-1);
-                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                }
+                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                // }
 
                 return true;
             }
         } else if(dir == direction::right) {
             if(selected < menus.size()-1) {
                 select(selected+1);
-                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                }
+                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                // }
 
                 return true;
             }
@@ -151,9 +153,9 @@ bool main_menu::select_relative(direction dir) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() > 0) {
                 select_menu_item(menu->get_selected_submenu()-1);
-                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                }
+                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                // }
 
                 return true;
             }
@@ -161,9 +163,9 @@ bool main_menu::select_relative(direction dir) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
                 select_menu_item(menu->get_selected_submenu()+1);
-                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                }
+                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                // }
 
                 return true;
             }
@@ -173,18 +175,18 @@ bool main_menu::select_relative(direction dir) {
         if(dir == direction::up) {
             if(menu->get_selected_submenu() > 0) {
                 select_submenu_item(menu->get_selected_submenu()-1);
-                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                }
+                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                // }
 
                 return true;
             }
         } else if(dir == direction::down) {
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
                 select_submenu_item(menu->get_selected_submenu()+1);
-                if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
-                }
+                // if(Mix_PlayChannel(-1, ok_sound.get(), 0) == -1) {
+                //     spdlog::error("Mix_PlayChannel: {}", Mix_GetError());
+                // }
 
                 return true;
             }
@@ -288,7 +290,7 @@ void main_menu::tick() {
     }
 }
 
-void main_menu::render(render::gui_renderer& renderer) {
+void main_menu::render(dreamrender::gui_renderer& renderer) {
     tick(); // TODO: This should be called from the outside
 
     constexpr glm::vec4 active_color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -309,7 +311,7 @@ void main_menu::render(render::gui_renderer& renderer) {
     }
 }
 
-void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) {
+void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point now) {
     double submenu_transition = std::clamp(
         std::chrono::duration<double>(now - last_submenu_transition) / transition_submenu_activate_duration, 0.0, 1.0);
     submenu_transition = in_submenu ? submenu_transition : 1.0 - submenu_transition;
@@ -421,7 +423,7 @@ void main_menu::render_crossbar(render::gui_renderer& renderer, time_point now) 
     }
 }
 
-void main_menu::render_submenu(render::gui_renderer& renderer, time_point now) {
+void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point now) {
     double submenu_transition = std::clamp(
         std::chrono::duration<double>(now - last_submenu_transition) / transition_submenu_activate_duration, 0.0, 1.0);
     submenu_transition = in_submenu ? submenu_transition : 1.0 - submenu_transition;

@@ -1,11 +1,14 @@
 module;
 
-#include "render/resource_loader.hpp"
-
+#include <filesystem>
 #include <functional>
+#include <mutex>
+#include <sstream>
+#include <string>
 
 export module xmbshell.menu:applications_menu;
 import :base;
+import dreamrender;
 import glibmm;
 import giomm;
 import spdlog;
@@ -33,7 +36,7 @@ export namespace menu {
 
     class applications_menu : public simple_menu {
         public:
-            applications_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader, AppFilter filter = noFilter());
+            applications_menu(const std::string& name, dreamrender::texture&& icon, dreamrender::resource_loader& loader, AppFilter filter = noFilter());
             ~applications_menu() override = default;
         private:
             std::vector<Glib::RefPtr<Gio::DesktopAppInfo>> apps;
@@ -78,7 +81,7 @@ static void initialize_themed_icons(){
     themedIconPaths = paths;
 };
 
-applications_menu::applications_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader, AppFilter filter) : simple_menu(name, std::move(icon)) {
+applications_menu::applications_menu(const std::string& name, dreamrender::texture&& icon, dreamrender::resource_loader& loader, AppFilter filter) : simple_menu(name, std::move(icon)) {
     std::call_once(themedIconPathsFlag, initialize_themed_icons);
 
     auto appInfos = Gio::AppInfo::get_all();
@@ -114,7 +117,7 @@ applications_menu::applications_menu(const std::string& name, render::texture&& 
                 }
             }
 
-            render::texture icon_texture(loader.getDevice(), loader.getAllocator());
+            dreamrender::texture icon_texture(loader.getDevice(), loader.getAllocator());
             auto entry = std::make_unique<action_menu_entry>(desktop_app->get_display_name(), std::move(icon_texture),
                 [desktop_app](){
                     desktop_app->launch(std::vector<Glib::RefPtr<Gio::File>>());

@@ -62,40 +62,34 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
   GIT_TAG        v1.2.0
 )
+set(BUILD_DOC OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(sdbus-cpp)
 add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 
-add_library(VulkanHppModule STATIC)
-target_sources(VulkanHppModule PUBLIC
-  FILE_SET CXX_MODULES
-  BASE_DIRS ${Vulkan_INCLUDE_DIR}
-  FILES ${Vulkan_INCLUDE_DIR}/vulkan/vulkan.cppm
+FetchContent_Declare(
+  dreamrender
+  #GIT_REPOSITORY https://github.com/JnCrMx/dreamrender.git
+  GIT_REPOSITORY file:///home/jcm/Projects/dreamrender
+  GIT_TAG        cmake-integration
 )
-target_compile_features(VulkanHppModule PUBLIC cxx_std_20)
-target_link_libraries(VulkanHppModule PUBLIC Vulkan::Headers)
-target_compile_definitions(VulkanHppModule PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
-target_compile_options(VulkanHppModule PRIVATE -pthread)
+set(DREAMS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(DREAMS_BUILD_WITH_POSIX_THREADS ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(dreamrender)
 
 add_library(glibmmModule STATIC)
-target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES modules/glibmm.cppm)
+target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES third_party/glibmm.cppm)
 target_compile_features(glibmmModule PUBLIC cxx_std_20)
 target_link_libraries(glibmmModule PUBLIC PkgConfig::glibmm)
 target_compile_options(glibmmModule PRIVATE -pthread)
 
 add_library(giommModule STATIC)
-target_sources(giommModule PUBLIC FILE_SET CXX_MODULES FILES modules/giomm.cppm)
+target_sources(giommModule PUBLIC FILE_SET CXX_MODULES FILES third_party/giomm.cppm)
 target_compile_features(giommModule PUBLIC cxx_std_20)
 target_link_libraries(giommModule PUBLIC PkgConfig::giomm)
 target_compile_options(giommModule PRIVATE -pthread)
 
-add_library(spdlogModule STATIC)
-target_sources(spdlogModule PUBLIC FILE_SET CXX_MODULES FILES modules/spdlog.cppm)
-target_compile_features(spdlogModule PUBLIC cxx_std_20)
-target_link_libraries(spdlogModule PUBLIC spdlog::spdlog)
-target_compile_options(spdlogModule PRIVATE -pthread)
-
 add_library(i18nModule STATIC)
-target_sources(i18nModule PUBLIC FILE_SET CXX_MODULES FILES modules/i18n.cppm)
+target_sources(i18nModule PUBLIC FILE_SET CXX_MODULES FILES third_party/i18n.cppm)
 target_compile_features(i18nModule PUBLIC cxx_std_20)
 target_link_libraries(i18nModule PUBLIC i18n::i18n-lib)
 target_compile_options(i18nModule PRIVATE -pthread)
@@ -104,14 +98,13 @@ set(XMBSHELL_MODULE_SOURCES
   src/config.cppm
   src/constants.cppm
   src/dbus.cppm
-  src/input.cppm
   src/menu/applications_menu.cppm
   src/menu/base.cppm
   src/menu.cppm
   src/menu/settings_menu.cppm
   src/menu/users_menu.cppm
   src/menu/utils.cppm
-  src/render.cppm
+  src/render/components/wave_renderer.cppm
   src/utils.cppm
 )
 
@@ -122,28 +115,22 @@ target_sources(xmbshell PUBLIC
   FILES ${XMBSHELL_MODULE_SOURCES}
 )
 
-add_library(optimized_components STATIC ${opt_sources})
-target_include_directories(optimized_components PRIVATE include/)
-target_link_libraries(optimized_components PRIVATE VulkanHppModule)
-target_link_libraries(optimized_components PRIVATE VulkanMemoryAllocator-Hpp)
-target_compile_options(optimized_components PRIVATE -O3)
-target_compile_options(optimized_components PRIVATE -pthread)
-
 target_include_directories(xmbshell PRIVATE include/)
 target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
 
-target_link_libraries(xmbshell PRIVATE VulkanHppModule)
-target_link_libraries(xmbshell PRIVATE VulkanMemoryAllocator-Hpp)
-target_link_libraries(xmbshell PRIVATE SDL2::SDL2)
-target_link_libraries(xmbshell PRIVATE SDL2_mixer::SDL2_mixer)
-target_link_libraries(xmbshell PRIVATE SDL2_image::SDL2_image)
+target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_CURRENT_BINARY_DIR}/shaders)
+
+target_link_libraries(xmbshell PRIVATE dreams::dreamrender)
+target_link_libraries(xmbshell PRIVATE dreams::sdl2Module)
+target_link_libraries(xmbshell PRIVATE dreams::glmModule)
+target_link_libraries(xmbshell PRIVATE dreams::VulkanHppModule)
+target_link_libraries(xmbshell PRIVATE dreams::vmaModule)
+target_link_libraries(xmbshell PRIVATE dreams::spdlogModule)
 target_link_libraries(xmbshell PRIVATE dl)
 target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
-target_link_libraries(xmbshell PRIVATE optimized_components)
 target_link_libraries(xmbshell PRIVATE glibmmModule)
 target_link_libraries(xmbshell PRIVATE giommModule)
-target_link_libraries(xmbshell PRIVATE spdlogModule)
 target_link_libraries(xmbshell PRIVATE i18nModule)
 
 if(GENERATE_POT)

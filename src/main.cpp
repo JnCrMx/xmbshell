@@ -1,11 +1,12 @@
 #include <libintl.h>
+#include <thread>
 
-#include "render/window.hpp"
 #include "app/xmbshell.hpp"
 
 import spdlog;
 import glibmm;
 import giomm;
+import dreamrender;
 import xmbshell.dbus;
 import xmbshell.config;
 
@@ -30,7 +31,13 @@ int main(int argc, char *argv[])
 
 	spdlog::info("Welcome to your XMB!");
 
-	render::window window;
+	dreamrender::window_config window_config;
+	window_config.name = "xmbshell";
+	window_config.title = "XMB";
+	window_config.preferredPresentMode = config::CONFIG.preferredPresentMode;
+	window_config.sampleCount = config::CONFIG.sampleCount;
+	window_config.fpsLimit = config::CONFIG.maxFPS;
+	dreamrender::window window{window_config};
 	window.init();
 
 	dbus::dbus_server server(&window);

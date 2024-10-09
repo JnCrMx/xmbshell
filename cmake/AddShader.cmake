@@ -15,7 +15,15 @@ function(add_shader TARGET SHADER)
 		COMMAND ${GLSLang_Validator} -V -o ${outputh} --vn ${shader_name} ${SHADER}
 		DEPENDS ${SHADER}
 		VERBATIM)
+	add_custom_command(
+		OUTPUT ${output}
+		COMMAND ${GLSLang_Validator} -V -o ${output} ${SHADER}
+		DEPENDS ${SHADER}
+		VERBATIM)
 
 	set_source_files_properties(${outputh} PROPERTIES GENERATED TRUE)
 	target_sources(${TARGET} PRIVATE ${outputh})
+
+	set_source_files_properties(${output} PROPERTIES GENERATED TRUE)
+	target_sources(${TARGET} PRIVATE ${output})
 endfunction(add_shader)

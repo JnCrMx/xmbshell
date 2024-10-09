@@ -1,16 +1,19 @@
 #include "app/components/news_display.hpp"
 
+#include <chrono>
+#include <cmath>
+
 namespace app {
 
 news_display::news_display(class xmbshell* shell) : shell(shell) {}
 
-void news_display::preload(vk::Device device, vma::Allocator allocator, render::resource_loader& loader) {
+void news_display::preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader) {
 }
 
 void news_display::tick() {
 }
 
-void news_display::render(render::gui_renderer& renderer) {
+void news_display::render(dreamrender::gui_renderer& renderer) {
     tick();
 
     constexpr double base_x = 0.75;

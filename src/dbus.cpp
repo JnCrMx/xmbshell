@@ -1,17 +1,17 @@
 module;
 
-#include "render/window.hpp"
-
 #include <sdbus-c++/sdbus-c++.h>
 
 module xmbshell.dbus;
 
+import dreamrender;
 import spdlog;
+import sdl2;
 import xmbshell.config;
 
 namespace dbus
 {
-	dbus_server::dbus_server(render::window* w) : win(w)
+	dbus_server::dbus_server(dreamrender::window* w) : win(w)
 	{
     	const char* serviceName = "re.jcm.xmbos.xmbshell";
     	connection = sdbus::createSessionBusConnection(serviceName);
@@ -21,13 +21,13 @@ namespace dbus
 
 		auto close = [this](){
 			spdlog::info("Exit request from D-Bus");
-            SDL_Event event = {
+            sdl::Event event = {
                 .quit = {
-                    .type = SDL_QUIT,
-                    .timestamp = SDL_GetTicks()
+                    .type = sdl::EventType::SDL_QUIT,
+                    .timestamp = sdl::GetTicks()
                 }
             };
-            SDL_PushEvent(&event);
+            sdl::PushEvent(&event);
 		};
     	object->registerMethod("close").onInterface("re.jcm.xmbos.Window").implementedAs(std::move(close));
 		object->registerProperty("fps").onInterface("re.jcm.xmbos.Render").withGetter([this](){return win->currentFPS;});

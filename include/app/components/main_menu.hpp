@@ -1,46 +1,44 @@
 #pragma once
 
-#include "render/gui_renderer.hpp"
-#include "render/resource_loader.hpp"
-
-#include <SDL_mixer.h>
-#include <SDL_keyboard.h>
-#include <SDL_gamecontroller.h>
-
+#include <chrono>
+#include <memory>
 #include <optional>
 
 import xmbshell.menu;
-import xmbshell.input;
+import dreamrender;
+import sdl2;
+import vulkan_hpp;
+import vma;
 
 namespace app {
 
-struct Mix_Chunk_Freer {
-    void operator()(Mix_Chunk* chunk) {
-        Mix_FreeChunk(chunk);
-    }
-};
-using SoundChunk = std::unique_ptr<Mix_Chunk, Mix_Chunk_Freer>;
+// struct Mix_Chunk_Freer {
+//     void operator()(Mix_Chunk* chunk) {
+//         Mix_FreeChunk(chunk);
+//     }
+// };
+// using SoundChunk = std::unique_ptr<Mix_Chunk, Mix_Chunk_Freer>;
 
 class main_menu : input::keyboard_handler, input::controller_handler {
     public:
         main_menu(class xmbshell* shell);
-        void preload(vk::Device device, vma::Allocator allocator, render::resource_loader& loader);
+        void preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader);
         void tick();
-        void render(render::gui_renderer& renderer);
+        void render(dreamrender::gui_renderer& renderer);
 
-        void key_down(SDL_Keysym key) override;
-        void key_up(SDL_Keysym key) override;
+        void key_down(sdl::Keysym key) override;
+        void key_up(sdl::Keysym key) override;
 
-        void button_down(SDL_GameController* controller, SDL_GameControllerButton button) override;
-        void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
-        void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
+        void button_down(sdl::GameController* controller, sdl::GameControllerButton button) override;
+        void button_up(sdl::GameController* controller, sdl::GameControllerButton button) override;
+        void axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) override;
     private:
         using time_point = std::chrono::time_point<std::chrono::system_clock>;
 
         class xmbshell* shell;
 
-        void render_crossbar(render::gui_renderer& renderer, time_point now);
-        void render_submenu(render::gui_renderer& renderer, time_point now);
+        void render_crossbar(dreamrender::gui_renderer& renderer, time_point now);
+        void render_submenu(dreamrender::gui_renderer& renderer, time_point now);
 
         enum class direction {
             left,
@@ -55,9 +53,9 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         bool select_relative(direction dir);
         bool activate_current();
         bool back();
-        void error_rumble(SDL_GameController* controller);
+        void error_rumble(sdl::GameController* controller);
 
-        SoundChunk ok_sound;
+        //SoundChunk ok_sound;
 
         std::vector<std::unique_ptr<menu::menu>> menus;
         int selected = 0;
@@ -81,11 +79,11 @@ class main_menu : input::keyboard_handler, input::controller_handler {
 
         constexpr static int controller_axis_input_threshold = 10000;
         time_point last_controller_axis_input_time[2];
-        std::optional<std::tuple<SDL_GameController*, direction>> last_controller_axis_input[2];
+        std::optional<std::tuple<sdl::GameController*, direction>> last_controller_axis_input[2];
         constexpr static auto controller_axis_input_duration = std::chrono::milliseconds(200);
 
         time_point last_controller_button_input_time;
-        std::optional<std::tuple<SDL_GameController*, SDL_GameControllerButton>> last_controller_button_input;
+        std::optional<std::tuple<sdl::GameController*, sdl::GameControllerButton>> last_controller_button_input;
         constexpr static auto controller_button_input_duration = std::chrono::milliseconds(200);
 };
 

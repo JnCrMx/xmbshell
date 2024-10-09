@@ -1,6 +1,8 @@
 module;
 
-#include "render/resource_loader.hpp"
+#include <format>
+#include <memory>
+#include <string>
 
 export module xmbshell.menu:settings_menu;
 
@@ -8,6 +10,7 @@ import spdlog;
 import glibmm;
 import giomm;
 import i18n;
+import dreamrender;
 import xmbshell.config;
 import :base;
 import :utils;
@@ -16,7 +19,7 @@ export namespace menu {
 
 class settings_menu : public simple_menu {
     public:
-        settings_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader);
+        settings_menu(const std::string& name, dreamrender::texture&& icon, dreamrender::resource_loader& loader);
         ~settings_menu() override = default;
 };
 
@@ -25,7 +28,7 @@ class settings_menu : public simple_menu {
 using namespace mfk::i18n::literals;
 
 namespace menu {
-    std::unique_ptr<action_menu_entry> make_settings_entry(render::resource_loader& loader,
+    std::unique_ptr<action_menu_entry> make_settings_entry(dreamrender::resource_loader& loader,
         const std::string& name, const std::string& schema, const std::string& key)
     {
         std::string filename = std::format("icon_settings_{}.png", key);
@@ -52,7 +55,7 @@ namespace menu {
         });
     }
 
-    settings_menu::settings_menu(const std::string& name, render::texture&& icon, render::resource_loader& loader) : simple_menu(name, std::move(icon)) {
+    settings_menu::settings_menu(const std::string& name, dreamrender::texture&& icon, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
         entries.push_back(make_simple<simple_menu>("Video Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_video.png", loader,
             std::array{
                 make_settings_entry(loader, "VSync"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),

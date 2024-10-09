@@ -2,19 +2,17 @@
 
 #include "app/components/main_menu.hpp"
 #include "app/components/news_display.hpp"
-#include "render/phase.hpp"
-#include "render/window.hpp"
-#include "render/components/font_renderer.hpp"
-#include "render/components/image_renderer.hpp"
-#include "render/components/wave_renderer.hpp"
-#include "render/gui_renderer.hpp"
 #include "support/freetype.hpp"
 
 #include <memory>
 
+import dreamrender;
+import sdl2;
+import vulkan_hpp;
+
 namespace app
 {
-	using namespace render;
+	using namespace dreamrender;
 	class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler
 	{
 		public:
@@ -24,24 +22,23 @@ namespace app
 			void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews) override;
 			void render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence) override;
 
-			void key_up(SDL_Keysym key) override;
-			void key_down(SDL_Keysym key) override;
+			void key_up(sdl::Keysym key) override;
+			void key_down(sdl::Keysym key) override;
 
-			void add_controller(SDL_GameController* controller) override;
-			void remove_controller(SDL_GameController* controller) override;
-			void button_down(SDL_GameController* controller, SDL_GameControllerButton button) override;
-			void button_up(SDL_GameController* controller, SDL_GameControllerButton button) override;
-			void axis_motion(SDL_GameController* controller, SDL_GameControllerAxis axis, Sint16 value) override;
+			void add_controller(sdl::GameController* controller) override;
+			void remove_controller(sdl::GameController* controller) override;
+			void button_down(sdl::GameController* controller, sdl::GameControllerButton button) override;
+			void button_up(sdl::GameController* controller, sdl::GameControllerButton button) override;
+			void axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) override;
 
 			void reload_background();
 			void reload_fonts();
 
 			bool blur_background = false;
 		private:
-			freetype::ft_library freetype;
 			std::unique_ptr<font_renderer> font_render;
 			std::unique_ptr<image_renderer> image_render;
-			std::unique_ptr<wave_renderer> wave_render;
+			//std::unique_ptr<render::wave_renderer> wave_render; TODO!
 
 			vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass;
 
@@ -60,9 +57,6 @@ namespace app
 
 			std::vector<vk::Image> swapchainImages;
 			std::vector<vk::UniqueFramebuffer> framebuffers;
-
-			vk::UniqueCommandPool pool;
-			std::vector<vk::UniqueCommandBuffer> commandBuffers;
 
 			std::unique_ptr<texture> backgroundTexture;
 			main_menu menu{this};
