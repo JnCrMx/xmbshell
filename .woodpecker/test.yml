@@ -19,9 +19,14 @@ steps:
       mount:
         - 'ccache'
   build:
-    image: git.jcm.re/jcm/xmbshell:build
-    pull: true
+    image: ubuntu:noble
     commands:
+      - apt-get update
+      - >-
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        clang cmake ccache ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin
+        libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
+        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libclang-rt-dev libboost-dev
       - .woodpecker/download_unlicensed.sh
       - export CCACHE_DIR="$PWD/ccache"
       - export CCACHE_MAXSIZE=2G
@@ -40,9 +45,14 @@ steps:
       mount:
         - 'ccache'
   test:
-    image: git.jcm.re/jcm/xmbshell:test
-    pull: true
+    image: ubuntu:noble
     commands:
+      - apt-get update
+      - >-
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
+        libspdlog1.10 libglibmm-2.68-1 libsdbus-c++1 libasan6 llvm
+        vulkan-validationlayers ffmpeg fonts-ubuntu xdotool
       - ./test/record_video.sh
     volumes:
       - /dev/dri/renderD128:/dev/dri/renderD128
@@ -65,7 +75,3 @@ steps:
       source: build/test-output.webm
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
-
-depends_on:
-  - build-image
-  - test-image
