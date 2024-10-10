@@ -14,15 +14,20 @@ steps:
     image: ubuntu:noble
     commands:
       - apt-get update
+      - DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+      - mkdir -p /etc/apt/keyrings
+      - curl https://apt.llvm.org/llvm-snapshot.gpg.key -o /etc/apt/keyrings/llvm.asc
+      - echo "deb [signed-by=/etc/apt/keyrings/llvm.asc] http://apt.llvm.org/noble/ llvm-toolchain-noble main" > /etc/apt/sources.list.d/llvm.list
+      - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang-18 clang-tools-18 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin
+        clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
-        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libclang-rt-18-dev libboost-dev
+        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libclang-rt-20-dev libboost-dev
       - .woodpecker/download_unlicensed.sh
       - >-
         cmake -B build -G Ninja
-        -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18
+        -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
         -DCMAKE_BUILD_TYPE=DebugAsan
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas
