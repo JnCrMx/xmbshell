@@ -5,7 +5,6 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUGASAN "-fsanitize=address" CACHE STRING "Flags us
 mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGASAN CMAKE_EXE_LINKER_FLAGS_DEBUGASAN)
 
 include(FetchContent)
-include(cmake/AddShader.cmake)
 
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
@@ -43,10 +42,6 @@ endif()
 
 pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
 pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
-
-file(GLOB_RECURSE sources src/*.cpp src/*.h)
-file(GLOB_RECURSE opt_sources opt/*.cpp opt/*.h)
-file(GLOB_RECURSE shaders shaders/*.vert shaders/*.frag shaders/*.geom)
 
 FetchContent_Declare(
   VulkanMemoryAllocator-Hpp
@@ -93,7 +88,21 @@ target_compile_features(i18nModule PUBLIC cxx_std_20)
 target_link_libraries(i18nModule PUBLIC i18n::i18n-lib)
 target_compile_options(i18nModule PRIVATE -pthread)
 
+set(XMBSHELL_SOURCES
+  src/app/xmbshell.cpp
+  src/app/components/news_display.cpp
+  src/app/components/main_menu.cpp
+  src/dbus.cpp
+  src/render/shaders.cpp
+  src/config.cpp
+  src/main.cpp
+  src/utils.cpp
+)
 set(XMBSHELL_MODULE_SOURCES
+  src/app/module.cppm
+  src/app/xmbshell.cppm
+  src/app/components/main_menu.cppm
+  src/app/components/news_display.cppm
   src/config.cppm
   src/constants.cppm
   src/dbus.cppm
@@ -108,8 +117,14 @@ set(XMBSHELL_MODULE_SOURCES
   src/render/components/wave_renderer.cppm
   src/utils.cppm
 )
+set(XMBSHELL_SHADERS
+  shaders/blur.vert
+  shaders/blur.frag
+  shaders/wave.vert
+  shaders/wave.frag
+)
 
-add_executable(xmbshell ${sources})
+add_executable(xmbshell ${XMBSHELL_SOURCES})
 target_sources(xmbshell PUBLIC
   FILE_SET CXX_MODULES
   BASE_DIRS src
@@ -149,8 +164,8 @@ foreach(LING ${LINGUAS})
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LING}.gmo DESTINATION ${CMAKE_INSTALL_LOCALEDIR}/${LING}/LC_MESSAGES/ RENAME xmbshell.mo)
 endforeach()
 
-foreach(shader ${shaders})
-	add_shader(xmbshell ${shader})
+foreach(shader ${XMBSHELL_SHADERS})
+  dreams_add_shader(xmbshell ${shader})
 endforeach()
 target_include_directories(xmbshell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 
