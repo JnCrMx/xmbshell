@@ -1,7 +1,14 @@
-#include "app/components/news_display.hpp"
+module;
 
 #include <chrono>
 #include <cmath>
+#include <string_view>
+
+module xmbshell.app;
+
+import dreamrender;
+import vulkan_hpp;
+import vma;
 
 namespace app {
 

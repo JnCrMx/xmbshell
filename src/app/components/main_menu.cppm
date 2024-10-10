@@ -1,8 +1,10 @@
-#pragma once
+module;
 
 #include <chrono>
 #include <memory>
 #include <optional>
+
+export module xmbshell.app:main_menu;
 
 import xmbshell.menu;
 import dreamrender;

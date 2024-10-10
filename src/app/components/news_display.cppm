@@ -1,4 +1,6 @@
-#pragma once
+module;
+
+export module xmbshell.app:news_display;
 
 import dreamrender;
 import vulkan_hpp;

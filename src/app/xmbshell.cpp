@@ -1,15 +1,26 @@
-#include "app/xmbshell.hpp"
+module;
+
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 #include "blur.vert.h"
 #include "blur.frag.h"
+
+module xmbshell.app;
 
 import i18n;
 import spdlog;
 import dreamrender;
 import glm;
-using namespace mfk::i18n::literals;
-
+import vulkan_hpp;
+import vma;
+import sdl2;
 import xmbshell.config;
+import xmbshell.render;
+
+using namespace mfk::i18n::literals;
 
 namespace app
 {

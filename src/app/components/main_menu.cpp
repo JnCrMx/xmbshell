@@ -1,15 +1,22 @@
-#include "app/components/main_menu.hpp"
+module;
 
-#include "app/xmbshell.hpp"
+#include <chrono>
+#include <tuple>
+
+module xmbshell.app;
 
 import sdl2;
 import spdlog;
 import i18n;
 import glm;
-using namespace mfk::i18n::literals;
+import vulkan_hpp;
+import vma;
+import dreamrender;
 
 import xmbshell.config;
 import xmbshell.menu;
+
+using namespace mfk::i18n::literals;
 
 namespace app {
 

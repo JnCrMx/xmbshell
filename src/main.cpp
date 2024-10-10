@@ -1,12 +1,11 @@
 #include <libintl.h>
 #include <thread>
 
-#include "app/xmbshell.hpp"
-
 import spdlog;
 import glibmm;
 import giomm;
 import dreamrender;
+import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
 
