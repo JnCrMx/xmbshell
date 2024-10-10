@@ -5,9 +5,6 @@ module;
 #include <memory>
 #include <vector>
 
-#include "blur.vert.h"
-#include "blur.frag.h"
-
 module xmbshell.app;
 
 import i18n;
@@ -121,8 +118,8 @@ namespace app
 			blurPipelineLayout = device.createPipelineLayoutUnique(info);
 		}
 		{
-			vk::UniqueShaderModule vertexShader = createShader(device, shaders_blur_vert);
-			vk::UniqueShaderModule fragmentShader = createShader(device, shaders_blur_frag);
+			vk::UniqueShaderModule vertexShader = render::shaders::blur::vert(device);
+			vk::UniqueShaderModule fragmentShader = render::shaders::blur::frag(device);
 			std::array<vk::PipelineShaderStageCreateInfo, 2> shaders = {
 				vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
 				vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, fragmentShader.get(), "main")
