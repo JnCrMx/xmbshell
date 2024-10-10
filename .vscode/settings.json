@@ -1,0 +1,6 @@
+{
+    "cmake.environment": {
+        "GSETTINGS_SCHEMA_DIR": "${workspaceFolder}/schemas",
+        "XMB_ASSET_DIR": "${workspaceFolder}"
+    }
+}
