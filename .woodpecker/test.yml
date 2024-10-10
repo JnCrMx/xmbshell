@@ -22,8 +22,8 @@ steps:
       - .woodpecker/download_unlicensed.sh
       - >-
         cmake -B build -G Ninja
-        -DCMAKE_C_COMPILER_LAUNCHER=clang
-        -DCMAKE_CXX_COMPILER_LAUNCHER=clang++
+        -DCMAKE_C_COMPILER_LAUNCHER=clang-18
+        -DCMAKE_CXX_COMPILER_LAUNCHER=clang++-18
         -DCMAKE_BUILD_TYPE=DebugAsan
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas
