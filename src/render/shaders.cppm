@@ -4,7 +4,7 @@ export module xmbshell.render:shaders;
 
 import vulkan_hpp;
 
-namespace render::shaders {
+export namespace render::shaders {
 
 namespace blur {
     vk::UniqueShaderModule vert(vk::Device device);
