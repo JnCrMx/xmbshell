@@ -23,12 +23,12 @@ steps:
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
-        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libclang-rt-20-dev libboost-dev
+        libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libboost-dev
       - .woodpecker/download_unlicensed.sh
       - >-
         cmake -B build -G Ninja
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
-        -DCMAKE_BUILD_TYPE=DebugAsan
+        -DCMAKE_BUILD_TYPE=Debug
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas
   test:
@@ -38,7 +38,7 @@ steps:
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         xvfb dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
-        libspdlog1.10 libglibmm-2.68-1 libsdbus-c++1 libasan6 llvm
+        libspdlog1.12 libglibmm-2.68-1t64 libsdbus-c++1
         vulkan-validationlayers ffmpeg fonts-ubuntu xdotool
       - ./test/record_video.sh
     volumes:
