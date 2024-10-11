@@ -62,3 +62,4 @@ steps:
       source: build/test-output.webm
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
+      overwrite: true
