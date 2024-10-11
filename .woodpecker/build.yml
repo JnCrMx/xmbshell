@@ -17,7 +17,7 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3
+        clang-tools-19 glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.68-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
       - .woodpecker/download_unlicensed.sh
