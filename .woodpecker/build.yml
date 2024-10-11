@@ -11,7 +11,7 @@ variables:
 
 steps:
   build:
-    image: "git.jcm.re/jcm/cross-compile-clang-amd64:20-noble"
+    image: "git.jcm.re/jcm/cross-compile-clang-amd64:19-noble"
     pull: true
     commands:
       - apt-get update
@@ -24,6 +24,6 @@ steps:
       - mkdir -p build
       - >-
         cmake -B build -G Ninja
-        -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
+        -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19
         -DCMAKE_BUILD_TYPE=Debug 2>&1 | tee build/cmake-configure.log
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build.log
