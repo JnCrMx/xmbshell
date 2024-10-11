@@ -1,0 +1,29 @@
+variables:
+  - &minio-settings
+    access_key:
+      from_secret: minio_access_key
+    secret_key:
+      from_secret: minio_secret_key
+    endpoint:
+      from_secret: minio_endpoint
+    path_style: true
+    region: eu-central-jcm
+
+steps:
+  build:
+    image: "git.jcm.re/jcm/cross-compile-clang-amd64:20-noble"
+    pull: true
+    commands:
+      - apt-get update
+      - >-
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin
+        libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
+        libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.68-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
+      - .woodpecker/download_unlicensed.sh
+      - mkdir -p build
+      - >-
+        cmake -B build -G Ninja
+        -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
+        -DCMAKE_BUILD_TYPE=Debug 2>&1 | tee build/cmake-configure.log
+      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build.log
