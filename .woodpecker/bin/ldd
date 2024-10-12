@@ -1,0 +1,52 @@
+#!/bin/bash
+
+LIBROOT=${LIBROOT:-/lib/$(arch)-linux-gnu}
+
+file=$1
+if [ -z "$file" ]; then
+    echo "Usage: $0 <file>"
+    exit 1
+fi
+
+set +e #otherwise the script will exit on error
+function contains() {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
+
+done=()
+function process() {
+    local input=$1
+    local libs=()
+    while read line; do
+        if [ -z "$line" ]; then
+            continue
+        fi
+
+        file=$(find $LIBROOT -name $line -print -quit)
+        if contains $file "${done[@]}"; then
+            continue
+        fi
+        done+=($file)
+
+        echo -en "\t$line => "
+
+        if [ -f $file ]; then
+            echo "$file ($fake_addr)"
+            libs+=($file)
+        else
+            echo "not found"
+        fi
+    done <<<$(readelf -d $input | grep NEEDED | awk '{print substr($5, 2, length($5)-2)}')
+
+    for lib in ${libs[@]}; do
+        process $lib
+    done
+}
+
+fake_addr="0xdeadbeef"
+
+echo -e "\tlinux-vdso.so.1 ($fake_addr)"
+process $file
