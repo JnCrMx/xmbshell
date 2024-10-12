@@ -44,6 +44,7 @@ steps:
       - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
       - wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage"
       - chmod +x linuxdeploy-aarch64.AppImage appimagetool-aarch64.AppImage
+      - ln -sf /usr/bin/llvm-strip-19 /usr/bin/strip
       - mkdir -p AppDir
       - DESTDIR=AppDir cmake --install . --prefix /usr
       - cp -r ../.woodpecker/apprun-hooks AppDir/
