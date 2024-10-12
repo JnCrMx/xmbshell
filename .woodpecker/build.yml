@@ -66,6 +66,7 @@ steps:
       source: build/upload/beta/*
       strip_prefix: build/upload/beta/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
+      overwrite: true
   upload-packages:
     image: curlimages/curl
     commands:
