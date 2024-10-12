@@ -40,6 +40,16 @@ steps:
       - mkdir -p upload/build upload/beta
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb
+      # Build AppImage
+      - wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
+      - chmod +x linuxdeploy-aarch64.AppImage
+      - mkdir -p AppDir
+      - DESTDIR=AppDir cmake --install . --prefix /usr
+      - cp -r ../.woodpecker/apprun-hooks AppDir/
+      - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
+      - ./linuxdeploy-aarch64.AppImage --appdir AppDir --output appimage
+      - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage
+      - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-x86_64.AppImage
   upload-logs:
     image: woodpeckerci/plugin-s3
     settings:
