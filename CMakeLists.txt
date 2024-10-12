@@ -59,8 +59,8 @@ if(NOT i18n++_FOUND)
   FetchContent_MakeAvailable_ExcludeFromAll(i18n++)
 endif()
 
-pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
-pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(glibmm glibmm-2.4 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(giomm giomm-2.4 REQUIRED IMPORTED_TARGET)
 
 FetchContent_Declare(
   sdbus-cpp

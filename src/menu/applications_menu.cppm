@@ -86,8 +86,8 @@ applications_menu::applications_menu(const std::string& name, dreamrender::textu
 
     auto appInfos = Gio::AppInfo::get_all();
     for (const auto& app : appInfos) {
-        if(auto desktop_app = std::dynamic_pointer_cast<Gio::DesktopAppInfo>(app)) {
-            if(!filter(*desktop_app))
+        if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
+            if(!filter(*desktop_app.get()))
                 continue;
 
             spdlog::trace("Found application: {}", desktop_app->get_display_name());
@@ -103,13 +103,13 @@ applications_menu::applications_menu(const std::string& name, dreamrender::textu
                 }
                 if(icon_path.empty()) {
                     spdlog::warn("Themed icon \"{}\" not found for app \"{}\"",
-                        themed_icon->get_names().front().c_str(), desktop_app->get_display_name());
+                        (*themed_icon->get_names().begin()).c_str(), desktop_app->get_display_name());
                 }
             } else if(auto* file_icon = dynamic_cast<Gio::FileIcon*>(icon.get())) {
                 icon_path = file_icon->get_file()->get_path();
             } else {
                 if(icon) {
-                    auto& r = *icon;
+                    auto& r = *icon.get();
                     spdlog::warn("Unsupported icon type for app \"{}\": {}", desktop_app->get_display_name(),
                         typeid(r).name());
                 } else {
