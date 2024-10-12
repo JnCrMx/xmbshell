@@ -63,16 +63,6 @@ pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
 pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
 
 FetchContent_Declare(
-  VulkanMemoryAllocator-Hpp
-  GIT_REPOSITORY https://github.com/YaaZ/VulkanMemoryAllocator-Hpp.git
-  GIT_TAG        73cdd838c425637c874d343ab0ceba5148189cbf
-  GIT_SUBMODULES_RECURSE FALSE
-  PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
-  EXCLUDE_FROM_ALL
-)
-FetchContent_MakeAvailable_ExcludeFromAll(VulkanMemoryAllocator-Hpp)
-
-FetchContent_Declare(
   sdbus-cpp
   GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
   GIT_TAG        v1.2.0
