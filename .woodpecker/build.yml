@@ -11,7 +11,6 @@ variables:
 
 matrix:
   UBUNTU_VERSION:
-    - jammy
     - noble
 
 steps:
@@ -30,6 +29,7 @@ steps:
       - mkdir -p build
       - >-
         cmake
+        -DCMAKE_BUILD_TYPE=Release
         -DBUILD_VERSION=$BUILD_VERSION
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=amd64
         -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}
