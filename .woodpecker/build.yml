@@ -9,21 +9,65 @@ variables:
     path_style: true
     region: eu-central-jcm
 
+matrix:
+  UBUNTU_VERSION:
+    - jammy
+    - noble
+
 steps:
   build:
-    image: "git.jcm.re/jcm/cross-compile-clang-amd64:19-noble"
+    image: "git.jcm.re/jcm/cross-compile-clang-amd64:19-${UBUNTU_VERSION}"
     pull: true
     commands:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang-tools-19 glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3
+        clang-tools-19 glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3 file dpkg-dev
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.68-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
       - .woodpecker/download_unlicensed.sh
+      - BUILD_VERSION=$(git describe --tags --always)
       - mkdir -p build
       - >-
-        cmake -B build -G Ninja
-        -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19
-        -DCMAKE_BUILD_TYPE=Debug 2>&1 | tee build/cmake-configure.log
-      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build.log
+        cmake
+        -DBUILD_VERSION=$BUILD_VERSION
+        -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=amd64
+        -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}
+        -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}.log
+      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}.log
+      - cd build
+      - cpack -G DEB
+      - mkdir -p upload/build upload/beta
+      - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb
+      - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb
+  upload-logs:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/cmake-*-${UBUNTU_VERSION}.log
+      strip_prefix: build/
+      target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+    when:
+      - status: [ success, failure ]
+  upload-build:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/upload/build/*
+      strip_prefix: build/upload/build/
+      target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+  upload-beta:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/upload/beta/*
+      strip_prefix: build/upload/beta/
+      target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
+  upload-packages:
+    image: curlimages/curl
+    commands:
+      - curl --user jcm:$GITEA_PACKAGE_TOKEN --upload-file build/upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb "https://git.jcm.re/api/packages/jcm/debian/pool/${UBUNTU_VERSION}/edge-${CI_COMMIT_BRANCH}/upload"
+    secrets: [ gitea_package_token ]

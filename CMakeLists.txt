@@ -4,13 +4,15 @@ set(CMAKE_CXX_FLAGS_DEBUGASAN "-g -fsanitize=address -fno-omit-frame-pointer -g"
 set(CMAKE_EXE_LINKER_FLAGS_DEBUGASAN "-fsanitize=address" CACHE STRING "Flags used for linking binaries during AddressSanitizer builds." FORCE)
 mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGASAN CMAKE_EXE_LINKER_FLAGS_DEBUGASAN)
 
-include(FetchContent)
-
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
-set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+if(NOT DEFINED BUILD_VERSION)
+  set(BUILD_VERSION ${PROJECT_VERSION})
+endif()
+message(STATUS "Building version ${BUILD_VERSION}")
 
 option(GENERATE_POT "Generate .pot file" OFF)
 
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wno-nullability-completeness)
@@ -26,6 +28,22 @@ find_package(PkgConfig REQUIRED)
 find_package(i18n++ QUIET)
 find_package(Gettext REQUIRED)
 
+include(FetchContent)
+
+function(FetchContent_MakeAvailable_ExcludeFromAll)
+  if(CMAKE_VERSION VERSION_LESS "3.28.0")
+    foreach(_name ${ARGN})
+      FetchContent_GetProperties(${_name})
+      if(NOT ${_name}_POPULATED)
+        FetchContent_Populate(${_name})
+        add_subdirectory(${${_name}_SOURCE_DIR} ${${_name}_BINARY_DIR} EXCLUDE_FROM_ALL)
+      endif()
+    endforeach()
+  else()
+    FetchContent_MakeAvailable(${ARGN})
+  endif()
+endfunction()
+
 if(NOT i18n++_FOUND)
   set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
   set(BUILD_PLUGIN ${GENERATE_POT} CACHE BOOL "" FORCE)
@@ -36,8 +54,9 @@ if(NOT i18n++_FOUND)
     GIT_REPOSITORY https://github.com/JnCrMx/i18n-cpp.git
     GIT_TAG        trunk
     GIT_SUBMODULES_RECURSE FALSE
+    EXCLUDE_FROM_ALL
   )
-  FetchContent_MakeAvailable(i18n++)
+  FetchContent_MakeAvailable_ExcludeFromAll(i18n++)
 endif()
 
 pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
@@ -49,26 +68,29 @@ FetchContent_Declare(
   GIT_TAG        73cdd838c425637c874d343ab0ceba5148189cbf
   GIT_SUBMODULES_RECURSE FALSE
   PATCH_COMMAND  patch --forward -i ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp.patch || true
+  EXCLUDE_FROM_ALL
 )
-FetchContent_MakeAvailable(VulkanMemoryAllocator-Hpp)
+FetchContent_MakeAvailable_ExcludeFromAll(VulkanMemoryAllocator-Hpp)
 
 FetchContent_Declare(
   sdbus-cpp
   GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
   GIT_TAG        v1.2.0
+  EXCLUDE_FROM_ALL
 )
 set(BUILD_DOC OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(sdbus-cpp)
+FetchContent_MakeAvailable_ExcludeFromAll(sdbus-cpp)
 add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 
 FetchContent_Declare(
   dreamrender
   GIT_REPOSITORY https://git.jcm.re/jcm/dreamrender.git
   GIT_TAG        main
+  EXCLUDE_FROM_ALL
 )
 set(DREAMS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(DREAMS_BUILD_WITH_POSIX_THREADS ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(dreamrender)
+FetchContent_MakeAvailable_ExcludeFromAll(dreamrender)
 
 add_library(glibmmModule STATIC)
 target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES third_party/glibmm.cppm)
@@ -177,9 +199,10 @@ install(DIRECTORY icons DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
 install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
 
 set(CPACK_PACKAGE_NAME "xmbshell")
+set(CPACK_PACKAGE_VERSION ${BUILD_VERSION})
+set(CPACK_PACKAGE_VENDOR "JCM")
 set(CPACK_PACKAGE_CONTACT "JCM <jcm@jcm.re>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A shell mimicking the XMB interface of the PlayStation 3")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://git.jcm.re/XMB-OS/xmbshell")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-
 include(CPack)
