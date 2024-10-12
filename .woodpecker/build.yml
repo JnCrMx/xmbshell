@@ -81,7 +81,7 @@ steps:
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
   upload-packages:
-    image: curlimages/curl
+    image: alpine/curl
     commands:
       - curl --user jcm:$GITEA_PACKAGE_TOKEN --upload-file build/upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb "https://git.jcm.re/api/packages/jcm/debian/pool/${UBUNTU_VERSION}/edge-${CI_COMMIT_BRANCH}/upload"
     secrets: [ gitea_package_token ]
