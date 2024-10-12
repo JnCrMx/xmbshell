@@ -48,7 +48,7 @@ steps:
       - DESTDIR=AppDir cmake --install . --prefix /usr
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
-      - PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=x86_64 ./linuxdeploy-aarch64.AppImage --appdir AppDir
+      - PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=x86_64 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
       - ARCH=x86_64 ./appimagetool-aarch64.AppImage --appimage-extract-and-run AppDir/
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage
       - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-x86_64.AppImage
