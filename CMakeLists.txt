@@ -18,9 +18,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wno-nullability-completeness)
 
 find_package(Vulkan REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_mixer REQUIRED)
-find_package(SDL2_image REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Freetype REQUIRED)
@@ -61,6 +58,12 @@ endif()
 
 pkg_check_modules(glibmm glibmm-2.4 REQUIRED IMPORTED_TARGET)
 pkg_check_modules(giomm giomm-2.4 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(sdl2 sdl2 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(sdl2_image SDL2_image REQUIRED IMPORTED_TARGET)
+pkg_check_modules(sdl2_mixer SDL2_mixer REQUIRED IMPORTED_TARGET)
+add_library(SDL2::SDL2 ALIAS PkgConfig::sdl2)
+add_library(SDL2_image::SDL2_image ALIAS PkgConfig::sdl2_image)
+add_library(SDL2_mixer::SDL2_mixer ALIAS PkgConfig::sdl2_mixer)
 
 FetchContent_Declare(
   sdbus-cpp
@@ -80,6 +83,7 @@ FetchContent_Declare(
 )
 set(DREAMS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(DREAMS_BUILD_WITH_POSIX_THREADS ON CACHE BOOL "" FORCE)
+set(DREAMS_FIND_PACKAGES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable_ExcludeFromAll(dreamrender)
 
 add_library(glibmmModule STATIC)
