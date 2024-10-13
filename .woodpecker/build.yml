@@ -11,7 +11,7 @@ variables:
 
 matrix:
   UBUNTU_VERSION:
-    - mantic
+    - jammy
     - noble
 
 steps:
