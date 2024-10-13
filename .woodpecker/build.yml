@@ -11,7 +11,7 @@ variables:
 
 matrix:
   UBUNTU_VERSION:
-    - jammy
+    - mantic
     - noble
 
 steps:
@@ -26,7 +26,7 @@ steps:
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
       - >-
-        [ "$UBUNTU_VERSION" = "jammy" ] &&
+        [ "$UBUNTU_VERSION" = "mantic" ] &&
           curl -L https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-aarch64.tar.gz | tar -xz --directory=/usr --strip-components=1 &&
           curl -L https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux-aarch64.zip --output /tmp/ninja.zip &&
           unzip -p /tmp/ninja.zip ninja > /usr/bin/ninja && chmod +x /usr/bin/ninja && rm /tmp/ninja.zip &&
@@ -49,8 +49,8 @@ steps:
       - mkdir -p upload/build upload/beta
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb
-      # Build AppImage (only on jammy)
-      - if [ "$UBUNTU_VERSION" != "jammy" ]; then exit $?; fi
+      # Build AppImage (only on mantic)
+      - if [ "$UBUNTU_VERSION" != "mantic" ]; then exit $?; fi
       - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
       - wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage"
       - chmod +x linuxdeploy-aarch64.AppImage appimagetool-aarch64.AppImage
