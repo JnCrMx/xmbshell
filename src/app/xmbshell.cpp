@@ -4,6 +4,7 @@ module;
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <spdlog/fmt/chrono.h>
 
 module xmbshell.app;
 
@@ -373,11 +374,11 @@ namespace app
 			auto tz = std::chrono::current_zone();
 			auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
 			auto local = std::chrono::zoned_time(tz, system);
-			spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
+			//spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
 			return tz;
 		}();
     	auto now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
-		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(now)),
+		renderer.draw_text(fmt::vformat("{:"+config::CONFIG.dateTimeFormat+"}", fmt::make_format_args(now.get_sys_time())),
 			0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
 
 		news.render(renderer);

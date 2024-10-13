@@ -1,6 +1,5 @@
 module;
 
-#include <format>
 #include <memory>
 #include <string>
 
@@ -31,7 +30,7 @@ namespace menu {
     std::unique_ptr<action_menu_entry> make_settings_entry(dreamrender::resource_loader& loader,
         const std::string& name, const std::string& schema, const std::string& key)
     {
-        std::string filename = std::format("icon_settings_{}.png", key);
+        std::string filename = "icon_settings_"+key+".png";
         return make_simple<action_menu_entry>(name, config::CONFIG.asset_directory/"icons"/filename, loader, [key, schema](){
             spdlog::debug("Opening setting {} in schema {}", key, schema);
             auto source = Gio::SettingsSchemaSource::get_default();
