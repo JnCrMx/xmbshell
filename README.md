@@ -2,7 +2,7 @@
 
 A desktop shell mimicing the look and functionality of the XrossMediaBar.
 
-<video src="https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.webm"/>
+<video src="https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.webm"></video>
 
 ## Download
 
