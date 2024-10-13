@@ -6,7 +6,6 @@ module;
 #include <filesystem>
 #include <map>
 #include <functional>
-#include <spdlog/fmt/chrono.h>
 
 module xmbshell.config;
 
@@ -164,7 +163,7 @@ void config::setWaveColor(const std::string& hex) {
 void config::setDateTimeFormat(const std::string& format) {
     auto now = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
     try {
-        std::ignore = fmt::vformat("{:"+format+"}", fmt::make_format_args(now.get_sys_time()));
+        std::ignore = std::vformat("{:"+format+"}", std::make_format_args(now));
         dateTimeFormat = format;
     } catch(const std::exception& e) {
         spdlog::error("Invalid date-time format: \"{}\", error is: {}", format, e.what());
