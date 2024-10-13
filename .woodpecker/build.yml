@@ -27,7 +27,7 @@ steps:
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
       - >-
         [ "$UBUNTU_VERSION" = "jammy" ] &&
-          curl -L https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-aarch64.tar.gz | tar -xz --directory=/ --strip-components=1
+          curl -L https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-aarch64.tar.gz | tar -xzv --directory=/usr --strip-components=1
       - .woodpecker/download_unlicensed.sh
       - BUILD_VERSION=$(git describe --tags --always)
       - mkdir -p build
