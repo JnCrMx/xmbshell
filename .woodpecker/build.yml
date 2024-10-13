@@ -30,6 +30,8 @@ steps:
           curl -L https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-aarch64.tar.gz | tar -xz --directory=/usr --strip-components=1 &&
           curl -L https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux-aarch64.zip --output /tmp/ninja.zip &&
           unzip -p /tmp/ninja.zip ninja > /usr/bin/ninja && chmod +x /usr/bin/ninja && rm /tmp/ninja.zip &&
+          curl -L http://de.archive.ubuntu.com/ubuntu/pool/main/v/vulkan-loader/libvulkan-dev_1.3.275.0-1build1_amd64.deb --output /tmp/libvulkan-dev.deb &&
+          dpkg -i /tmp/libvulkan-dev.deb && rm /tmp/libvulkan-dev.deb
           cmake --version && ninja --version
       - .woodpecker/download_unlicensed.sh
       - BUILD_VERSION=$(git describe --tags --always)
