@@ -374,16 +374,18 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         if(time_since_transition > transition_menu_item_duration) {
             last_selected_menu_item = selected_submenu;
         } else {
-            partial_transition = time_since_transition / transition_menu_item_duration;
+            partial_transition = std::clamp(time_since_transition / transition_menu_item_duration, 0.0, 1.0);
             partial_y = (selected_submenu - last_selected_menu_item) * (1.0f - partial_transition);
         }
     }
     {
-        float y = base_pos.y - (base_size*1.5f) - (base_size*0.65f) + partial_y*base_size*1.5f;
+        float y = base_pos.y - (base_size*1.5f) + partial_y*base_size*1.5f;
         if(last_selected_menu_item > selected_submenu) {
             y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
         } else if(last_selected_menu_item < selected_submenu) {
-            y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
+            y += base_size*glm::mix(-1.5f, 0.0f, partial_transition);
+            y += base_size*glm::mix(0.65f, 0.0f, partial_transition);
+            y += base_size*0.65f;
         } else {
             y += base_size*0.65f;
         }
@@ -407,17 +409,19 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
             if(i == selected_submenu) {
                 if(!in_submenu_now) {
                     double size = base_size*glm::mix(0.6, 1.2, partial_transition);
+                double text_size = base_size*glm::mix(0.4, 0.6, partial_transition);
                     renderer.draw_image(submenu.get_icon(), x+(base_size*0.5f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                     if(!in_submenu_now)
-                        renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+                        renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
                 }
                 y += base_size*glm::mix(0.65f, 1.5f, partial_transition);
             }
             else if(i == last_selected_menu_item) {
                 double size = base_size*glm::mix(0.6, 1.2, 1.0f-partial_transition);
+                double text_size = base_size*glm::mix(0.4, 0.6, 1.0f-partial_transition);
                 renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                 if(!in_submenu_now)
-                    renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+                    renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
                 y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
             }
             else {
