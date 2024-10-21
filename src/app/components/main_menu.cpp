@@ -217,7 +217,7 @@ bool main_menu::activate_current() {
         }
         return false;
     }
-    return menus[selected]->activate() == menu::result::success;
+    return res == menu::result::success;
 }
 bool main_menu::back() {
     if(in_submenu) {
@@ -363,7 +363,7 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         x += (base_size*1.5f)/renderer.aspect_ratio;
     }
 
-    // TODO: transition / animation
+    // This is spectacularly bad code, but it will work for now
     x = selected_menu_x - ((base_size*1.5f)/renderer.aspect_ratio)*(real_selection - selected);
     auto& menu = menus[selected];
     int selected_submenu = menu->get_selected_submenu();
