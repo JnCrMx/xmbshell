@@ -164,6 +164,7 @@ target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE glibmmModule)
 target_link_libraries(xmbshell PRIVATE giommModule)
 target_link_libraries(xmbshell PRIVATE i18nModule)
+target_link_libraries(xmbshell PRIVATE X11)
 
 if(GENERATE_POT)
   target_use_i18n(xmbshell NODOMAIN)

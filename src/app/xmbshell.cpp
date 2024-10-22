@@ -246,7 +246,7 @@ namespace app
 
 		commandBuffer.begin(vk::CommandBufferBeginInfo());
 		{
-			vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f});
+			vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
 			if(config::CONFIG.backgroundType == config::config::background_type::color) {
 				color = vk::ClearColorValue(std::array<float, 4>{
 					config::CONFIG.backgroundColor.r,
@@ -255,6 +255,9 @@ namespace app
 					1.0f
 				});
 			}
+			if(is_ingame) {
+				color = vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.5f});
+			}
 			commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), backgroundFramebuffers[frame].get(),
 				vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
 			vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
@@ -262,13 +265,15 @@ namespace app
 			commandBuffer.setViewport(0, viewport);
 			commandBuffer.setScissor(0, scissor);
 
-			if(config::CONFIG.backgroundType == config::config::background_type::wave) {
-				wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
-			}
-			else if(config::CONFIG.backgroundType == config::config::background_type::image) {
-				if(backgroundTexture) {
-					image_render->renderImageSized(commandBuffer, frame, backgroundRenderPass.get(), *backgroundTexture,
-						0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+			if(!is_ingame) {
+				if(config::CONFIG.backgroundType == config::config::background_type::wave) {
+					wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
+				}
+				else if(config::CONFIG.backgroundType == config::config::background_type::image) {
+					if(backgroundTexture) {
+						image_render->renderImageSized(commandBuffer, frame, backgroundRenderPass.get(), *backgroundTexture,
+							0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+					}
 				}
 			}
 

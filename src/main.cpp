@@ -1,6 +1,9 @@
 #include <libintl.h>
 #include <thread>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
+import sdl2;
 import spdlog;
 import glibmm;
 import giomm;
@@ -9,10 +12,22 @@ import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
 
+std::string find_visualid() {
+	std::unique_ptr<Display, decltype(&XCloseDisplay)> display(XOpenDisplay(nullptr), XCloseDisplay);
+	if (!display) {
+		throw std::runtime_error("Failed to open X display");
+	}
+	XVisualInfo visualInfo;
+	if (!XMatchVisualInfo(display.get(), DefaultScreen(display.get()), 32, TrueColor, &visualInfo)) {
+		throw std::runtime_error("Failed to find visual info");
+	}
+	return std::to_string(visualInfo.visualid);
+}
+
 int main(int argc, char *argv[])
 {
 	Gio::init();
-	setlocale (LC_ALL, "");
+	setlocale(LC_ALL, "");
 	textdomain("xmbshell");
 
 	Glib::RefPtr<Glib::MainLoop> loop;
@@ -36,6 +51,7 @@ int main(int argc, char *argv[])
 	window_config.preferredPresentMode = config::CONFIG.preferredPresentMode;
 	window_config.sampleCount = config::CONFIG.sampleCount;
 	window_config.fpsLimit = config::CONFIG.maxFPS;
+	window_config.sdl_hints[sdl::hints::video_x11_window_visualid] = find_visualid();
 	dreamrender::window window{window_config};
 	window.init();
 
