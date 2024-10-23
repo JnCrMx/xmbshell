@@ -207,6 +207,9 @@ namespace app
 		std::vector<vk::DescriptorImageInfo> imageInfos(imageCount);
 		std::vector<vk::WriteDescriptorSet> writes(imageCount);
 
+		framebuffers.clear();
+		backgroundFramebuffers.clear();
+		blurFramebuffers.clear();
 		for(int i=0; i<imageCount; i++)
 		{
 			{
