@@ -38,7 +38,7 @@ namespace app
             void reload_background();
             void reload_fonts();
 
-            bool is_ingame = false;
+            bool ingame_mode = false;
             bool blur_background = false;
         private:
             std::unique_ptr<font_renderer> font_render;

@@ -255,7 +255,7 @@ namespace app
 					1.0f
 				});
 			}
-			if(is_ingame) {
+			if(ingame_mode) {
 				color = vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.5f});
 			}
 			commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), backgroundFramebuffers[frame].get(),
@@ -265,7 +265,7 @@ namespace app
 			commandBuffer.setViewport(0, viewport);
 			commandBuffer.setScissor(0, scissor);
 
-			if(!is_ingame) {
+			if(!ingame_mode) {
 				if(config::CONFIG.backgroundType == config::config::background_type::wave) {
 					wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
 				}

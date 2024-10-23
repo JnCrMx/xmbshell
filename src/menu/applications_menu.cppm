@@ -6,8 +6,8 @@ module;
 #include <sstream>
 #include <string>
 
-export module xmbshell.menu:applications_menu;
-import :base;
+export module xmbshell.app:applications_menu;
+import :menu_base;
 import dreamrender;
 import glibmm;
 import giomm;

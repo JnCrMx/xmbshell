@@ -14,7 +14,11 @@ import vma;
 import dreamrender;
 
 import xmbshell.config;
-import xmbshell.menu;
+import :menu_base;
+import :menu_utils;
+import :applications_menu;
+import :settings_menu;
+import :users_menu;
 
 using namespace mfk::i18n::literals;
 
@@ -34,7 +38,7 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
 
     const auto& asset_directory = config::CONFIG.asset_directory;
     menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, loader));
-    menus.push_back(make_simple<menu::settings_menu>("Settings"_(), asset_directory/"icons/icon_category_settings.png", loader, loader));
+    menus.push_back(make_simple<menu::settings_menu>("Settings"_(), asset_directory/"icons/icon_category_settings.png", loader, shell, loader));
     menus.push_back(make_simple_of<menu::menu>("Photo"_(), asset_directory/"icons/icon_category_photo.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader));

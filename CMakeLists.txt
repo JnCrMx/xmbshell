@@ -108,6 +108,7 @@ set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
   src/app/components/news_display.cpp
   src/app/components/main_menu.cpp
+  src/menu/settings_menu.cpp
   src/dbus.cpp
   src/render/shaders.cpp
   src/config.cpp
@@ -124,7 +125,6 @@ set(XMBSHELL_MODULE_SOURCES
   src/dbus.cppm
   src/menu/applications_menu.cppm
   src/menu/base.cppm
-  src/menu.cppm
   src/menu/settings_menu.cppm
   src/menu/users_menu.cppm
   src/menu/utils.cppm

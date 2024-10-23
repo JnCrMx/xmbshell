@@ -3,10 +3,10 @@ module;
 #include <filesystem>
 #include <string>
 
-export module xmbshell.menu:users_menu;
+export module xmbshell.app:users_menu;
 
-import :base;
-import :utils;
+import :menu_base;
+import :menu_utils;
 import xmbshell.config;
 
 import dreamrender;

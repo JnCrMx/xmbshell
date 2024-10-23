@@ -6,7 +6,7 @@ module;
 
 export module xmbshell.app:main_menu;
 
-import xmbshell.menu;
+import :menu_base;
 import dreamrender;
 import sdl2;
 import vulkan_hpp;
