@@ -64,10 +64,7 @@ export class wave_renderer {
 
         wave_renderer(vk::Device device, vma::Allocator allocator, vk::Extent2D frameSize) : device(device), allocator(allocator), frameSize(frameSize),
             aspectRatio(static_cast<double>(frameSize.width)/frameSize.height) {}
-        ~wave_renderer() {
-            allocator.destroyBuffer(vertexBuffer, vertexAllocation);
-            allocator.destroyBuffer(indexBuffer, indexAllocation);
-        }
+        ~wave_renderer() = default;
 
         void preload(const std::vector<vk::RenderPass>& renderPasses, vk::SampleCountFlagBits sampleCount, vk::PipelineCache pipelineCache = {})
         {
@@ -81,22 +78,18 @@ export class wave_renderer {
                 spdlog::debug("Grid made of {} vertices and {} indices", vertexCount, indexCount);
 
                 {
-                    std::tie(vertexBuffer, vertexAllocation) = allocator.createBuffer(
+                    std::tie(vertexBuffer, vertexAllocation) = allocator.createBufferUnique(
                         vk::BufferCreateInfo({}, vertices.size() * sizeof(vertices[0]), vk::BufferUsageFlagBits::eVertexBuffer),
                         vma::AllocationCreateInfo({}, vma::MemoryUsage::eCpuToGpu));
 
-                    decltype(&vertices[0]) map = (decltype(&vertices[0]))allocator.mapMemory(vertexAllocation);
-                    std::copy(vertices.begin(), vertices.end(), map);
-                    allocator.unmapMemory(vertexAllocation);
+                    allocator.copyMemoryToAllocation(vertices.data(), vertexAllocation.get(), 0, vertices.size()*sizeof(glm::vec3));
                 }
                 {
-                    std::tie(indexBuffer, indexAllocation) = allocator.createBuffer(
+                    std::tie(indexBuffer, indexAllocation) = allocator.createBufferUnique(
                         vk::BufferCreateInfo({}, indices.size() * sizeof(indices[0]), vk::BufferUsageFlagBits::eIndexBuffer),
                         vma::AllocationCreateInfo({}, vma::MemoryUsage::eCpuToGpu));
 
-                    decltype(&indices[0]) map = (decltype(&indices[0]))allocator.mapMemory(indexAllocation);
-                    std::copy(indices.begin(), indices.end(), map);
-                    allocator.unmapMemory(indexAllocation);
+                    allocator.copyMemoryToAllocation(indices.data(), indexAllocation.get(), 0, indices.size()*sizeof(uint16_t));
                 }
             }
             {
@@ -157,8 +150,8 @@ export class wave_renderer {
             };
             cmd.pushConstants(pipelineLayout.get(), vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(push_constants), &push);
 
-            cmd.bindVertexBuffers(0, vertexBuffer, {0});
-            cmd.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
+            cmd.bindVertexBuffers(0, vertexBuffer.get(), {0});
+            cmd.bindIndexBuffer(indexBuffer.get(), 0, vk::IndexType::eUint16);
             cmd.drawIndexed(indexCount, 1, 0, 0, 0);
         }
     private:
@@ -169,12 +162,12 @@ export class wave_renderer {
         double aspectRatio;
 
         unsigned int vertexCount;
-        vk::Buffer vertexBuffer;
-        vma::Allocation vertexAllocation;
+        vma::UniqueBuffer vertexBuffer;
+        vma::UniqueAllocation vertexAllocation;
 
         unsigned int indexCount;
-        vk::Buffer indexBuffer;
-        vma::Allocation indexAllocation;
+        vma::UniqueBuffer indexBuffer;
+        vma::UniqueAllocation indexAllocation;
 
         vk::UniquePipelineLayout pipelineLayout;
         dreamrender::UniquePipelineMap pipelines;
