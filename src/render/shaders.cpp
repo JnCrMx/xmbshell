@@ -13,22 +13,15 @@ namespace render::shaders {
 namespace blur {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wc23-extensions"
-    constexpr char vert_array[] = {
-    #embed "shaders/blur.vert.spv"
-    };
-    constexpr char frag_array[] = {
-    #embed "shaders/blur.frag.spv"
+    constexpr char comp_array[] = {
+    #embed "shaders/blur.comp.spv"
     };
     #pragma clang diagnostic pop
 
-    constexpr std::array vert_shader = dreamrender::convert<std::to_array(vert_array), uint32_t>();
-    constexpr std::array frag_shader = dreamrender::convert<std::to_array(frag_array), uint32_t>();
+    constexpr std::array comp_shader = dreamrender::convert<std::to_array(comp_array), uint32_t>();
 
-    vk::UniqueShaderModule vert(vk::Device device) {
-        return dreamrender::createShader(device, vert_shader);
-    }
-    vk::UniqueShaderModule frag(vk::Device device) {
-        return dreamrender::createShader(device, frag_shader);
+    vk::UniqueShaderModule comp(vk::Device device) {
+        return dreamrender::createShader(device, comp_shader);
     }
 }
 

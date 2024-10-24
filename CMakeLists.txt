@@ -134,8 +134,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/utils.cppm
 )
 set(XMBSHELL_SHADERS
-  shaders/blur.vert
-  shaders/blur.frag
+  shaders/blur.comp
   shaders/wave.vert
   shaders/wave.frag
 )

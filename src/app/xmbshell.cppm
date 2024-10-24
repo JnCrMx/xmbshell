@@ -52,13 +52,12 @@ namespace app
             vk::UniqueDescriptorSetLayout blurDescriptorSetLayout;
             vk::UniqueDescriptorPool blurDescriptorPool;
             std::vector<vk::DescriptorSet> blurDescriptorSets;
-            vk::UniqueSampler blurSampler;
             vk::UniquePipelineLayout blurPipelineLayout;
             vk::UniquePipeline blurPipeline;
-            std::vector<vk::UniqueFramebuffer> blurFramebuffers;
 
             std::unique_ptr<texture> renderImage;
-            std::unique_ptr<texture> blurImage;
+            std::unique_ptr<texture> blurImageSrc;
+            std::unique_ptr<texture> blurImageDst;
 
             std::vector<vk::Image> swapchainImages;
             std::vector<vk::UniqueFramebuffer> framebuffers;
