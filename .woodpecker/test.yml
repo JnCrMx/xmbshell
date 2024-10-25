@@ -40,7 +40,7 @@ steps:
         xserver-xorg dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
         libspdlog1.12 libglibmm-2.4-1t64 libsdbus-c++1
         vulkan-validationlayers ffmpeg fonts-ubuntu xdotool
-      - DREAMRENDER_DEVICE_NAME="V3D 4.2.14" ./test/record_video.sh
+      - DREAMRENDER_DEVICE_NAME="llvmpipe (LLVM 17.0.6, 128 bits)" ./test/record_video.sh
     volumes:
       - /dev/dri/renderD128:/dev/dri/renderD128
     privileged: true
