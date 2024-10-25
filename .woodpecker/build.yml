@@ -60,7 +60,7 @@ steps:
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
       - LIBROOT="/lib/x86_64-linux-gnu" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=x86_64 NO_STRIP=1 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
-      - mkdir -p AppDir/usr/share/fonts/truetype/ubuntu && cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf
+      - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - rm AppDir/usr/lib/libwayland-*
       - ARCH=x86_64 ./appimagetool-aarch64.AppImage --appimage-extract-and-run AppDir/
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage

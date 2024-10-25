@@ -108,7 +108,12 @@ void config::setMaxFPS(double fps) {
 }
 
 void config::setFontPath(std::string path) {
-    fontPath = path;
+    if(std::filesystem::exists(path)) {
+        fontPath = path;
+    } else {
+        spdlog::warn("Ignoring invalid font path: {}", path);
+        fontPath = fallback_font;
+    }
 }
 
 void config::setBackgroundType(background_type type) {
