@@ -26,6 +26,13 @@ std::string find_visualid() {
 
 int main(int argc, char *argv[])
 {
+#ifndef NDEBUG
+	spdlog::set_level(spdlog::level::debug);
+#endif
+	spdlog::cfg::load_env_levels();
+
+	spdlog::info("Welcome to your XMB!");
+
 	Gio::init();
 	setlocale(LC_ALL, "");
 	textdomain("xmbshell");
@@ -37,13 +44,7 @@ int main(int argc, char *argv[])
 	});
 
 	config::CONFIG.load();
-
-#ifndef NDEBUG
-	spdlog::set_level(spdlog::level::debug);
-#endif
-	spdlog::cfg::load_env_levels();
-
-	spdlog::info("Welcome to your XMB!");
+	spdlog::debug("Config loaded");
 
 	dreamrender::window_config window_config;
 	window_config.name = "xmbshell";

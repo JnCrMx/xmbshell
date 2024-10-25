@@ -242,6 +242,7 @@ namespace app
 
 			if(!ingame_mode) {
 				if(config::CONFIG.backgroundType == config::config::background_type::wave) {
+					wave_render->waveColor = config::CONFIG.waveColor;
 					wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
 				}
 				else if(config::CONFIG.backgroundType == config::config::background_type::image) {
