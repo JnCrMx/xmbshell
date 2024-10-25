@@ -52,6 +52,7 @@ namespace app
             bool get_blur_background() const { return blur_background; }
 
             void set_choice_overlay(const std::optional<choice_overlay>& overlay) {
+                old_choice_overlay = std::move(choice_overlay);
                 choice_overlay = overlay;
                 last_choice_overlay_change = std::chrono::system_clock::now();
             }
@@ -93,7 +94,8 @@ namespace app
             bool blur_background = false;
             time_point last_blur_background_change;
 
-            std::optional<choice_overlay> choice_overlay = std::nullopt;
+            std::optional<app::choice_overlay> choice_overlay = std::nullopt;
+            std::optional<app::choice_overlay> old_choice_overlay = std::nullopt;
             time_point last_choice_overlay_change;
 
             // transition duration constants

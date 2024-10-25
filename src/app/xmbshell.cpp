@@ -437,8 +437,10 @@ namespace app
 		if(choice_overlay || choice_overlay_progress < 1.0) {
 			renderer.pop_color();
 			renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
-			choice_overlay->render(renderer);
+			choice_overlay.or_else([this](){return old_choice_overlay;})->render(renderer);
 			renderer.pop_color();
+		} else {
+			old_choice_overlay = std::nullopt;
 		}
 
 		double debug_y = 0.0;
