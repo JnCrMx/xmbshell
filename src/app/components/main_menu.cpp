@@ -314,9 +314,9 @@ void main_menu::render(dreamrender::gui_renderer& renderer) {
     partial = in_submenu ? partial : 1.0 - partial;
     bool in_submenu_now = in_submenu || partial > 0.0;
 
-    renderer.set_color(glm::mix(active_color, inactive_color, partial));
+    renderer.push_color(glm::mix(active_color, inactive_color, partial));
     render_crossbar(renderer, now);
-    renderer.set_color(active_color);
+    renderer.pop_color();
     if(in_submenu_now) {
         render_submenu(renderer, now);
     }

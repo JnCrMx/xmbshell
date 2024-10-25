@@ -17,6 +17,7 @@ import vma;
 import sdl2;
 import xmbshell.config;
 import xmbshell.render;
+import xmbshell.utils;
 
 using namespace mfk::i18n::literals;
 
@@ -41,6 +42,7 @@ namespace app
 
 		font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent);
 		image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
+		simple_render = std::make_unique<simple_renderer>(device, allocator, win->swapchainExtent);
 		wave_render = std::make_unique<render::wave_renderer>(device, allocator, win->swapchainExtent);
 
 		{
@@ -141,6 +143,7 @@ namespace app
 
 		font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
 		image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
+		simple_render->preload({shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
 		wave_render->preload({backgroundRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
 
 		menu.preload(device, allocator, *loader);
@@ -212,12 +215,14 @@ namespace app
 
 		font_render->prepare(swapchainViews.size());
 		image_render->prepare(swapchainViews.size());
+		simple_render->prepare(swapchainViews.size());
 		wave_render->prepare(swapchainViews.size());
 	}
 
 	void xmbshell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
 	{
 		vk::CommandBuffer commandBuffer = commandBuffers[frame];
+		auto now = std::chrono::system_clock::now();
 
 		commandBuffer.begin(vk::CommandBufferBeginInfo());
 		{
@@ -255,7 +260,8 @@ namespace app
 
 			commandBuffer.endRenderPass();
 		}
-		if(blur_background) {
+		double blur_background_progress = utils::progress(now, last_blur_background_change, blur_background_transition_duration);
+		if(blur_background || blur_background_progress < 1.0) {
 			commandBuffer.pipelineBarrier(
 				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eTransfer,
 				{}, {}, {},
@@ -304,6 +310,7 @@ namespace app
 			int groupCountY = static_cast<int>(std::ceil(blurImageSrc->height/16.0));
 
 			BlurConstants constants{};
+			constants.size = 20 * (blur_background ? blur_background_progress : (1.0 - blur_background_progress));
 			commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, blurPipeline.get());
 			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, blurPipelineLayout.get(), 0, {blurDescriptorSets[frame]}, {});
 
@@ -391,13 +398,14 @@ namespace app
 			image_render->renderImageSized(commandBuffer, frame, shellRenderPass.get(), blurImageDst->imageView.get(),
 				0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
 
-			gui_renderer ctx(commandBuffer, frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get());
+			gui_renderer ctx(commandBuffer, frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get(), simple_render.get());
 			render_gui(ctx);
 
 			commandBuffer.endRenderPass();
 		}
 		font_render->finish(frame);
 		image_render->finish(frame);
+		simple_render->finish(frame);
 		commandBuffer.end();
 
 		vk::PipelineStageFlags waitFlags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -406,6 +414,12 @@ namespace app
 	}
 
 	void xmbshell::render_gui(gui_renderer& renderer) {
+		auto now = std::chrono::system_clock::now();
+		double choice_overlay_progress = utils::progress(now, last_choice_overlay_change, choice_overlay_transition_duration);
+		if(choice_overlay || choice_overlay_progress < 1.0) {
+			constexpr glm::vec4 factor{0.25f, 0.25f, 0.25f, 1.0f};
+			renderer.push_color(glm::mix(glm::vec4(1.0), factor, choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
+		}
 		menu.render(renderer);
 
 		static const std::chrono::time_zone* timezone = [](){
@@ -415,11 +429,17 @@ namespace app
 			spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
 			return tz;
 		}();
-    	auto now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
-		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(now)),
+    	auto local_now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(local_now)),
 			0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
 
 		news.render(renderer);
+		if(choice_overlay || choice_overlay_progress < 1.0) {
+			renderer.pop_color();
+			renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
+			choice_overlay->render(renderer);
+			renderer.pop_color();
+		}
 
 		double debug_y = 0.0;
 		if(config::CONFIG.showFPS) {

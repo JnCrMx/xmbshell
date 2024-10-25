@@ -1,5 +1,6 @@
 module;
 
+#include <chrono>
 #include <future>
 
 #include <glm/glm.hpp>
@@ -22,6 +23,12 @@ export namespace utils
 	std::string to_fixed_string(T d)
 	{
 		return to_fixed_string(d, n);
+	}
+
+	using time_point = std::chrono::time_point<std::chrono::system_clock>;
+	constexpr double progress(time_point now, time_point start, std::chrono::duration<double> duration) {
+		double d = std::chrono::duration<double>(now - start).count() / duration.count();
+		return std::clamp(d, 0.0, 1.0);
 	}
 
 	template<typename T>

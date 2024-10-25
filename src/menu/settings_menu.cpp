@@ -1,6 +1,7 @@
 module;
 #include <array>
 #include <string>
+#include <optional>
 
 module xmbshell.app;
 
@@ -12,6 +13,7 @@ import dreamrender;
 import xmbshell.config;
 
 import :settings_menu;
+import :choice_overlay;
 
 namespace menu {
     settings_menu::settings_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
@@ -28,12 +30,21 @@ namespace menu {
                 make_settings_entry(loader, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
                 make_simple<action_menu_entry>("Toggle Background Blur"_(), config::CONFIG.asset_directory/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
                     spdlog::info("Toggling background blur");
-                    xmb->blur_background = !xmb->blur_background;
+                    xmb->set_blur_background(!xmb->get_blur_background());
                     return result::success;
                 }),
                 make_simple<action_menu_entry>("Toggle Ingame Mode"_(), config::CONFIG.asset_directory/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
                     spdlog::info("Toggling ingame mode");
-                    xmb->ingame_mode = !xmb->ingame_mode;
+                    xmb->set_ingame_mode(!xmb->get_ingame_mode());
+                    return result::success;
+                }),
+                make_simple<action_menu_entry>("Test Choice Overlay"_(), config::CONFIG.asset_directory/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
+                    spdlog::info("Testing choice overlay");
+                    if(xmb->get_choice_overlay()) {
+                        xmb->set_choice_overlay(std::nullopt);
+                    } else {
+                        xmb->set_choice_overlay(app::choice_overlay{});
+                    }
                     return result::success;
                 }),
             }

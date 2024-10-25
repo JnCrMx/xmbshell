@@ -106,8 +106,9 @@ target_compile_options(i18nModule PRIVATE -pthread)
 
 set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
-  src/app/components/news_display.cpp
+  src/app/components/choice_overlay.cpp
   src/app/components/main_menu.cpp
+  src/app/components/news_display.cpp
   src/menu/settings_menu.cpp
   src/dbus.cpp
   src/render/shaders.cpp
@@ -118,6 +119,7 @@ set(XMBSHELL_SOURCES
 set(XMBSHELL_MODULE_SOURCES
   src/app/module.cppm
   src/app/xmbshell.cppm
+  src/app/components/choice_overlay.cppm
   src/app/components/main_menu.cppm
   src/app/components/news_display.cppm
   src/config.cppm
