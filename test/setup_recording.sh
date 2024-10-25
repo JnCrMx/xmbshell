@@ -7,3 +7,4 @@ export DISPLAY=:99
 export GSETTINGS_SCHEMA_DIR="$PWD/schemas:$GSETTINGS_SCHEMA_DIR"
 export XMB_ASSET_DIR=.
 export RESOLUTION
+export VK_LOADER_DEBUG=debug
