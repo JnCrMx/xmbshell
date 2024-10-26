@@ -109,6 +109,7 @@ namespace menu {
             std::array{
                 entry_bool(loader, xmb, "Show FPS"_(), "re.jcm.xmbos.xmbshell.render", "show-fps"),
                 entry_bool(loader, xmb, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
+#ifndef NDEBUG
                 make_simple<action_menu_entry>("Toggle Background Blur"_(), config::CONFIG.asset_directory/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
                     spdlog::info("Toggling background blur");
                     xmb->set_blur_background(!xmb->get_blur_background());
@@ -128,6 +129,7 @@ namespace menu {
                     }
                     return result::success;
                 }),
+#endif
             }
         ));
         entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [](){
