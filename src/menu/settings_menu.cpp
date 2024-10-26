@@ -1,8 +1,10 @@
 module;
 
 #include <array>
-#include <string>
+#include <format>
+#include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 module xmbshell.app;
@@ -18,18 +20,61 @@ import :settings_menu;
 import :choice_overlay;
 
 namespace menu {
+    using namespace mfk::i18n::literals;
+
+    std::unique_ptr<action_menu_entry> make_settings_entry(dreamrender::resource_loader& loader, app::xmbshell* xmb,
+        const std::string& name, const std::string& schema, const std::string& key)
+    {
+        std::string filename = std::format("icon_settings_{}.png", key);
+        return make_simple<action_menu_entry>(name, config::CONFIG.asset_directory/"icons"/filename, loader, [xmb, key, schema](){
+            spdlog::debug("Opening setting {} in schema {}", key, schema);
+            auto source = Gio::SettingsSchemaSource::get_default();
+            if(!source) {
+                spdlog::error("Failed to get default settings schema source");
+                return result::failure;
+            }
+            auto schemaObj = source->lookup(schema, true);
+            if(!schemaObj) {
+                spdlog::error("Failed to find schema for {}", schema);
+                return result::failure;
+            }
+            auto keyObj = schemaObj->get_key(key);
+            if(!keyObj) {
+                spdlog::error("Failed to find key {} in schema {}", key, schema);
+                return result::failure;
+            }
+            auto type = keyObj->get_value_type();
+            spdlog::trace("Type of key {} in schema {} is {}", key, schema, type.get_string());
+
+            if(type.equal(Glib::VARIANT_TYPE_BOOL)) {
+                auto settings = Gio::Settings::create(schema);
+                bool value = settings->get_boolean(key);
+
+                xmb->set_choice_overlay(app::choice_overlay{
+                    std::vector<std::string>{"Off", "On"}, value ? 1u : 0u,
+                    [settings, schema, key](unsigned int choice) {
+                        settings->set_boolean(key, choice == 1);
+                        settings->apply();
+                    }
+                });
+            }
+
+            return result::success;
+        });
+    }
+
     settings_menu::settings_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
         entries.push_back(make_simple<simple_menu>("Video Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_video.png", loader,
             std::array{
-                make_settings_entry(loader, "VSync"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
-                make_settings_entry(loader, "Sample Count"_(), "re.jcm.xmbos.xmbshell.render", "sample-count"),
-                make_settings_entry(loader, "Max FPS"_(), "re.jcm.xmbos.xmbshell.render", "max-fps"),
+                make_settings_entry(loader, xmb, "VSync"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
+                make_settings_entry(loader, xmb, "Sample Count"_(), "re.jcm.xmbos.xmbshell.render", "sample-count"),
+                make_settings_entry(loader, xmb, "Max FPS"_(), "re.jcm.xmbos.xmbshell.render", "max-fps"),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Debug Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_debug.png", loader,
             std::array{
-                make_settings_entry(loader, "Show FPS"_(), "re.jcm.xmbos.xmbshell.render", "show-fps"),
-                make_settings_entry(loader, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
+                make_settings_entry(loader, xmb, "Show FPS"_(), "re.jcm.xmbos.xmbshell.render", "show-fps"),
+                make_settings_entry(loader, xmb, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
                 make_simple<action_menu_entry>("Toggle Background Blur"_(), config::CONFIG.asset_directory/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
                     spdlog::info("Toggling background blur");
                     xmb->set_blur_background(!xmb->get_blur_background());

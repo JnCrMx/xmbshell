@@ -12,6 +12,9 @@ export namespace Glib {
     using Glib::get_home_dir;
     using Glib::get_user_cache_dir;
     using Glib::MainLoop;
+    using Glib::Variant;
+    using Glib::VariantType;
+    using Glib::VARIANT_TYPE_BOOL;
 };
 
 export namespace sigc {
