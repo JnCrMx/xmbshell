@@ -497,6 +497,14 @@ namespace app
 	}
 
 	void xmbshell::dispatch(action action) {
+		if(choice_overlay) {
+			result res = choice_overlay->on_action(action);
+			if(res & result::close) {
+				set_choice_overlay(std::nullopt);
+			}
+			handle(res);
+			return;
+		}
 		handle(menu.on_action(action));
 	}
 	void xmbshell::handle(result result) {

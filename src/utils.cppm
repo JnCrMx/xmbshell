@@ -11,10 +11,12 @@ export enum class result {
 	unsupported  = (1<<0),
 	success      = (1<<1),
 	failure      = (1<<2),
-	submenu	     = (1<<3),
 
-	ok_sound     = (1<<4),
-	error_rumble = (1<<5),
+	submenu	     = (1<<3),
+	close        = (1<<4),
+
+	ok_sound     = (1<<5),
+	error_rumble = (1<<6),
 };
 export inline result operator|(result a, result b) {
 	return static_cast<result>(static_cast<int>(a) | static_cast<int>(b));
