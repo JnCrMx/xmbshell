@@ -1,6 +1,5 @@
 module;
 
-#include <memory>
 #include <string>
 
 export module xmbshell.app:settings_menu;
@@ -25,9 +24,4 @@ class settings_menu : public simple_menu {
         ~settings_menu() override = default;
 };
 
-}
-
-namespace menu {
-    std::unique_ptr<action_menu_entry> make_settings_entry(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        const std::string& name, const std::string& schema, const std::string& key);
 }
