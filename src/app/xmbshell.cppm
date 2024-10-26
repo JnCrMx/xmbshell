@@ -9,6 +9,7 @@ module;
 export module xmbshell.app:main;
 
 import xmbshell.render;
+import xmbshell.utils;
 import dreamrender;
 import sdl2;
 import vulkan_hpp;
@@ -28,6 +29,7 @@ namespace app
             void preload() override;
             void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews) override;
             void render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence) override;
+            void tick();
 
             void key_up(sdl::Keysym key) override;
             void key_down(sdl::Keysym key) override;
@@ -40,6 +42,9 @@ namespace app
 
             void reload_background();
             void reload_fonts();
+
+            void dispatch(action action);
+            void handle(result result);
 
             void set_ingame_mode(bool ingame_mode) { this->ingame_mode = ingame_mode; }
             bool get_ingame_mode() const { return ingame_mode; }
@@ -86,7 +91,19 @@ namespace app
             main_menu menu{this};
             news_display news{this};
 
+            sdl::mix::unique_chunk ok_sound;
+
             void render_gui(gui_renderer& renderer);
+
+            // input handling
+            constexpr static int controller_axis_input_threshold = 10000;
+            time_point last_controller_axis_input_time[2];
+            std::optional<std::tuple<sdl::GameController*, action>> last_controller_axis_input[2];
+            constexpr static auto controller_axis_input_duration = std::chrono::milliseconds(200);
+
+            time_point last_controller_button_input_time;
+            std::optional<std::tuple<sdl::GameController*, sdl::GameControllerButton>> last_controller_button_input;
+            constexpr static auto controller_button_input_duration = std::chrono::milliseconds(200);
 
             // state
             bool ingame_mode = false;

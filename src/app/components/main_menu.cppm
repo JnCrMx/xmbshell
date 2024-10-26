@@ -2,7 +2,6 @@ module;
 
 #include <chrono>
 #include <memory>
-#include <optional>
 
 export module xmbshell.app:main_menu;
 
@@ -11,22 +10,17 @@ import dreamrender;
 import sdl2;
 import vulkan_hpp;
 import vma;
+import xmbshell.utils;
 
 namespace app {
 
-class main_menu : input::keyboard_handler, input::controller_handler {
+class main_menu : public action_receiver {
     public:
         main_menu(class xmbshell* shell);
         void preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader);
-        void tick();
         void render(dreamrender::gui_renderer& renderer);
 
-        void key_down(sdl::Keysym key) override;
-        void key_up(sdl::Keysym key) override;
-
-        void button_down(sdl::GameController* controller, sdl::GameControllerButton button) override;
-        void button_up(sdl::GameController* controller, sdl::GameControllerButton button) override;
-        void axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) override;
+        result on_action(action action) override;
     private:
         using time_point = std::chrono::time_point<std::chrono::system_clock>;
 
@@ -48,9 +42,6 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         bool select_relative(direction dir);
         bool activate_current();
         bool back();
-        void error_rumble(sdl::GameController* controller);
-
-        sdl::mix::unique_chunk ok_sound;
 
         std::vector<std::unique_ptr<menu::menu>> menus;
         int selected = 0;
@@ -71,15 +62,6 @@ class main_menu : input::keyboard_handler, input::controller_handler {
         int last_selected_submenu_item;
         time_point last_selected_submenu_item_transition;
         constexpr static auto transition_submenu_item_duration = std::chrono::milliseconds(100);
-
-        constexpr static int controller_axis_input_threshold = 10000;
-        time_point last_controller_axis_input_time[2];
-        std::optional<std::tuple<sdl::GameController*, direction>> last_controller_axis_input[2];
-        constexpr static auto controller_axis_input_duration = std::chrono::milliseconds(200);
-
-        time_point last_controller_button_input_time;
-        std::optional<std::tuple<sdl::GameController*, sdl::GameControllerButton>> last_controller_button_input;
-        constexpr static auto controller_button_input_duration = std::chrono::milliseconds(200);
 };
 
 }

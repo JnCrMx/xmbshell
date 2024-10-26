@@ -149,6 +149,11 @@ namespace app
 		menu.preload(device, allocator, *loader);
 		news.preload(device, allocator, *loader);
 
+		ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str())};
+		if(!ok_sound) {
+			spdlog::error("sdl::mix::LoadWAV: {}", sdl::mix::GetError());
+		}
+
 		if(config::CONFIG.backgroundType == config::config::background_type::image) {
 			backgroundTexture = std::make_unique<texture>(device, allocator);
 			loader->loadTexture(backgroundTexture.get(), config::CONFIG.backgroundImage);
@@ -221,6 +226,8 @@ namespace app
 
 	void xmbshell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)
 	{
+		tick();
+
 		vk::CommandBuffer commandBuffer = commandBuffers[frame];
 		auto now = std::chrono::system_clock::now();
 
@@ -469,15 +476,71 @@ namespace app
 		}
 	}
 
+	void xmbshell::tick() {
+		for(unsigned int i=0; i<2; i++) {
+			if(last_controller_axis_input[i]) {
+				auto time_since_input = std::chrono::duration<double>(std::chrono::system_clock::now() - last_controller_axis_input_time[i]);
+				if(time_since_input > controller_axis_input_duration) {
+					auto [controller, dir] = *last_controller_axis_input[i];
+					dispatch(dir);
+					last_controller_axis_input_time[i] = std::chrono::system_clock::now();
+				}
+			}
+		}
+		if(last_controller_button_input) {
+			auto time_since_input = std::chrono::duration<double>(std::chrono::system_clock::now() - last_controller_button_input_time);
+			if(time_since_input > controller_button_input_duration) {
+				auto [controller, button] = *last_controller_button_input;
+				button_down(controller, button);
+			}
+		}
+	}
+
+	void xmbshell::dispatch(action action) {
+		handle(menu.on_action(action));
+	}
+	void xmbshell::handle(result result) {
+		if(result & result::error_rumble) {
+			if(config::CONFIG.controllerRumble) {
+				for(const auto& [id, controller] : win->controllers) {
+					sdl::GameControllerRumble(controller.get(), 1000, 10000, 100);
+				}
+			}
+		}
+		if(result & result::ok_sound) {
+			if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
+				spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
+			}
+		}
+	}
+
 	void xmbshell::key_up(sdl::Keysym key)
 	{
 		spdlog::trace("Key up: {}", key.sym);
-		menu.key_up(key);
 	}
 	void xmbshell::key_down(sdl::Keysym key)
 	{
 		spdlog::trace("Key down: {}", key.sym);
-		menu.key_down(key);
+		switch(key.sym) {
+			case SDLK_LEFT:
+				dispatch(action::left);
+				break;
+			case SDLK_RIGHT:
+				dispatch(action::right);
+				break;
+			case SDLK_UP:
+				dispatch(action::up);
+				break;
+			case SDLK_DOWN:
+				dispatch(action::down);
+				break;
+			case SDLK_RETURN:
+				dispatch(action::ok);
+				break;
+			case SDLK_ESCAPE:
+				dispatch(action::cancel);
+				break;
+		}
 	}
 
 	void xmbshell::add_controller(sdl::GameController* controller)
@@ -489,16 +552,50 @@ namespace app
 	void xmbshell::button_down(sdl::GameController* controller, sdl::GameControllerButton button)
 	{
 		spdlog::trace("Button down: {}", fmt::underlying(button));
-		menu.button_down(controller, button);
+		last_controller_button_input = std::make_tuple(controller, button);
+		last_controller_button_input_time = std::chrono::system_clock::now();
+
+		if(button == sdl::GameControllerButtonValues::DPAD_LEFT) {
+			dispatch(action::left);
+		} else if(button == sdl::GameControllerButtonValues::DPAD_RIGHT) {
+			dispatch(action::right);
+		} else if(button == sdl::GameControllerButtonValues::DPAD_UP) {
+			dispatch(action::up);
+		} else if(button == sdl::GameControllerButtonValues::DPAD_DOWN) {
+			dispatch(action::down);
+		} else if(button == sdl::GameControllerButtonValues::A) {
+			dispatch(action::ok);
+		} else if(button == sdl::GameControllerButtonValues::B) {
+			dispatch(action::cancel);
+		}
 	}
 	void xmbshell::button_up(sdl::GameController* controller, sdl::GameControllerButton button)
 	{
 		spdlog::trace("Button up: {}", fmt::underlying(button));
-		menu.button_up(controller, button);
+		last_controller_button_input = std::nullopt;
 	}
 	void xmbshell::axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value)
 	{
 		spdlog::trace("Axis motion: {} {}", fmt::underlying(axis), value);
-		menu.axis_motion(controller, axis, value);
+		if(!config::CONFIG.controllerAnalogStick) {
+			return;
+		}
+
+		if(axis == sdl::GameControllerAxisValues::LEFTX || axis == sdl::GameControllerAxisValues::LEFTY) {
+			unsigned int index = axis == sdl::GameControllerAxisValues::LEFTX  ? 0 : 1;
+			if(std::abs(value) < controller_axis_input_threshold) {
+				last_controller_axis_input[index] = std::nullopt;
+				last_controller_axis_input_time[index] = std::chrono::system_clock::now();
+				return;
+			}
+			action dir = axis == sdl::GameControllerAxisValues::LEFTX  ? (value > 0 ? action::right : action::left)
+				: (value > 0 ? action::down : action::up);
+			if(last_controller_axis_input[index] && std::get<1>(*last_controller_axis_input[index]) == dir) {
+				return;
+			}
+			dispatch(dir);
+			last_controller_axis_input[index] = std::make_tuple(controller, dir);
+			last_controller_axis_input_time[index] = std::chrono::system_clock::now();
+		}
 	}
 }

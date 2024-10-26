@@ -1,7 +1,9 @@
 module;
+
 #include <array>
 #include <string>
 #include <optional>
+#include <vector>
 
 module xmbshell.app;
 
@@ -43,7 +45,7 @@ namespace menu {
                     if(xmb->get_choice_overlay()) {
                         xmb->set_choice_overlay(std::nullopt);
                     } else {
-                        xmb->set_choice_overlay(app::choice_overlay{});
+                        xmb->set_choice_overlay(app::choice_overlay{std::vector<std::string>{{"Hello"}, {"World"}}});
                     }
                     return result::success;
                 }),

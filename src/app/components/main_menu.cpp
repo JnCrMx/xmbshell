@@ -1,7 +1,6 @@
 module;
 
 #include <chrono>
-#include <tuple>
 
 module xmbshell.app;
 
@@ -29,10 +28,6 @@ main_menu::main_menu(xmbshell* shell) : shell(shell) {
 }
 
 void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader) {
-    ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str())};
-    if(!ok_sound) {
-        spdlog::error("sdl::mix::LoadWAV: {}", sdl::mix::GetError());
-    }
     using ::menu::make_simple;
     using ::menu::make_simple_of;
 
@@ -50,94 +45,24 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
     menus[selected]->on_open();
 }
 
-void main_menu::key_down(sdl::Keysym key) {
-    switch(key.sym) {
-        case SDLK_LEFT:
-            select_relative(direction::left);
-            break;
-        case SDLK_RIGHT:
-            select_relative(direction::right);
-            break;
-        case SDLK_UP:
-            select_relative(direction::up);
-            break;
-        case SDLK_DOWN:
-            select_relative(direction::down);
-            break;
-        case SDLK_RETURN:
-            activate_current();
-            break;
-        case SDLK_ESCAPE:
-            back();
-            break;
+result main_menu::on_action(action action) {
+    switch(action) {
+        case action::left:
+            return select_relative(direction::left) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
+        case action::right:
+            return select_relative(direction::right) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
+        case action::up:
+            return select_relative(direction::up) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
+        case action::down:
+            return select_relative(direction::down) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
+        case action::ok:
+            return activate_current() ? result::success : result::unsupported | result::error_rumble;
+        case action::cancel:
+            return back() ? result::success : result::unsupported | result::error_rumble;
+        default:
+            return result::unsupported;
     }
-}
-void main_menu::key_up(sdl::Keysym key) {
-
-}
-void main_menu::button_down(sdl::GameController* controller, sdl::GameControllerButton button) {
-    last_controller_button_input = std::make_tuple(controller, button);
-    last_controller_button_input_time = std::chrono::system_clock::now();
-
-    if(button == sdl::GameControllerButtonValues::DPAD_LEFT) {
-        if(!select_relative(direction::left)) {
-            error_rumble(controller);
-        }
-    } else if(button == sdl::GameControllerButtonValues::DPAD_RIGHT) {
-        if(!select_relative(direction::right)) {
-            error_rumble(controller);
-        }
-    } else if(button == sdl::GameControllerButtonValues::DPAD_UP) {
-        if(!select_relative(direction::up)) {
-            error_rumble(controller);
-        }
-    } else if(button == sdl::GameControllerButtonValues::DPAD_DOWN) {
-        if(!select_relative(direction::down)) {
-            error_rumble(controller);
-        }
-    } else if(button == sdl::GameControllerButtonValues::A) {
-        if(!activate_current()) {
-            error_rumble(controller);
-        }
-    } else if(button == sdl::GameControllerButtonValues::B) {
-        if(!back()) {
-            error_rumble(controller);
-        }
-    }
-}
-void main_menu::button_up(sdl::GameController* controller, sdl::GameControllerButton button) {
-    last_controller_button_input = std::nullopt;
-}
-void main_menu::axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) {
-    if(!config::CONFIG.controllerAnalogStick) {
-        return;
-    }
-
-    if(axis == sdl::GameControllerAxisValues::LEFTX || axis == sdl::GameControllerAxisValues::LEFTY) {
-        unsigned int index = axis == sdl::GameControllerAxisValues::LEFTX  ? 0 : 1;
-        if(std::abs(value) < controller_axis_input_threshold) {
-            last_controller_axis_input[index] = std::nullopt;
-            last_controller_axis_input_time[index] = std::chrono::system_clock::now();
-            return;
-        }
-        direction dir = axis == sdl::GameControllerAxisValues::LEFTX  ? (value > 0 ? direction::right : direction::left)
-            : (value > 0 ? direction::down : direction::up);
-        if(last_controller_axis_input[index] && std::get<1>(*last_controller_axis_input[index]) == dir) {
-            return;
-        }
-        if(!select_relative(dir)) {
-            error_rumble(controller);
-        }
-        last_controller_axis_input[index] = std::make_tuple(controller, dir);
-        last_controller_axis_input_time[index] = std::chrono::system_clock::now();
-    }
-}
-
-void main_menu::error_rumble(sdl::GameController* controller) {
-    if(!config::CONFIG.controllerRumble) {
-        return;
-    }
-    sdl::GameControllerRumble(controller, 1000, 10000, 100);
+    return result::unsupported;
 }
 
 bool main_menu::select_relative(direction dir) {
@@ -145,39 +70,23 @@ bool main_menu::select_relative(direction dir) {
         if(dir == direction::left) {
             if(selected > 0) {
                 select(selected-1);
-                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
-                }
-
                 return true;
             }
         } else if(dir == direction::right) {
             if(selected < menus.size()-1) {
                 select(selected+1);
-                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
-                }
-
                 return true;
             }
         } else if(dir == direction::up) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() > 0) {
                 select_menu_item(menu->get_selected_submenu()-1);
-                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
-                }
-
                 return true;
             }
         } else if(dir == direction::down) {
             auto& menu = menus[selected];
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
                 select_menu_item(menu->get_selected_submenu()+1);
-                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
-                }
-
                 return true;
             }
         }
@@ -186,19 +95,11 @@ bool main_menu::select_relative(direction dir) {
         if(dir == direction::up) {
             if(menu->get_selected_submenu() > 0) {
                 select_submenu_item(menu->get_selected_submenu()-1);
-                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
-                }
-
                 return true;
             }
         } else if(dir == direction::down) {
             if(menu->get_selected_submenu() < menu->get_submenus_count()-1) {
                 select_submenu_item(menu->get_selected_submenu()+1);
-                if(sdl::mix::PlayChannel(-1, ok_sound.get(), 0) == -1) {
-                    spdlog::error("sdl::mix::PlayChannel: {}", sdl::mix::GetError());
-                }
-
                 return true;
             }
         }
@@ -208,7 +109,7 @@ bool main_menu::select_relative(direction dir) {
 bool main_menu::activate_current() {
     auto& menu = *menus[selected];
     auto res = menu.activate();
-    if(res == menu::result::submenu) {
+    if(res == result::submenu) {
         if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
             if(submenu->get_submenus_count() > 0 && !in_submenu) {
                 current_submenu = submenu;
@@ -221,7 +122,7 @@ bool main_menu::activate_current() {
         }
         return false;
     }
-    return res == menu::result::success;
+    return res == result::success;
 }
 bool main_menu::back() {
     if(in_submenu) {
@@ -279,31 +180,7 @@ void main_menu::select_submenu_item(int index) {
     menu->select_submenu(index);
 }
 
-void main_menu::tick() {
-    for(unsigned int i=0; i<2; i++) {
-        if(last_controller_axis_input[i]) {
-            auto time_since_input = std::chrono::duration<double>(std::chrono::system_clock::now() - last_controller_axis_input_time[i]);
-            if(time_since_input > controller_axis_input_duration) {
-                auto [controller, dir] = *last_controller_axis_input[i];
-                if(!select_relative(dir)) {
-                    error_rumble(controller);
-                }
-                last_controller_axis_input_time[i] = std::chrono::system_clock::now();
-            }
-        }
-    }
-    if(last_controller_button_input) {
-        auto time_since_input = std::chrono::duration<double>(std::chrono::system_clock::now() - last_controller_button_input_time);
-        if(time_since_input > controller_button_input_duration) {
-            auto [controller, button] = *last_controller_button_input;
-            button_down(controller, button);
-        }
-    }
-}
-
 void main_menu::render(dreamrender::gui_renderer& renderer) {
-    tick(); // TODO: This should be called from the outside
-
     constexpr glm::vec4 active_color(1.0f, 1.0f, 1.0f, 1.0f);
     constexpr glm::vec4 inactive_color(0.25f, 0.25f, 0.25f, 0.25f);
 

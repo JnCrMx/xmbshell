@@ -7,6 +7,37 @@ module;
 
 export module xmbshell.utils;
 
+export enum class result {
+	unsupported  = (1<<0),
+	success      = (1<<1),
+	failure      = (1<<2),
+	submenu	     = (1<<3),
+
+	ok_sound     = (1<<4),
+	error_rumble = (1<<5),
+};
+export inline result operator|(result a, result b) {
+	return static_cast<result>(static_cast<int>(a) | static_cast<int>(b));
+}
+export inline bool operator&(result a, result b) {
+	return static_cast<bool>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+export enum class action {
+	none = 0,
+	left = 1,
+	right = 2,
+	up = 3,
+	down = 4,
+	ok = 5,
+	cancel = 6
+};
+export class action_receiver {
+	public:
+		virtual ~action_receiver() = default;
+		virtual result on_action(action action) = 0;
+};
+
 export namespace utils
 {
 	template<typename R>

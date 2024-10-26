@@ -7,15 +7,9 @@ module;
 
 export module xmbshell.app:menu_base;
 import dreamrender;
+import xmbshell.utils;
 
 export namespace menu {
-
-enum class result {
-    unsupported,
-    success,
-    failure,
-    submenu
-};
 
 class menu_entry {
     public:
