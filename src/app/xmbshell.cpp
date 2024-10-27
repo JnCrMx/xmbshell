@@ -421,33 +421,37 @@ namespace app
 	}
 
 	void xmbshell::render_gui(gui_renderer& renderer) {
-		auto now = std::chrono::system_clock::now();
-		double choice_overlay_progress = utils::progress(now, last_choice_overlay_change, choice_overlay_transition_duration);
-		if(choice_overlay || choice_overlay_progress < 1.0) {
-			constexpr glm::vec4 factor{0.25f, 0.25f, 0.25f, 1.0f};
-			renderer.push_color(glm::mix(glm::vec4(1.0), factor, choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
-		}
-		menu.render(renderer);
-
-		static const std::chrono::time_zone* timezone = [](){
-			auto tz = std::chrono::current_zone();
-			auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
-			auto local = std::chrono::zoned_time(tz, system);
-			spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
-			return tz;
-		}();
-    	auto local_now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
-		renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(local_now)),
-			0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
-
-		news.render(renderer);
-		if(choice_overlay || choice_overlay_progress < 1.0) {
-			renderer.pop_color();
-			renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
-			choice_overlay.or_else([this](){return old_choice_overlay;})->render(renderer);
-			renderer.pop_color();
+		if(progress_overlay) {
+			progress_overlay->render(renderer);
 		} else {
-			old_choice_overlay = std::nullopt;
+			auto now = std::chrono::system_clock::now();
+			double choice_overlay_progress = utils::progress(now, last_choice_overlay_change, choice_overlay_transition_duration);
+			if(choice_overlay || choice_overlay_progress < 1.0) {
+				constexpr glm::vec4 factor{0.25f, 0.25f, 0.25f, 1.0f};
+				renderer.push_color(glm::mix(glm::vec4(1.0), factor, choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
+			}
+			menu.render(renderer);
+
+			static const std::chrono::time_zone* timezone = [](){
+				auto tz = std::chrono::current_zone();
+				auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+				auto local = std::chrono::zoned_time(tz, system);
+				spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
+				return tz;
+			}();
+			auto local_now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+			renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(local_now)),
+				0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
+
+			news.render(renderer);
+			if(choice_overlay || choice_overlay_progress < 1.0) {
+				renderer.pop_color();
+				renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), choice_overlay ? choice_overlay_progress : 1.0 - choice_overlay_progress));
+				choice_overlay.or_else([this](){return old_choice_overlay;})->render(renderer);
+				renderer.pop_color();
+			} else {
+				old_choice_overlay = std::nullopt;
+			}
 		}
 
 		double debug_y = 0.0;
@@ -494,9 +498,25 @@ namespace app
 				button_down(controller, button);
 			}
 		}
+
+		if(progress_overlay) {
+			auto res = progress_overlay->tick(this);
+			if(res & result::close) {
+				set_progress_overlay(std::nullopt);
+			}
+			handle(res);
+		}
 	}
 
 	void xmbshell::dispatch(action action) {
+		if(progress_overlay) {
+			result res = progress_overlay->on_action(action);
+			if(res & result::close) {
+				set_progress_overlay(std::nullopt);
+			}
+			handle(res);
+			return;
+		}
 		if(choice_overlay) {
 			result res = choice_overlay->on_action(action);
 			if(res & result::close) {

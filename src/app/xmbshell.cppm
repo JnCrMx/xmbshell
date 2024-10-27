@@ -17,6 +17,7 @@ import vulkan_hpp;
 import :choice_overlay;
 import :main_menu;
 import :news_display;
+import :progress_overlay;
 
 namespace app
 {
@@ -62,6 +63,11 @@ namespace app
                 last_choice_overlay_change = std::chrono::system_clock::now();
             }
             const std::optional<choice_overlay>& get_choice_overlay() const { return choice_overlay; }
+
+            void set_progress_overlay(std::optional<progress_overlay>&& overlay) {
+                progress_overlay = std::move(overlay);
+            }
+            const std::optional<progress_overlay>& get_progress_overlay() const { return progress_overlay; }
         private:
             using time_point = std::chrono::time_point<std::chrono::system_clock>;
 
@@ -114,6 +120,8 @@ namespace app
             std::optional<app::choice_overlay> choice_overlay = std::nullopt;
             std::optional<app::choice_overlay> old_choice_overlay = std::nullopt;
             time_point last_choice_overlay_change;
+
+            std::optional<app::progress_overlay> progress_overlay = std::nullopt;
 
             // transition duration constants
             constexpr static auto blur_background_transition_duration = std::chrono::milliseconds(500);

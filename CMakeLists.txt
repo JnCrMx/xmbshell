@@ -109,6 +109,7 @@ set(XMBSHELL_SOURCES
   src/app/components/choice_overlay.cpp
   src/app/components/main_menu.cpp
   src/app/components/news_display.cpp
+  src/app/components/progress_overlay.cpp
   src/menu/settings_menu.cpp
   src/dbus.cpp
   src/render/shaders.cpp
@@ -122,6 +123,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/app/components/choice_overlay.cppm
   src/app/components/main_menu.cppm
   src/app/components/news_display.cppm
+  src/app/components/progress_overlay.cppm
   src/config.cppm
   src/constants.cppm
   src/dbus.cppm
