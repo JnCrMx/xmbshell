@@ -70,15 +70,19 @@ namespace app {
             y += renderer.measure_text(sv, 0.05f).y;
         }
 
-        simple_renderer::params blur{
-            std::array{glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.5f}, glm::vec2{0.0f, 0.5f}}
+        simple_renderer::params border_radius{
+            {}, {0.5f, 0.5f, 0.5f, 0.5f}
         };
-        renderer.draw_rect(glm::vec2(0.25f, 0.465f), glm::vec2(0.5f, 0.01f), glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+        simple_renderer::params blur{
+            std::array{glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.5f}, glm::vec2{0.0f, 0.5f}},
+            {0.5f, 0.5f, 0.5f, 0.5f}
+        };
+        renderer.draw_rect(glm::vec2(0.25f, 0.465f), glm::vec2(0.5f, 0.01f), glm::vec4(0.2f, 0.2f, 0.2f, 1.0f), border_radius);
         renderer.draw_rect(glm::vec2(0.25f, 0.465f), glm::vec2(0.5f, 0.01f), glm::vec4(0.1f, 0.1f, 0.1f, 1.0f), blur);
 
         constexpr glm::vec2 padding = glm::vec2{0.001f, 0.001f};
         renderer.draw_rect(glm::vec2(0.25f, 0.465f)+padding, glm::vec2(progress*0.5f, 0.01f)-2.0f*padding,
-            glm::vec4(0x83/255.0f, 0x8d/255.0f, 0x22/255.0f, 1.0f)); // #838d22
+            glm::vec4(0x83/255.0f, 0x8d/255.0f, 0x22/255.0f, 1.0f), border_radius); // #838d22
         renderer.draw_rect(glm::vec2(0.25f, 0.465f)+padding, glm::vec2(progress*0.5f, 0.01f)-2.0f*padding,
             glm::vec4(1.0f, 1.0f, 1.0f, 0.1f), blur);
 
