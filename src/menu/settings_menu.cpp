@@ -21,21 +21,73 @@ import dreamrender;
 import xmbshell.config;
 
 import :settings_menu;
+
 import :choice_overlay;
+import :message_overlay;
 import :progress_overlay;
 
 namespace menu {
     using namespace mfk::i18n::literals;
 
-    class updater_checker : public app::progress_item {
+    class updater : public app::progress_item {
         public:
+            updater() {}
+
+            status init(std::string& message) override {
+                message = "Updating..."_();
+                start_time = std::chrono::system_clock::now();
+
+                int pid = fork();
+                if(pid == 0) {
+                    execlp("appimageupdatetool", "appimageupdatetool", "--overwrite", std::getenv("APPIMAGE"), nullptr);
+                    _exit(2);
+                } else {
+                    this->pid = pid;
+                    return status::running;
+                }
+            }
+
+            status progress(double& progress, std::string& message) override {
+                auto now = std::chrono::system_clock::now();
+                if(now - start_time < wait_duration) {
+                    progress = utils::progress(now, start_time, wait_duration);
+                    return status::running;
+                }
+
+                int status;
+                if(waitpid(pid, &status, WNOHANG) != 0) {
+                    int exit_code = WEXITSTATUS(status);
+                    if(exit_code == 0) {
+                        message = "Update successful. Please restart the application to apply it."_();
+                        return status::success;
+                    } else {
+                        message = "Failed to update."_();
+                        return status::error;
+                    }
+                }
+                return status::running;
+            }
+
+            bool cancel(std::string& message) override {
+                return false;
+            }
+        private:
+            pid_t pid;
+            std::chrono::time_point<std::chrono::system_clock> start_time;
+            constexpr static auto wait_duration = std::chrono::seconds(2);
+    };
+
+    class update_checker : public app::progress_item {
+        public:
+            update_checker(app::xmbshell* xmb) : xmb(xmb) {}
+
             status init(std::string& message) override {
                 message = "Checking for updates..."_();
                 start_time = std::chrono::system_clock::now();
 
                 int pid = fork();
                 if(pid == 0) {
-                    execlp("appimageupdatetool", "-j", std::getenv("APPIMAGE"), nullptr);
+                    execlp("appimageupdatetool", "appimageupdatetool", "--check-for-update", std::getenv("APPIMAGE"), nullptr);
                     _exit(2);
                 } else {
                     this->pid = pid;
@@ -53,12 +105,20 @@ namespace menu {
                 if(waitpid(pid, &status, WNOHANG) != 0) {
                     int exit_code = WEXITSTATUS(status);
                     if(exit_code == 0) {
-                        message = "No updates available"_();
+                        message = "No updates available."_();
                         return status::success;
                     } else if(exit_code == 1) {
+                        message = {};
+                        xmb->set_message_overlay(app::message_overlay{"Update Available"_(), "An update is available. Would you like to install it?"_(),
+                            {"Yes"_(), "No"_()}, [xmb = this->xmb](unsigned int choice){
+                                if(choice == 0) {
+                                    xmb->set_progress_overlay(app::progress_overlay{"Updating"_(), std::make_unique<updater>()});
+                                }
+                            }
+                        });
                         return status::success;
                     } else {
-                        message = "Failed to check for updates"_();
+                        message = "Failed to check for updates."_();
                         return status::error;
                     }
                 }
@@ -70,7 +130,8 @@ namespace menu {
         private:
             pid_t pid;
             std::chrono::time_point<std::chrono::system_clock> start_time;
-            constexpr static auto wait_duration = std::chrono::seconds(10);
+            constexpr static auto wait_duration = std::chrono::milliseconds(500);
+            app::xmbshell* xmb;
     };
 
     std::unique_ptr<action_menu_entry> entry_base(dreamrender::resource_loader& loader,
@@ -184,7 +245,7 @@ namespace menu {
         ));
         entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [xmb](){
             spdlog::info("Update request from XMB");
-            xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<updater_checker>()});
+            xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb)});
             return result::unsupported;
         }));
         entries.push_back(make_simple<action_menu_entry>("Report bug"_(), config::CONFIG.asset_directory/"icons/icon_bug.png", loader, [](){
