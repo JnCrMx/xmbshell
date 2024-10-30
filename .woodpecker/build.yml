@@ -62,6 +62,8 @@ steps:
       - LIBROOT="/lib/x86_64-linux-gnu" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=x86_64 NO_STRIP=1 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - rm AppDir/usr/lib/libwayland-*
+      - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-x86_64.AppImage" -O AppDir/usr/bin/appimageupdatetool
+      - chmod +x AppDir/usr/bin/appimageupdatetool
       - ARCH=x86_64 ./appimagetool-aarch64.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-x86_64.AppImage.zsync" AppDir/
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage
       - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-x86_64.AppImage
