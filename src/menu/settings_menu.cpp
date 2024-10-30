@@ -2,6 +2,7 @@ module;
 
 #include <array>
 #include <chrono>
+#include <filesystem>
 #include <format>
 #include <functional>
 #include <memory>
@@ -39,7 +40,8 @@ namespace menu {
 
                 int pid = fork();
                 if(pid == 0) {
-                    execlp("appimageupdatetool", "appimageupdatetool", "--overwrite", std::getenv("APPIMAGE"), nullptr);
+                    std::filesystem::path appimageupdatetool = config::CONFIG.exe_directory / "appimageupdatetool"; 
+                    execl(appimageupdatetool.c_str(), "appimageupdatetool", "--overwrite", std::getenv("APPIMAGE"), nullptr);
                     _exit(2);
                 } else {
                     this->pid = pid;
@@ -87,7 +89,8 @@ namespace menu {
 
                 int pid = fork();
                 if(pid == 0) {
-                    execlp("appimageupdatetool", "appimageupdatetool", "--check-for-update", std::getenv("APPIMAGE"), nullptr);
+                    std::filesystem::path appimageupdatetool = config::CONFIG.exe_directory / "appimageupdatetool"; 
+                    execl(appimageupdatetool.c_str(), "appimageupdatetool", "--check-for-update", std::getenv("APPIMAGE"), nullptr);
                     _exit(2);
                 } else {
                     this->pid = pid;
@@ -243,11 +246,13 @@ namespace menu {
 #endif
             }
         ));
-        entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [xmb](){
-            spdlog::info("Update request from XMB");
-            xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb)});
-            return result::unsupported;
-        }));
+        if(std::getenv("APPIMAGE")) {
+            entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [xmb](){
+                spdlog::info("Update request from XMB");
+                xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb)});
+                return result::unsupported;
+            }));
+        }
         entries.push_back(make_simple<action_menu_entry>("Report bug"_(), config::CONFIG.asset_directory/"icons/icon_bug.png", loader, [](){
             spdlog::info("Bug report request from XMB");
             return result::unsupported;
