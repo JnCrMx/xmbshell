@@ -13,6 +13,7 @@ export module xmbshell.app:main;
 import xmbshell.render;
 import xmbshell.utils;
 import dreamrender;
+import glm;
 import sdl2;
 import vulkan_hpp;
 
@@ -52,6 +53,31 @@ namespace app
             void handle(result result);
 
             std::string get_controller_type() const;
+            void render_controller_buttons(gui_renderer& renderer, float x, float y, std::ranges::range auto buttons) {
+                constexpr float min_width = 0.2f;
+                constexpr float size = 0.05f;
+                float size_x = size/renderer.aspect_ratio;
+                float total_width = 0.0f;
+                float last_width = 0.0f;
+                for (const auto& [action, text] : buttons) {
+                    last_width = size_x/1.25f+renderer.measure_text(text, size).x;
+                    total_width += std::max(min_width, last_width);
+                }
+                if(last_width < min_width) {
+                    total_width -= (min_width - last_width);
+                }
+
+                float current_x = x - total_width/2;
+                for (const auto& [action, text] : buttons) {
+                    auto icon = buttonTextures[std::to_underlying(action)].get();
+                    float width = std::max(min_width, size_x/1.25f+renderer.measure_text(text, size).x);
+                    if(action != action::none && icon) {
+                        renderer.draw_image(*icon, current_x, y, size/2.0, size/2.0);
+                        renderer.draw_text(text, current_x+size_x/1.25f, y+size*0.033f, size);
+                    }
+                    current_x += width;
+                }
+            }
 
             void set_ingame_mode(bool ingame_mode) { this->ingame_mode = ingame_mode; }
             bool get_ingame_mode() const { return ingame_mode; }

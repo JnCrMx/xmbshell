@@ -429,7 +429,7 @@ namespace app
 
 	void xmbshell::render_gui(gui_renderer& renderer) {
 		if(message_overlay) {
-			message_overlay->render(renderer);
+			message_overlay->render(renderer, this);
 		}
 		else if(progress_overlay) {
 			progress_overlay->render(renderer);

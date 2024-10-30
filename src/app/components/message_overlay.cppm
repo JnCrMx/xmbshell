@@ -13,14 +13,16 @@ import xmbshell.utils;
 
 namespace app {
 
+class xmbshell;
+
 export class message_overlay : public action_receiver {
     public:
         message_overlay(std::string title, std::string message, std::vector<std::string> choices = {},
             std::function<void(unsigned int)> confirm_callback = [](unsigned int){},
-            bool cancelable = false, std::function<void()> cancel_callback = [](){}
+            bool cancelable = true, std::function<void()> cancel_callback = [](){}
         );
 
-        void render(dreamrender::gui_renderer& renderer);
+        void render(dreamrender::gui_renderer& renderer, xmbshell* xmb);
         result on_action(action action) override;
     private:
         std::string title;
