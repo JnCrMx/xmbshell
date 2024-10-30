@@ -37,6 +37,22 @@
                 Whether to enable navigation with the analog stick in XMB.
             </description>
         </key>
+        <key name='controller-type' type='s'>
+            <default>'auto'</default>
+            <summary>Controller type</summary>
+            <description>
+                Controls the controller button icons.
+            </description>
+            <choices>
+                <choice value='none'/>
+                <choice value='auto'/>
+                <choice value='keyboard'/>
+                <choice value='playstation'/>
+                <choice value='xbox'/>
+                <choice value='steam'/>
+                <choice value='ouya'/>
+            </choices>
+        </key>
         <key name='background-type' type='s'>
             <default>'wave'</default>
             <summary>Background type</summary>

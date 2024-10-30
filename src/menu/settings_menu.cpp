@@ -210,31 +210,70 @@ namespace menu {
             return result::success;
         });
     }
+    std::unique_ptr<action_menu_entry> entry_enum(dreamrender::resource_loader& loader, app::xmbshell* xmb,
+        const std::string& name, const std::string& schema, const std::string& key, std::ranges::range auto values)
+    {
+        return entry_base(loader, name, key, [xmb, key, schema, values](){
+            auto settings = Gio::Settings::create(schema);
+            std::string value = settings->get_string(key);
+            std::vector<std::string> choices;
+            std::vector<std::string> keys;
+            for(const auto& [key, name] : values) {
+                choices.push_back(name);
+                keys.push_back(key);
+            }
+            unsigned int current_choice = std::distance(keys.begin(), std::find(keys.begin(), keys.end(), value));
+            xmb->set_choice_overlay(app::choice_overlay{
+                choices, current_choice,
+                [settings, schema, key, keys](unsigned int choice) {
+                    auto value = keys[choice];
+                    settings->set_string(key, value);
+                    settings->apply();
+                }
+            });
+            return result::success;
+        });
+    }
 
     settings_menu::settings_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
-        entries.push_back(make_simple<simple_menu>("Video Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_video.png", loader,
+        const std::filesystem::path& asset_dir = config::CONFIG.asset_directory;
+        entries.push_back(make_simple<simple_menu>("Video Settings"_(), asset_dir/"icons/icon_settings_video.png", loader,
             std::array{
                 entry_bool(loader, xmb, "VSync"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
                 entry_int(loader, xmb, "Sample Count"_(), "re.jcm.xmbos.xmbshell.render", "sample-count", std::array{1, 2, 4, 8, 16}),
                 entry_int(loader, xmb, "Max FPS"_(), "re.jcm.xmbos.xmbshell.render", "max-fps", 15, 200, 5),
             }
         ));
-        entries.push_back(make_simple<simple_menu>("Debug Settings"_(), config::CONFIG.asset_directory/"icons/icon_settings_debug.png", loader,
+        entries.push_back(make_simple<simple_menu>("Input Settings"_(), asset_dir/"icons/icons_settings_input.png", loader,
+            std::array{
+                entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
+                entry_enum(loader, xmb, "Controller Type"_(), "re.jcm.xmbos.xmbshell", "controller-type", std::array{
+                    std::pair{"none", "None"_()},
+                    std::pair{"auto", "Automatic"_()},
+                    std::pair{"keyboard", "Keyboard"_()},
+                    std::pair{"playstation", "PlayStation"_()},
+                    std::pair{"xbox", "Xbox"_()},
+                    std::pair{"steam", "Steam Controller / Steamdeck"_()},
+                    std::pair{"ouya", "Ouya"_()},
+                }),
+            }
+        ));
+        entries.push_back(make_simple<simple_menu>("Debug Settings"_(), asset_dir/"icons/icon_settings_debug.png", loader,
             std::array{
                 entry_bool(loader, xmb, "Show FPS"_(), "re.jcm.xmbos.xmbshell.render", "show-fps"),
                 entry_bool(loader, xmb, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
 #ifndef NDEBUG
-                make_simple<action_menu_entry>("Toggle Background Blur"_(), config::CONFIG.asset_directory/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
+                make_simple<action_menu_entry>("Toggle Background Blur"_(), asset_dir/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
                     spdlog::info("Toggling background blur");
                     xmb->set_blur_background(!xmb->get_blur_background());
                     return result::success;
                 }),
-                make_simple<action_menu_entry>("Toggle Ingame Mode"_(), config::CONFIG.asset_directory/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
+                make_simple<action_menu_entry>("Toggle Ingame Mode"_(), asset_dir/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
                     spdlog::info("Toggling ingame mode");
                     xmb->set_ingame_mode(!xmb->get_ingame_mode());
                     return result::success;
                 }),
-                make_simple<action_menu_entry>("Test Choice Overlay"_(), config::CONFIG.asset_directory/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
+                make_simple<action_menu_entry>("Test Choice Overlay"_(), asset_dir/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
                     spdlog::info("Testing choice overlay");
                     if(xmb->get_choice_overlay()) {
                         xmb->set_choice_overlay(std::nullopt);
@@ -247,17 +286,17 @@ namespace menu {
             }
         ));
         if(std::getenv("APPIMAGE")) {
-            entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), config::CONFIG.asset_directory/"icons/icon_settings_update.png", loader, [xmb](){
+            entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), asset_dir/"icons/icon_settings_update.png", loader, [xmb](){
                 spdlog::info("Update request from XMB");
                 xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb)});
                 return result::unsupported;
             }));
         }
-        entries.push_back(make_simple<action_menu_entry>("Report bug"_(), config::CONFIG.asset_directory/"icons/icon_bug.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Report bug"_(), asset_dir/"icons/icon_bug.png", loader, [](){
             spdlog::info("Bug report request from XMB");
             return result::unsupported;
         }));
-        entries.push_back(make_simple<action_menu_entry>("Reset"_(), config::CONFIG.asset_directory/"icons/icon_settings_reset.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Reset"_(), asset_dir/"icons/icon_settings_reset.png", loader, [](){
             spdlog::info("Settings reset request from XMB");
             Glib::RefPtr<Gio::Settings> shellSettings =
                 Gio::Settings::create("re.jcm.xmbos.xmbshell");
