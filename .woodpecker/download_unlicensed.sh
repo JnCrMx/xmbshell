@@ -11,6 +11,14 @@ curl -L --output icons/icon_category_tv.png "https://www.psdevwiki.com/ps3/image
 curl -L --output icons/icon_category_game.png "https://www.psdevwiki.com/ps3/images/archive/a/af/20140220101052%21Icon_category_game.png"
 curl -L --output icons/icon_category_network.png "https://www.psdevwiki.com/ps3/images/archive/e/e6/20140220101001%21Icon_category_network.png"
 curl -L --output icons/icon_category_friends.png "https://www.psdevwiki.com/ps3/images/archive/f/f4/20140220100934%21Icon_category_friends.png"
-curl -L --output icons/icon_settings_update.png "https://archive.org/download/XMB-Icons/iqvigtkhqlesuj2rins9i3foau-d655f4f0bdf9974ef04884737b7a49c3.png"
 
+curl -L --output icons/icon_settings_update.png "https://archive.org/download/XMB-Icons/iqvigtkhqlesuj2rins9i3foau-d655f4f0bdf9974ef04884737b7a49c3.png"
 mogrify -channel alpha -threshold 99% -trim +repage -background none -gravity Center -extent "300x300<" icons/icon_settings_update.png
+
+curl -L --output icons/icon_button_xbox_ok.png "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Xbox_button_A.svg/240px-Xbox_button_A.svg.png"
+curl -L --output icons/icon_button_xbox_cancel.png "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Xbox_button_B.svg/240px-Xbox_button_B.svg.png"
+curl -L --output icons/icon_button_xbox_up.png "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Xbox_D-pad_%28U%29.svg/240px-Xbox_D-pad_%28U%29.svg.png"
+curl -L --output icons/icon_button_xbox_down.png "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Xbox_D-pad_%28D%29.svg/240px-Xbox_D-pad_%28D%29.svg.png"
+curl -L --output icons/icon_button_xbox_left.png "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Xbox_D-pad_%28L%29.svg/240px-Xbox_D-pad_%28L%29.svg.png"
+curl -L --output icons/icon_button_xbox_right.png "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Xbox_D-pad_%28R%29.svg/240px-Xbox_D-pad_%28R%29.svg.png"
+curl -L --output icons/icon_button_xbox_home.png "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Xbox_Logo.svg/239px-Xbox_Logo.svg.png"

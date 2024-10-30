@@ -54,6 +54,8 @@ export namespace config
             bool controllerRumble;
             bool controllerAnalogStick;
 
+            std::string controllerType;
+
             void load();
             void reload();
             void addCallback(const std::string& key, std::function<void(const std::string&)> callback);

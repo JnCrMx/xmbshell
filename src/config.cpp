@@ -61,6 +61,7 @@ void config::reload() {
     dateTimeOffset = shellSettings->get_double("date-time-x-offset");
     controllerRumble = shellSettings->get_boolean("controller-rumble");
     controllerAnalogStick = shellSettings->get_boolean("controller-analog-stick");
+    controllerType = shellSettings->get_string("controller-type");
 
     setFontPath(shellSettings->get_string("font-path"));
     setBackgroundType(shellSettings->get_string("background-type"));

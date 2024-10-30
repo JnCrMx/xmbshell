@@ -1,10 +1,12 @@
 module;
 
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <vector>
+#include <utility>
 
 export module xmbshell.app:main;
 
@@ -44,9 +46,12 @@ namespace app
 
             void reload_background();
             void reload_fonts();
+            void reload_button_icons();
 
             void dispatch(action action);
             void handle(result result);
+
+            std::string get_controller_type() const;
 
             void set_ingame_mode(bool ingame_mode) { this->ingame_mode = ingame_mode; }
             bool get_ingame_mode() const { return ingame_mode; }
@@ -102,6 +107,7 @@ namespace app
             std::unique_ptr<texture> backgroundTexture;
             main_menu menu{this};
             news_display news{this};
+            std::array<std::unique_ptr<texture>, std::to_underlying(action::_length)> buttonTextures;
 
             sdl::mix::unique_chunk ok_sound;
 

@@ -3,8 +3,10 @@ module;
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <vector>
+#include <utility>
 
 module xmbshell.app;
 
@@ -172,6 +174,11 @@ namespace app
 				backgroundTexture.reset();
 			}
 		});
+		config::CONFIG.addCallback("controller-type", [this](const std::string&){
+			reload_button_icons();
+		});
+
+		reload_button_icons();
 	}
 
 	void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -481,6 +488,22 @@ namespace app
 			backgroundTexture = std::make_unique<texture>(device, allocator);
 			loader->loadTexture(backgroundTexture.get(), config::CONFIG.backgroundImage);
 		}
+	}
+	void xmbshell::reload_button_icons() {
+		auto controller_type = get_controller_type();
+
+		for(std::underlying_type_t<action> i = std::to_underlying(action::none)+1; i < std::to_underlying(action::_length); i++) {
+			action a = static_cast<action>(i);
+			std::string_view name = utils::enum_name(a);
+			std::filesystem::path icon_name = config::CONFIG.asset_directory / "icons" / std::format("icon_button_{}_{}.png", controller_type, name);
+
+			buttonTextures[i] = std::make_unique<texture>(device, allocator);
+			loader->loadTexture(buttonTextures[i].get(), icon_name);
+		}
+	}
+	std::string xmbshell::get_controller_type() const {
+		auto type = config::CONFIG.controllerType;
+		return type;
 	}
 
 	void xmbshell::tick() {
