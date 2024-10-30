@@ -22,3 +22,4 @@ curl -L --output icons/icon_button_xbox_down.png "https://upload.wikimedia.org/w
 curl -L --output icons/icon_button_xbox_left.png "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Xbox_D-pad_%28L%29.svg/240px-Xbox_D-pad_%28L%29.svg.png"
 curl -L --output icons/icon_button_xbox_right.png "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Xbox_D-pad_%28R%29.svg/240px-Xbox_D-pad_%28R%29.svg.png"
 curl -L --output icons/icon_button_xbox_home.png "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Xbox_Logo.svg/239px-Xbox_Logo.svg.png"
+mogrify +level-colors "#c4c3c4" icons/icon_button_xbox_{up,down,left,right,home}.png

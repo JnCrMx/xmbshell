@@ -40,7 +40,7 @@ namespace menu {
 
                 int pid = fork();
                 if(pid == 0) {
-                    std::filesystem::path appimageupdatetool = config::CONFIG.exe_directory / "appimageupdatetool"; 
+                    std::filesystem::path appimageupdatetool = config::CONFIG.exe_directory / "appimageupdatetool";
                     execl(appimageupdatetool.c_str(), "appimageupdatetool", "--overwrite", std::getenv("APPIMAGE"), nullptr);
                     _exit(2);
                 } else {
@@ -89,7 +89,7 @@ namespace menu {
 
                 int pid = fork();
                 if(pid == 0) {
-                    std::filesystem::path appimageupdatetool = config::CONFIG.exe_directory / "appimageupdatetool"; 
+                    std::filesystem::path appimageupdatetool = config::CONFIG.exe_directory / "appimageupdatetool";
                     execl(appimageupdatetool.c_str(), "appimageupdatetool", "--check-for-update", std::getenv("APPIMAGE"), nullptr);
                     _exit(2);
                 } else {
@@ -246,7 +246,6 @@ namespace menu {
         ));
         entries.push_back(make_simple<simple_menu>("Input Settings"_(), asset_dir/"icons/icons_settings_input.png", loader,
             std::array{
-                entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
                 entry_enum(loader, xmb, "Controller Type"_(), "re.jcm.xmbos.xmbshell", "controller-type", std::array{
                     std::pair{"none", "None"_()},
                     std::pair{"auto", "Automatic"_()},
@@ -256,6 +255,8 @@ namespace menu {
                     std::pair{"steam", "Steam Controller / Steamdeck"_()},
                     std::pair{"ouya", "Ouya"_()},
                 }),
+                entry_bool(loader, xmb, "Controller Rumble"_(), "re.jcm.xmbos.xmbshell", "controller-rumble"),
+                entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Debug Settings"_(), asset_dir/"icons/icon_settings_debug.png", loader,
@@ -271,15 +272,6 @@ namespace menu {
                 make_simple<action_menu_entry>("Toggle Ingame Mode"_(), asset_dir/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
                     spdlog::info("Toggling ingame mode");
                     xmb->set_ingame_mode(!xmb->get_ingame_mode());
-                    return result::success;
-                }),
-                make_simple<action_menu_entry>("Test Choice Overlay"_(), asset_dir/"icons/icon_settings-toggle-ingame-mode.png", loader, [xmb](){
-                    spdlog::info("Testing choice overlay");
-                    if(xmb->get_choice_overlay()) {
-                        xmb->set_choice_overlay(std::nullopt);
-                    } else {
-                        xmb->set_choice_overlay(app::choice_overlay{std::vector<std::string>{{"Hello"}, {"World"}}});
-                    }
                     return result::success;
                 }),
 #endif

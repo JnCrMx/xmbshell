@@ -494,6 +494,10 @@ namespace app
 
 		for(std::underlying_type_t<action> i = std::to_underlying(action::none)+1; i < std::to_underlying(action::_length); i++) {
 			action a = static_cast<action>(i);
+			if(controller_type == "none") {
+				continue;
+			}
+
 			std::string_view name = utils::enum_name(a);
 			std::filesystem::path icon_name = config::CONFIG.asset_directory / "icons" / std::format("icon_button_{}_{}.png", controller_type, name);
 
@@ -503,6 +507,22 @@ namespace app
 	}
 	std::string xmbshell::get_controller_type() const {
 		auto type = config::CONFIG.controllerType;
+		if(type == "auto") {
+			if(win->controllers.empty()) {
+				return "none";
+			}
+			for(const auto& [id, controller] : win->controllers) {
+				sdl::GameControllerType ctype = sdl::GameControllerGetType(controller.get());
+				if(ctype == sdl::GameControllerTypeValues::PS4 ||
+				   ctype == sdl::GameControllerTypeValues::PS5) {
+					return "playstation";
+				} else if(ctype == sdl::GameControllerTypeValues::XBOX360 ||
+						  ctype == sdl::GameControllerTypeValues::XBOXONE) {
+					return "xbox";
+				}
+			}
+			return "ouya"; // totally sensible default :P
+		}
 		return type;
 	}
 
