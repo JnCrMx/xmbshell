@@ -8,6 +8,8 @@ module;
 module xmbshell.app;
 import :progress_overlay;
 
+import :message_overlay;
+
 import dreamrender;
 import glm;
 import spdlog;
@@ -33,14 +35,14 @@ namespace app {
         if(failed) {
             spdlog::error("Progress failed: \"{}\"", status_message);
             if(!status_message.empty()) {
-                // TODO: show error message
+                xmb->set_message_overlay(message_overlay{title, status_message, {"OK"}, {}, true});
             }
             return result::failure | result::close;
         }
         if(done) {
             spdlog::info("Progress done: \"{}\"", status_message);
             if(!status_message.empty()) {
-                // TODO: show success message
+                xmb->set_message_overlay(message_overlay{title, status_message, {"OK"}, {}, true});
             }
             return result::success | result::close;
         }

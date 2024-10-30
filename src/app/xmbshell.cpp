@@ -421,7 +421,10 @@ namespace app
 	}
 
 	void xmbshell::render_gui(gui_renderer& renderer) {
-		if(progress_overlay) {
+		if(message_overlay) {
+			message_overlay->render(renderer);
+		}
+		else if(progress_overlay) {
 			progress_overlay->render(renderer);
 		} else {
 			auto now = std::chrono::system_clock::now();
@@ -509,6 +512,14 @@ namespace app
 	}
 
 	void xmbshell::dispatch(action action) {
+		if(message_overlay) {
+			result res = message_overlay->on_action(action);
+			if(res & result::close) {
+				set_message_overlay(std::nullopt);
+			}
+			handle(res);
+			return;
+		}
 		if(progress_overlay) {
 			result res = progress_overlay->on_action(action);
 			if(res & result::close) {
