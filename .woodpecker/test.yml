@@ -21,7 +21,7 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang-19 clang-tools-19 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin
+        clang-19 clang-tools-19 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin imagemagick
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.4-dev libsdbus-c++-dev libboost-dev
       - .woodpecker/download_unlicensed.sh
