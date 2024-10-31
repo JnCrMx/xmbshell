@@ -49,11 +49,15 @@ namespace app {
         return result::success;
     }
 
-    void progress_overlay::render(dreamrender::gui_renderer& renderer) {
+    void progress_overlay::render(dreamrender::gui_renderer& renderer, xmbshell* xmb) {
         renderer.draw_rect(glm::vec2(0.0f, 0.15f), glm::vec2(1.0f, 2.0/renderer.frame_size.height), glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
         renderer.draw_rect(glm::vec2(0.0f, 0.85f), glm::vec2(1.0f, 2.0/renderer.frame_size.height), glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
 
         renderer.draw_text(title, 0.075f, 0.125f, 0.05f);
+        xmb->render_controller_buttons(renderer, 0.5f, 0.9f, std::array{
+            std::pair{action::none, ""},
+            std::pair{action::cancel, "Back"}
+        });
 
         float total_height = 0;
         float total_width = 0;

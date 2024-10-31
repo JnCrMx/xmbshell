@@ -34,7 +34,7 @@ export class progress_overlay : public action_receiver {
         progress_overlay(std::string title, std::unique_ptr<progress_item>&& item);
 
         result tick(class xmbshell* xmb);
-        void render(dreamrender::gui_renderer& renderer);
+        void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb);
         result on_action(action action) override;
     private:
         std::string title;

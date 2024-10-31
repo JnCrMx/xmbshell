@@ -13,8 +13,6 @@ import xmbshell.utils;
 
 namespace app {
 
-class xmbshell;
-
 export class message_overlay : public action_receiver {
     public:
         message_overlay(std::string title, std::string message, std::vector<std::string> choices = {},
@@ -22,7 +20,7 @@ export class message_overlay : public action_receiver {
             bool cancelable = true, std::function<void()> cancel_callback = [](){}
         );
 
-        void render(dreamrender::gui_renderer& renderer, xmbshell* xmb);
+        void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb);
         result on_action(action action) override;
     private:
         std::string title;

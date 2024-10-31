@@ -432,7 +432,7 @@ namespace app
 			message_overlay->render(renderer, this);
 		}
 		else if(progress_overlay) {
-			progress_overlay->render(renderer);
+			progress_overlay->render(renderer, this);
 		} else {
 			auto now = std::chrono::system_clock::now();
 			double choice_overlay_progress = utils::progress(now, last_choice_overlay_change, choice_overlay_transition_duration);
