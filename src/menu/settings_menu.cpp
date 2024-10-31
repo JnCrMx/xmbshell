@@ -244,7 +244,7 @@ namespace menu {
                 entry_int(loader, xmb, "Max FPS"_(), "re.jcm.xmbos.xmbshell.render", "max-fps", 15, 200, 5),
             }
         ));
-        entries.push_back(make_simple<simple_menu>("Input Settings"_(), asset_dir/"icons/icons_settings_input.png", loader,
+        entries.push_back(make_simple<simple_menu>("Input Settings"_(), asset_dir/"icons/icon_settings_input.png", loader,
             std::array{
                 entry_enum(loader, xmb, "Controller Type"_(), "re.jcm.xmbos.xmbshell", "controller-type", std::array{
                     std::pair{"none", "None"_()},
