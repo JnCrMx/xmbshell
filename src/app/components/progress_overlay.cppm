@@ -31,7 +31,7 @@ export class progress_item {
 
 export class progress_overlay : public action_receiver {
     public:
-        progress_overlay(std::string title, std::unique_ptr<progress_item>&& item);
+        progress_overlay(std::string title, std::unique_ptr<progress_item>&& item, bool show_progress = true);
 
         result tick(class xmbshell* xmb);
         void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb);
@@ -39,6 +39,8 @@ export class progress_overlay : public action_receiver {
     private:
         std::string title;
         std::unique_ptr<progress_item> item;
+        bool show_progress;
+
         double progress = 0.0;
         bool done = false;
         bool failed = false;
