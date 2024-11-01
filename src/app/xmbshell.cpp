@@ -509,7 +509,7 @@ namespace app
 		auto type = config::CONFIG.controllerType;
 		if(type == "auto") {
 			if(win->controllers.empty()) {
-				return "none";
+				return "keyboard";
 			}
 			for(const auto& [id, controller] : win->controllers) {
 				sdl::GameControllerType ctype = sdl::GameControllerGetType(controller.get());
@@ -519,6 +519,10 @@ namespace app
 				} else if(ctype == sdl::GameControllerTypeValues::XBOX360 ||
 						  ctype == sdl::GameControllerTypeValues::XBOXONE) {
 					return "xbox";
+				}
+				std::string_view name = sdl::GameControllerName(controller.get());
+				if(name == "Steam Virtual Gamepad" || name == "Steam Controller") {
+					return "steam";
 				}
 			}
 			return "ouya"; // totally sensible default :P
@@ -627,9 +631,15 @@ namespace app
 
 	void xmbshell::add_controller(sdl::GameController* controller)
 	{
+		if(config::CONFIG.controllerType == "auto") {
+			reload_button_icons();
+		}
 	}
 	void xmbshell::remove_controller(sdl::GameController* controller)
 	{
+		if(config::CONFIG.controllerType == "auto") {
+			reload_button_icons();
+		}
 	}
 	void xmbshell::button_down(sdl::GameController* controller, sdl::GameControllerButton button)
 	{
