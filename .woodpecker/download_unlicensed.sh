@@ -27,7 +27,3 @@ mogrify +level-colors "#c4c3c4" icons/icon_button_xbox_{up,down,left,right,home}
 curl -L --output icons/icon_button_playstation_ok.png "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/PlayStationCross.svg/288px-PlayStationCross.svg.png"
 curl -L --output icons/icon_button_playstation_cancel.png "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/PlayStationCircle.svg/288px-PlayStationCircle.svg.png"
 mogrify -background none -gravity Center -extent "300x300<" icons/icon_button_playstation_{ok,cancel}.png
-
-curl -L --output icons/icon_button_keyboard_ok.png "https://raw.githubusercontent.com/q2apro/keyboard-keys-speedflips/refs/heads/master/single-keys-blank/200dpi/enter.png"
-curl -L --output icons/icon_button_keyboard_cancel.png "https://raw.githubusercontent.com/q2apro/keyboard-keys-speedflips/refs/heads/master/single-keys-blank/200dpi/esc.png"
-mogrify -background none -gravity Center -resize "256x256<" -extent "256x256<" icons/icon_button_keyboard_{ok,cancel}.png
