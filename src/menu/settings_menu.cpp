@@ -280,7 +280,7 @@ namespace menu {
         if(std::getenv("APPIMAGE")) {
             entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), asset_dir/"icons/icon_settings_update.png", loader, [xmb](){
                 spdlog::info("Update request from XMB");
-                xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb)});
+                xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb), false});
                 return result::unsupported;
             }));
         }
