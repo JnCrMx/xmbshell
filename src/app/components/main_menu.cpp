@@ -30,6 +30,7 @@ main_menu::main_menu(xmbshell* shell) : shell(shell) {
 void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader) {
     using ::menu::make_simple;
     using ::menu::make_simple_of;
+    const auto appFilter = ::menu::excludeFilter(config::CONFIG.excludedApplications);
 
     const auto& asset_directory = config::CONFIG.asset_directory;
     menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, loader));
@@ -38,7 +39,8 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
     menus.push_back(make_simple_of<menu::menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader));
     menus.push_back(make_simple_of<menu::menu>("TV"_(), asset_directory/"icons/icon_category_tv.png", loader));
-    menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, loader, ::menu::categoryFilter("Game")));
+    menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, shell, loader,
+        ::menu::andFilter(appFilter, ::menu::categoryFilter("Game"))));
     menus.push_back(make_simple_of<menu::menu>("Network"_(), asset_directory/"icons/icon_category_network.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Friends"_(), asset_directory/"icons/icon_category_friends.png", loader));
 
@@ -56,7 +58,8 @@ result main_menu::on_action(action action) {
         case action::down:
             return select_relative(direction::down) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
         case action::ok:
-            return activate_current() ? result::success : result::unsupported | result::error_rumble;
+        case action::options:
+            return activate_current(action) ? result::success : result::unsupported | result::error_rumble;
         case action::cancel:
             return back() ? result::success : result::unsupported | result::error_rumble;
         default:
@@ -106,9 +109,9 @@ bool main_menu::select_relative(direction dir) {
     }
     return false;
 }
-bool main_menu::activate_current() {
+bool main_menu::activate_current(action action) {
     auto& menu = *menus[selected];
-    auto res = menu.activate();
+    auto res = menu.activate(action);
     if(res == result::submenu) {
         if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
             if(submenu->get_submenus_count() > 0 && !in_submenu) {

@@ -111,6 +111,7 @@ set(XMBSHELL_SOURCES
   src/app/components/message_overlay.cpp
   src/app/components/news_display.cpp
   src/app/components/progress_overlay.cpp
+  src/menu/applications_menu.cpp
   src/menu/settings_menu.cpp
   src/dbus.cpp
   src/render/shaders.cpp

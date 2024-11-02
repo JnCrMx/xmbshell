@@ -86,6 +86,13 @@
                 Color of the background wave.
             </description>
         </key>
+        <key name='excluded-applications' type='as'>
+            <default>[]</default>
+            <summary>Excluded applications</summary>
+            <description>
+                List of applications that should not be shown in the XMB.
+            </description>
+        </key>
     </schema>
     <schema path="/re/jcm/xmbos/xmbshell/render/" id="re.jcm.xmbos.xmbshell.render">
         <key name='vsync' type='b'>

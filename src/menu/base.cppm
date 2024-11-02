@@ -17,7 +17,7 @@ class menu_entry {
 
         virtual const std::string& get_name() const = 0;
         virtual const dreamrender::texture& get_icon() const = 0;
-        virtual result activate() {
+        virtual result activate(action action) {
             return result::unsupported;
         }
 };
@@ -66,15 +66,22 @@ using simple_menu_entry = simple<menu_entry>;
 
 class action_menu_entry : public simple_menu_entry {
     public:
-        action_menu_entry(const std::string& name, dreamrender::texture&& icon, std::function<result()> on_activate)
-            : simple_menu_entry(name, std::move(icon)), on_activate(on_activate) {}
+        action_menu_entry(const std::string& name, dreamrender::texture&& icon,
+            std::function<result()> on_activate, std::function<result(action)> on_action = {})
+            : simple_menu_entry(name, std::move(icon)), on_activate(on_activate), on_action(on_action) {}
         ~action_menu_entry() override = default;
 
-        result activate() override {
+        result activate(action action) override {
+            if(on_action) {
+                return on_action(action);
+            } else if(action != action::ok) {
+                return result::unsupported;
+            }
             return on_activate();
         }
     private:
         std::function<result()> on_activate;
+        std::function<result(action)> on_action;
 };
 
 class simple_menu : public simple_menu_shallow {
@@ -101,12 +108,12 @@ class simple_menu : public simple_menu_shallow {
         void select_submenu(unsigned int index) override {
             selected_submenu = index;
         }
-        result activate() override {
+        result activate(action action) override {
             if(!is_open) {
                 return result::submenu;
             }
             if(selected_submenu < entries.size()) {
-                return entries.at(selected_submenu)->activate();
+                return entries.at(selected_submenu)->activate(action);
             }
             return result::unsupported;
         }

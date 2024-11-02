@@ -6,6 +6,7 @@ module;
 #include <filesystem>
 #include <map>
 #include <functional>
+#include <unordered_set>
 
 export module xmbshell.config;
 
@@ -50,6 +51,8 @@ export namespace config
             glm::vec3               waveColor;
             std::string             dateTimeFormat = constants::fallback_datetime_format;
             double                  dateTimeOffset = 0.0;
+
+            std::unordered_set<std::string> excludedApplications;
 
             bool controllerRumble;
             bool controllerAnalogStick;

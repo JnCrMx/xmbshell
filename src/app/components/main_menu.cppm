@@ -40,7 +40,7 @@ class main_menu : public action_receiver {
         void select_menu_item(int index);
         void select_submenu_item(int index);
         bool select_relative(direction dir);
-        bool activate_current();
+        bool activate_current(action action);
         bool back();
 
         std::vector<std::unique_ptr<menu::menu>> menus;

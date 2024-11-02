@@ -55,6 +55,9 @@ void config::load() {
 
 void config::reload() {
     setBackgroundColor(shellSettings->get_string("background-color"));
+    auto excludedApps = shellSettings->get_string_array("excluded-applications");
+    excludedApplications.clear();
+    excludedApplications.insert(excludedApps.begin(), excludedApps.end());
 
     setWaveColor(shellSettings->get_string("wave-color"));
     setDateTimeFormat(shellSettings->get_string("date-time-format"));

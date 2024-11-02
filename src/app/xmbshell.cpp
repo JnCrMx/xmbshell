@@ -626,6 +626,9 @@ namespace app
 			case SDLK_ESCAPE:
 				dispatch(action::cancel);
 				break;
+			case SDLK_TAB:
+				dispatch(action::options);
+				break;
 		}
 	}
 
@@ -659,6 +662,8 @@ namespace app
 			dispatch(action::ok);
 		} else if(button == sdl::GameControllerButtonValues::B) {
 			dispatch(action::cancel);
+		} else if(button == sdl::GameControllerButtonValues::X) {
+			dispatch(action::options);
 		}
 	}
 	void xmbshell::button_up(sdl::GameController* controller, sdl::GameControllerButton button)
