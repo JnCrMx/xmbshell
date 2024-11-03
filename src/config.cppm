@@ -76,6 +76,8 @@ export namespace config
             void setWaveColor(std::string_view hex);
             void setWaveColor(const std::string& hex);
             void setDateTimeFormat(const std::string& format);
+
+            void excludeApplication(const std::string& application);
         private:
             Glib::RefPtr<Gio::Settings> shellSettings, renderSettings;
             std::multimap<std::string, std::function<void(const std::string&)>> callbacks;

@@ -1,6 +1,7 @@
 module;
 
 #include <functional>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -42,7 +43,7 @@ export namespace menu {
         };
     }
     constexpr auto excludeFilter(const std::unordered_set<std::string>& ids) {
-        return [ids](const Gio::DesktopAppInfo& app) {
+        return [&ids](const Gio::DesktopAppInfo& app) {
             return !ids.contains(app.get_id());
         };
     }
@@ -52,6 +53,14 @@ export namespace menu {
             applications_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader, AppFilter filter = noFilter());
             ~applications_menu() override = default;
         private:
+            void reload();
+            std::unique_ptr<action_menu_entry> create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app);
+            result activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, action action);
+
+            app::xmbshell* xmb;
+            dreamrender::resource_loader& loader;
+
+            AppFilter filter;
             std::vector<Glib::RefPtr<Gio::DesktopAppInfo>> apps;
     };
 

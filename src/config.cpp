@@ -181,4 +181,11 @@ void config::setDateTimeFormat(const std::string& format) {
     }
 }
 
+void config::excludeApplication(const std::string& application) {
+    excludedApplications.emplace(application);
+    shellSettings->set_string_array("excluded-applications",
+        std::vector(excludedApplications.begin(), excludedApplications.end()));
+    shellSettings->apply();
+}
+
 }
