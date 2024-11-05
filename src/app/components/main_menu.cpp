@@ -57,6 +57,7 @@ result main_menu::on_action(action action) {
             return select_relative(direction::down) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
         case action::ok:
         case action::options:
+        case action::extra:
             return activate_current(action) ? result::success : result::unsupported | result::error_rumble;
         case action::cancel:
             return back() ? result::success : result::unsupported | result::error_rumble;
@@ -195,9 +196,15 @@ void main_menu::render(dreamrender::gui_renderer& renderer) {
     renderer.push_color(glm::mix(active_color, inactive_color, partial));
     render_crossbar(renderer, now);
     renderer.pop_color();
+
+    std::vector<std::pair<action, std::string>> buttons{};
+    buttons.reserve(5);
+    menus[selected]->get_button_actions(buttons);
     if(in_submenu_now) {
         render_submenu(renderer, now);
+        current_submenu->get_button_actions(buttons);
     }
+    shell->render_controller_buttons(renderer, 0.5f, 0.9f, buttons);
 }
 
 void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point now) {

@@ -629,6 +629,9 @@ namespace app
 			case SDLK_TAB:
 				dispatch(action::options);
 				break;
+			case SDLK_CAPSLOCK:
+				dispatch(action::extra);
+				break;
 		}
 	}
 

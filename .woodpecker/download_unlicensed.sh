@@ -17,6 +17,8 @@ mogrify -channel alpha -threshold 99% -trim +repage -background none -gravity Ce
 
 curl -L --output icons/icon_button_xbox_ok.png "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Xbox_button_A.svg/240px-Xbox_button_A.svg.png"
 curl -L --output icons/icon_button_xbox_cancel.png "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Xbox_button_B.svg/240px-Xbox_button_B.svg.png"
+curl -L --output icons/icon_button_xbox_options.png "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Xbox_button_Y.svg/240px-Xbox_button_Y.svg.png"
+curl -L --output icons/icon_button_xbox_extra.png "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Xbox_button_X.svg/240px-Xbox_button_X.svg.png"
 curl -L --output icons/icon_button_xbox_up.png "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Xbox_D-pad_%28U%29.svg/240px-Xbox_D-pad_%28U%29.svg.png"
 curl -L --output icons/icon_button_xbox_down.png "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Xbox_D-pad_%28D%29.svg/240px-Xbox_D-pad_%28D%29.svg.png"
 curl -L --output icons/icon_button_xbox_left.png "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Xbox_D-pad_%28L%29.svg/240px-Xbox_D-pad_%28L%29.svg.png"

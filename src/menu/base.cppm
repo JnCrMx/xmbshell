@@ -39,6 +39,9 @@ class menu : public menu_entry {
         }
         virtual void on_close() {
         }
+        virtual void get_button_actions(std::vector<std::pair<action, std::string>>& v) {
+
+        }
 };
 
 template<typename T>

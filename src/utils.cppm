@@ -36,6 +36,7 @@ export enum class action {
 	ok = 5,
 	cancel = 6,
 	options = 7,
+	extra = 8,
 
 	_length,
 };

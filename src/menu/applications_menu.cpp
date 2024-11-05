@@ -192,12 +192,20 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
 }
 
 result applications_menu::activate(action action) {
-    if(action == action::none) { // TODO: pick an action for this & display it
+    if(action == action::extra) {
         show_hidden = !show_hidden;
         reload();
         return result::success;
     }
     return simple_menu::activate(action);
+}
+
+void applications_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {
+    v.push_back(std::make_pair(action::extra, show_hidden ? "Hide excluded apps"_() : "Show excluded apps"_()));
+    v.push_back(std::make_pair(action::none, ""));
+    v.push_back(std::make_pair(action::none, ""));
+    v.push_back(std::make_pair(action::none, ""));
+    v.push_back(std::make_pair(action::none, ""));
 }
 
 }

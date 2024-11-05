@@ -54,6 +54,7 @@ export namespace menu {
             ~applications_menu() override = default;
 
             result activate(action action) override;
+            void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
         private:
             void reload();
             std::unique_ptr<action_menu_entry> create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app);
