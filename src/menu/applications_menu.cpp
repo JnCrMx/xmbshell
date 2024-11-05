@@ -69,6 +69,8 @@ applications_menu::applications_menu(const std::string& name, dreamrender::textu
         if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
             if(!filter(*desktop_app.get()))
                 continue;
+            if(!show_hidden && config::CONFIG.excludedApplications.contains(app->get_id()))
+                continue;
 
             spdlog::trace("Found application: {} ({})", desktop_app->get_display_name(), desktop_app->get_id());
             auto entry = create_action_menu_entry(desktop_app);
@@ -119,7 +121,7 @@ void applications_menu::reload() {
     auto appInfos = Gio::AppInfo::get_all();
     for (const auto& app : appInfos) {
         if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
-            bool should_include = filter(*desktop_app.get());
+            bool should_include = filter(*desktop_app.get()) && (show_hidden || !config::CONFIG.excludedApplications.contains(desktop_app->get_id()));
             spdlog::trace("Found application: {} ({})", desktop_app->get_display_name(), desktop_app->get_id());
             auto it = std::find_if(apps.begin(), apps.end(), [&desktop_app](const Glib::RefPtr<Gio::DesktopAppInfo>& app){
                 return app->get_id() == desktop_app->get_id();
@@ -147,9 +149,10 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
     if(action == action::ok) {
         return app->launch(std::vector<Glib::RefPtr<Gio::File>>()) ? result::success : result::failure;
     } else if(action == action::options) {
+        bool hidden = config::CONFIG.excludedApplications.contains(app->get_id());
         xmb->set_choice_overlay(app::choice_overlay{std::vector{
-            "Launch application"_(), "View information"_(), "Remove from XMB"_()
-        }, 0, [this, app](unsigned int index){
+            "Launch application"_(), "View information"_(), hidden ? "Show in XMB"_() : "Remove from XMB"_()
+        }, 0, [this, app, hidden](unsigned int index){
             switch(index) {
                 case 0:
                     app->launch(std::vector<Glib::RefPtr<Gio::File>>());
@@ -168,19 +171,33 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
                     return;
                     }
                 case 2:
-                    xmb->set_message_overlay(app::message_overlay{"Remove Application"_(),
-                        "Are you sure you want to remove this application from XMB Shell?"_(),
-                        {"Yes"_(), "No"_()}, [this, app](unsigned int index){
-                        if(index == 0) {
-                            config::CONFIG.excludeApplication(app->get_id());
-                            reload();
-                        }
-                    }, true});
+                    if(!hidden) {
+                        xmb->set_message_overlay(app::message_overlay{"Remove Application"_(),
+                            "Are you sure you want to remove this application from XMB Shell?"_(),
+                            {"Yes"_(), "No"_()}, [this, app](unsigned int index){
+                            if(index == 0) {
+                                config::CONFIG.excludeApplication(app->get_id());
+                                reload();
+                            }
+                        }, true});
+                    } else {
+                        config::CONFIG.excludeApplication(app->get_id(), false);
+                        reload();
+                    }
                     return;
             }
         }});
     }
     return result::unsupported;
+}
+
+result applications_menu::activate(action action) {
+    if(action == action::none) { // TODO: pick an action for this & display it
+        show_hidden = !show_hidden;
+        reload();
+        return result::success;
+    }
+    return simple_menu::activate(action);
 }
 
 }

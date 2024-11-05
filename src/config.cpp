@@ -181,8 +181,12 @@ void config::setDateTimeFormat(const std::string& format) {
     }
 }
 
-void config::excludeApplication(const std::string& application) {
-    excludedApplications.emplace(application);
+void config::excludeApplication(const std::string& application, bool exclude) {
+    if(exclude) {
+        excludedApplications.emplace(application);
+    } else {
+        excludedApplications.erase(application);
+    }
     shellSettings->set_string_array("excluded-applications",
         std::vector(excludedApplications.begin(), excludedApplications.end()));
     shellSettings->apply();

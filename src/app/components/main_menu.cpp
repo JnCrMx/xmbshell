@@ -30,7 +30,6 @@ main_menu::main_menu(xmbshell* shell) : shell(shell) {
 void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender::resource_loader& loader) {
     using ::menu::make_simple;
     using ::menu::make_simple_of;
-    const auto appFilter = ::menu::excludeFilter(config::CONFIG.excludedApplications);
 
     const auto& asset_directory = config::CONFIG.asset_directory;
     menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, loader));
@@ -39,8 +38,7 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
     menus.push_back(make_simple_of<menu::menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader));
     menus.push_back(make_simple_of<menu::menu>("TV"_(), asset_directory/"icons/icon_category_tv.png", loader));
-    menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, shell, loader,
-        ::menu::andFilter(appFilter, ::menu::categoryFilter("Game"))));
+    menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, shell, loader, ::menu::categoryFilter("Game")));
     menus.push_back(make_simple_of<menu::menu>("Network"_(), asset_directory/"icons/icon_category_network.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Friends"_(), asset_directory/"icons/icon_category_friends.png", loader));
 
