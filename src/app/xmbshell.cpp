@@ -665,8 +665,10 @@ namespace app
 			dispatch(action::ok);
 		} else if(button == sdl::GameControllerButtonValues::B) {
 			dispatch(action::cancel);
-		} else if(button == sdl::GameControllerButtonValues::X) {
+		} else if(button == sdl::GameControllerButtonValues::Y) {
 			dispatch(action::options);
+		} else if(button == sdl::GameControllerButtonValues::X) {
+			dispatch(action::extra);
 		}
 	}
 	void xmbshell::button_up(sdl::GameController* controller, sdl::GameControllerButton button)

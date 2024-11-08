@@ -201,11 +201,10 @@ result applications_menu::activate(action action) {
 }
 
 void applications_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {
+    v.push_back(std::make_pair(action::none, ""));
+    v.push_back(std::make_pair(action::none, ""));
+    v.push_back(std::make_pair(action::options, "Options"_()));
     v.push_back(std::make_pair(action::extra, show_hidden ? "Hide excluded apps"_() : "Show excluded apps"_()));
-    v.push_back(std::make_pair(action::none, ""));
-    v.push_back(std::make_pair(action::none, ""));
-    v.push_back(std::make_pair(action::none, ""));
-    v.push_back(std::make_pair(action::none, ""));
 }
 
 }

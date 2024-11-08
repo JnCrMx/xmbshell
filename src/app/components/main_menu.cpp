@@ -200,7 +200,7 @@ void main_menu::render(dreamrender::gui_renderer& renderer) {
     std::vector<std::pair<action, std::string>> buttons{};
     buttons.reserve(5);
     menus[selected]->get_button_actions(buttons);
-    if(in_submenu_now) {
+    if(in_submenu_now && current_submenu) {
         render_submenu(renderer, now);
         current_submenu->get_button_actions(buttons);
     }
