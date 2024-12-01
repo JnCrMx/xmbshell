@@ -56,11 +56,11 @@ int main(int argc, char *argv[])
 	dreamrender::window window{window_config};
 	window.init();
 
-	dbus::dbus_server server(&window);
-	server.run();
-
 	app::xmbshell* shell = new app::xmbshell(&window);
 	window.set_phase(shell, shell, shell);
+
+	dbus::dbus_server server(&window, shell);
+	server.run();
 
 	window.loop();
 
