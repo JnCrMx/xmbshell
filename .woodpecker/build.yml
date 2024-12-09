@@ -11,7 +11,6 @@ variables:
 
 matrix:
   UBUNTU_VERSION:
-    - jammy
     - noble
 
 steps:
@@ -49,8 +48,8 @@ steps:
       - mkdir -p upload/build upload/beta
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb
-      # Build AppImage (only on jammy)
-      - if [ "$UBUNTU_VERSION" != "jammy" ]; then exit $?; fi
+      # Build AppImage (only on noble)
+      - if [ "$UBUNTU_VERSION" != "noble" ]; then exit $?; fi
       - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
       - wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage"
       - chmod +x linuxdeploy-aarch64.AppImage appimagetool-aarch64.AppImage
