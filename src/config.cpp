@@ -6,6 +6,7 @@ module;
 #include <filesystem>
 #include <map>
 #include <functional>
+#include <version>
 
 module xmbshell.config;
 
@@ -21,10 +22,18 @@ std::optional<glm::vec3> parse_color(std::string_view hex) {
         return std::nullopt;
     }
     auto parseHex = [](std::string_view hex) -> std::optional<unsigned int> {
+#if __cpp_lib_to_chars >= 201611L
         unsigned int value;
         if(std::from_chars(hex.data(), hex.data() + hex.size(), value, 16).ec == std::errc()) {
             return value;
         }
+#else
+        try {
+            return std::stoul(std::string(hex), nullptr, 16);
+        } catch(const std::exception& e) {
+            spdlog::error("Failed to parse hex value: {}", e.what());
+        }
+#endif
         return std::nullopt;
     };
     return glm::vec3(
@@ -170,7 +179,11 @@ void config::setWaveColor(const std::string& hex) {
 }
 
 void config::setDateTimeFormat(const std::string& format) {
+#if __cpp_lib_chrono >= 201907L || defined(__GLIBCXX__)
     auto now = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+#else
+    auto now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+#endif
     try {
         std::ignore = std::vformat("{:"+format+"}", std::make_format_args(now));
         dateTimeFormat = format;

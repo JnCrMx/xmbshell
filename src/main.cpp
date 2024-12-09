@@ -38,7 +38,11 @@ int main(int argc, char *argv[])
     textdomain("xmbshell");
 
     Glib::RefPtr<Glib::MainLoop> loop;
+#if __cpp_lib_jthread >= 201911L
     std::jthread main_loop_thread([&loop]() {
+#else
+    std::thread main_loop_thread([&loop]() {
+#endif
         loop = Glib::MainLoop::create();
         loop->run();
     });
@@ -65,6 +69,10 @@ int main(int argc, char *argv[])
     window.loop();
 
     loop->quit();
+#if __cpp_lib_jthread >= 201911L
+#else
+    main_loop_thread.join();
+#endif
 
     return 0;
 }

@@ -6,6 +6,7 @@ module;
 #include <filesystem>
 #include <memory>
 #include <vector>
+#include <version>
 #include <utility>
 
 module xmbshell.app;
@@ -447,6 +448,7 @@ namespace app
             }
             menu.render(renderer);
 
+#if __cpp_lib_chrono >= 201907L || defined(__GLIBCXX__)
             static const std::chrono::time_zone* timezone = [](){
                 auto tz = std::chrono::current_zone();
                 auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
@@ -455,6 +457,9 @@ namespace app
                 return tz;
             }();
             auto local_now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+#else
+            auto local_now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+#endif
             renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(local_now)),
                 0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
 
