@@ -64,6 +64,7 @@ steps:
       - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-x86_64.AppImage" -O AppDir/usr/bin/appimageupdatetool
       - chmod +x AppDir/usr/bin/appimageupdatetool
       - ARCH=x86_64 ./appimagetool-aarch64.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-x86_64.AppImage.zsync" AppDir/
+      - find .
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage
       - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-x86_64.AppImage
       - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-x86_64.AppImage.zsync
