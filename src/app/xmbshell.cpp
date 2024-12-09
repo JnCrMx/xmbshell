@@ -177,6 +177,11 @@ namespace app
         config::CONFIG.addCallback("controller-type", [this](const std::string&){
             reload_button_icons();
         });
+        config::CONFIG.addCallback("vsync", [this](const std::string&){
+            spdlog::info("VSync changed to {}", config::CONFIG.preferredPresentMode == vk::PresentModeKHR::eFifoRelaxed ? "on" : "off");
+            win->config.preferredPresentMode = config::CONFIG.preferredPresentMode;
+            win->recreateSwapchain();
+        });
 
         reload_button_icons();
     }
