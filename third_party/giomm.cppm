@@ -15,4 +15,10 @@ export namespace Gio {
     using Gio::SettingsSchema;
     using Gio::SettingsSchemaSource;
     using Gio::SettingsSchemaKey;
+
+    namespace DBus {
+        using Gio::DBus::Proxy;
+        using Gio::DBus::Connection;
+        using Gio::DBus::BusType;
+    }
 };

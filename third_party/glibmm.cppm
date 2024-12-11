@@ -13,8 +13,13 @@ export namespace Glib {
     using Glib::get_user_cache_dir;
     using Glib::MainLoop;
     using Glib::Variant;
+    using Glib::VariantBase;
     using Glib::VariantType;
     using Glib::VARIANT_TYPE_BOOL;
+    using Glib::VariantContainerBase;
+    using Glib::DBusObjectPathString;
+
+    using Glib::operator==;
 };
 
 export namespace sigc {
