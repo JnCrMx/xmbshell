@@ -20,5 +20,6 @@ export namespace Gio {
         using Gio::DBus::Proxy;
         using Gio::DBus::Connection;
         using Gio::DBus::BusType;
+        using Gio::DBus::Error;
     }
 };

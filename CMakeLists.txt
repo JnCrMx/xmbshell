@@ -113,6 +113,7 @@ set(XMBSHELL_SOURCES
   src/app/components/progress_overlay.cpp
   src/menu/applications_menu.cpp
   src/menu/settings_menu.cpp
+  src/menu/users_menu.cpp
   src/dbus.cpp
   src/render/shaders.cpp
   src/config.cpp

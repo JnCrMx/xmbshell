@@ -32,7 +32,7 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
     using ::menu::make_simple_of;
 
     const auto& asset_directory = config::CONFIG.asset_directory;
-    menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, loader));
+    menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, shell, loader));
     menus.push_back(make_simple<menu::settings_menu>("Settings"_(), asset_directory/"icons/icon_category_settings.png", loader, shell, loader));
     menus.push_back(make_simple_of<menu::menu>("Photo"_(), asset_directory/"icons/icon_category_photo.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader));
