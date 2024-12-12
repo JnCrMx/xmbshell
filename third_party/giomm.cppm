@@ -15,6 +15,7 @@ export namespace Gio {
     using Gio::SettingsSchema;
     using Gio::SettingsSchemaSource;
     using Gio::SettingsSchemaKey;
+    using Gio::Error;
 
     namespace DBus {
         using Gio::DBus::Proxy;

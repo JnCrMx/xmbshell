@@ -53,19 +53,24 @@ namespace menu {
                     entries.push_back(std::move(entry));
                 }
             }
-        } catch (const Gio::DBus::Error& e) {
+        } catch (const Gio::Error& e) {
             spdlog::error("Failed to get user list: {}", static_cast<std::string>(e.what()));
         }
 
-        entries.push_back(make_simple<action_menu_entry>("Quit"_(), config::CONFIG.asset_directory/"icons/icon_action_quit.png", loader, [](){
-            spdlog::info("Exit request from XMB");
-            sdl::Event event = {
-                .quit = {
-                    .type = sdl::EventType::SDL_QUIT,
-                    .timestamp = sdl::GetTicks()
+        entries.push_back(make_simple<action_menu_entry>("Quit"_(), config::CONFIG.asset_directory/"icons/icon_action_quit.png", loader, [xmb](){
+            xmb->set_message_overlay(app::message_overlay{"Quit"_(), "Do you really want to quit the application?"_(),
+                {"Yes"_(), "No"_()}, [xmb](unsigned int choice){
+                    if(choice == 0) {
+                        sdl::Event event = {
+                            .quit = {
+                                .type = sdl::EventType::SDL_QUIT,
+                                .timestamp = sdl::GetTicks()
+                            }
+                        };
+                        sdl::PushEvent(&event);
+                    }
                 }
-            };
-            sdl::PushEvent(&event);
+            });
             return result::success;
         }));
 
@@ -94,8 +99,14 @@ namespace menu {
             }));
         }
         if(Glib::Variant<Glib::ustring> v; login1->call_sync("CanSuspend", Glib::VariantContainerBase{}).get_child(v), v.get() == "yes") {
-            entries.push_back(make_simple<action_menu_entry>("Suspend"_(), config::CONFIG.asset_directory/"icons/icon_action_suspend.png", loader, [this](){
-                login1->call_sync("Suspend", Glib::VariantContainerBase::create_tuple(Glib::Variant<bool>::create(true)));
+            entries.push_back(make_simple<action_menu_entry>("Suspend"_(), config::CONFIG.asset_directory/"icons/icon_action_suspend.png", loader, [this, xmb](){
+                xmb->set_message_overlay(app::message_overlay{"Suspend"_(), "Do you really want to suspend the system?"_(),
+                    {"Yes"_(), "No"_()}, [this](unsigned int choice){
+                        if(choice == 0) {
+                            login1->call_sync("Suspend", Glib::VariantContainerBase::create_tuple(Glib::Variant<bool>::create(true)));
+                        }
+                    }
+                });
                 return result::success;
             }));
         }
