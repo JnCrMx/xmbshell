@@ -8,6 +8,7 @@ export namespace Gio {
     using Gio::init;
     using Gio::DesktopAppInfo;
     using Gio::AppInfo;
+    using Gio::Icon;
     using Gio::FileIcon;
     using Gio::ThemedIcon;
     using Gio::File;
@@ -16,6 +17,7 @@ export namespace Gio {
     using Gio::SettingsSchemaSource;
     using Gio::SettingsSchemaKey;
     using Gio::Error;
+    using Gio::FileQueryInfoFlags;
 
     namespace DBus {
         using Gio::DBus::Proxy;

@@ -25,45 +25,9 @@ namespace menu {
 
 using namespace mfk::i18n::literals;
 
-inline std::unordered_map<std::string, std::filesystem::path> themedIconPaths;
-inline std::once_flag themedIconPathsFlag;
-
-static void initialize_themed_icons(){
-    std::unordered_map<std::string, std::filesystem::path> paths;
-    auto process = [&paths](const std::string& dir) {
-        auto path = std::filesystem::path(dir) / "icons" / "hicolor";
-        if(!std::filesystem::exists(path)) {
-            return;
-        }
-        for(const auto& icon : std::filesystem::recursive_directory_iterator(path)) {
-            if(icon.is_regular_file()) {
-                auto iconName = icon.path().stem().string();
-                auto iconPath = icon.path();
-                paths[iconName] = iconPath;
-            }
-        }
-    };
-    process("/usr/share");
-    process("/usr/local/share");
-    process(Glib::get_home_dir()+"/.local/share");
-
-    auto xdg_data_dirs = std::getenv("XDG_DATA_DIRS");
-    if(xdg_data_dirs) {
-        std::istringstream iss(xdg_data_dirs);
-        std::string dir;
-        while(std::getline(iss, dir, ':')) {
-            process(dir);
-        }
-    }
-    spdlog::debug("Found {} themed icons", paths.size());
-
-    themedIconPaths = paths;
-};
-
 applications_menu::applications_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader, AppFilter filter)
-    : simple_menu(name, std::move(icon)), xmb(xmb), loader(loader), filter(filter) {
-    std::call_once(themedIconPathsFlag, initialize_themed_icons);
-
+    : simple_menu(name, std::move(icon)), xmb(xmb), loader(loader), filter(filter)
+{
     auto appInfos = Gio::AppInfo::get_all();
     for (const auto& app : appInfos) {
         if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
@@ -84,28 +48,10 @@ applications_menu::applications_menu(const std::string& name, dreamrender::textu
 
 std::unique_ptr<action_menu_entry> applications_menu::create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app) {
     std::string icon_path;
-    auto icon = app->get_icon();
-    if(auto* themed_icon = dynamic_cast<Gio::ThemedIcon*>(icon.get())) {
-        for(const auto& name : themed_icon->get_names()) {
-            if(auto it = themedIconPaths.find(name); it != themedIconPaths.end()) {
-                icon_path = it->second;
-                break;
-            }
-        }
-        if(icon_path.empty()) {
-            spdlog::warn("Themed icon \"{}\" not found for app \"{}\"",
-                (*themed_icon->get_names().begin()).c_str(), app->get_display_name());
-        }
-    } else if(auto* file_icon = dynamic_cast<Gio::FileIcon*>(icon.get())) {
-        icon_path = file_icon->get_file()->get_path();
+    if(auto r = utils::resolve_icon(app->get_icon().get())) {
+        icon_path = r->string();
     } else {
-        if(icon) {
-            auto& r = *icon.get();
-            spdlog::warn("Unsupported icon type for app \"{}\": {}", app->get_display_name(),
-                typeid(r).name());
-        } else {
-            spdlog::warn("No icon for app \"{}\"", app->get_display_name());
-        }
+        spdlog::warn("Could not resolve icon for application: {}", app->get_display_name());
     }
 
     dreamrender::texture icon_texture(loader.getDevice(), loader.getAllocator());

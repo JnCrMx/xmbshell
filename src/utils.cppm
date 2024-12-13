@@ -1,6 +1,7 @@
 module;
 
 #include <chrono>
+#include <filesystem>
 #include <future>
 #include <source_location>
 #include <utility>
@@ -8,6 +9,8 @@ module;
 #include <glm/glm.hpp>
 
 export module xmbshell.utils;
+
+import giomm;
 
 export enum class result {
     unsupported  = (1<<0),
@@ -48,6 +51,8 @@ export class action_receiver {
 
 export namespace utils
 {
+    std::optional<std::filesystem::path> resolve_icon(const Gio::Icon* icon);
+
     template<typename R>
     bool is_ready(std::future<R> const& f)
     { return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready; }
