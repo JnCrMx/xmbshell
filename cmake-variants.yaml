@@ -9,6 +9,18 @@ buildType:
       short: Release
       long: Optimize generated code
       buildType: Release
+    relWithDebInfo:
+      short: RelWithDebInfo
+      long: Optimize generated code and generate debug information
+      buildType: RelWithDebInfo
+    profile:
+      short: Profile
+      long: Optimize generated code and generate profile information
+      buildType: Profile
+    profileLLVM:
+      short: ProfileLLVM
+      long: Optimize generated code and generate profile information using LLVMs options
+      buildType: ProfileLLVM
     debugAsan:
       short: DebugAsan
       long: Instrument with Address Sanitizer

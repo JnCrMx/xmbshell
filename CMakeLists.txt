@@ -4,6 +4,14 @@ set(CMAKE_CXX_FLAGS_DEBUGASAN "-g -fsanitize=address -fno-omit-frame-pointer -g"
 set(CMAKE_EXE_LINKER_FLAGS_DEBUGASAN "-fsanitize=address" CACHE STRING "Flags used for linking binaries during AddressSanitizer builds." FORCE)
 mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGASAN CMAKE_EXE_LINKER_FLAGS_DEBUGASAN)
 
+set(CMAKE_CXX_FLAGS_PROFILELLVM "-g -O3 -fprofile-instr-generate -fcoverage-mapping" CACHE STRING "Flags used by the C++ compiler during LLVM Profile builds." FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_PROFILELLVM "-fprofile-instr-generate -fcoverage-mapping" CACHE STRING "Flags used for linking binaries during LLVM Profile builds." FORCE)
+mark_as_advanced(CMAKE_CXX_FLAGS_PROFILELLVM CMAKE_EXE_LINKER_FLAGS_PROFILELLVM)
+
+set(CMAKE_CXX_FLAGS_PROFILE "-g -O3 -pg" CACHE STRING "Flags used by the C++ compiler during Profile builds." FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_PROFILE "-pg" CACHE STRING "Flags used for linking binaries during Profile builds." FORCE)
+mark_as_advanced(CMAKE_CXX_FLAGS_PROFILE CMAKE_EXE_LINKER_FLAGS_PROFILE)
+
 project(xmbshell VERSION 1.0 LANGUAGES CXX)
 if(NOT DEFINED BUILD_VERSION)
   set(BUILD_VERSION ${PROJECT_VERSION})
