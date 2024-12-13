@@ -47,7 +47,9 @@ class menu : public menu_entry {
 template<typename T>
 class simple : public T {
     public:
-        simple(const std::string& name, dreamrender::texture&& icon) : name(name), icon(std::move(icon)) {}
+        using icon_type = dreamrender::texture;
+
+        simple(const std::string& name, icon_type&& icon) : name(name), icon(std::move(icon)) {}
         ~simple() override = default;
 
         const std::string& get_name() const override {
@@ -61,18 +63,43 @@ class simple : public T {
         }
     private:
         std::string name;
-        dreamrender::texture icon;
+        icon_type icon;
+};
+
+template<typename T>
+class simple_shared : public T {
+    public:
+        using icon_type = std::shared_ptr<dreamrender::texture>;
+
+        simple_shared(const std::string& name, icon_type&& icon) : name(name), icon(std::move(icon)) {}
+        ~simple_shared() override = default;
+
+        const std::string& get_name() const override {
+            return name;
+        }
+        const dreamrender::texture& get_icon() const override {
+            return *icon;
+        }
+        dreamrender::texture& get_icon() {
+            return *icon;
+        }
+    private:
+        std::string name;
+        icon_type icon;
 };
 
 using simple_menu_shallow = simple<menu>;
+using simple_menu_shallow_shared = simple_shared<menu>;
 using simple_menu_entry = simple<menu_entry>;
+using simple_menu_entry_shared = simple_shared<menu_entry>;
 
-class action_menu_entry : public simple_menu_entry {
+template<typename Base>
+class action_menu_entry_generic : public Base {
     public:
-        action_menu_entry(const std::string& name, dreamrender::texture&& icon,
+        action_menu_entry_generic(const std::string& name, Base::icon_type&& icon,
             std::function<result()> on_activate, std::function<result(action)> on_action = {})
-            : simple_menu_entry(name, std::move(icon)), on_activate(on_activate), on_action(on_action) {}
-        ~action_menu_entry() override = default;
+            : Base(name, std::move(icon)), on_activate(on_activate), on_action(on_action) {}
+        ~action_menu_entry_generic() override = default;
 
         result activate(action action) override {
             if(on_action) {
@@ -86,18 +113,21 @@ class action_menu_entry : public simple_menu_entry {
         std::function<result()> on_activate;
         std::function<result(action)> on_action;
 };
+using action_menu_entry = action_menu_entry_generic<simple_menu_entry>;
+using action_menu_entry_shared = action_menu_entry_generic<simple_menu_entry_shared>;
 
-class simple_menu : public simple_menu_shallow {
+template<typename Base>
+class simple_menu_generic : public Base {
     public:
-        simple_menu(const std::string& name, dreamrender::texture&& icon) : simple_menu_shallow(name, std::move(icon)) {}
+        simple_menu_generic(const std::string& name, Base::icon_type&& icon) : Base(name, std::move(icon)) {}
 
         template<std::derived_from<menu_entry> T, std::size_t N>
-        simple_menu(const std::string& name, dreamrender::texture&& icon, std::array<std::unique_ptr<T>, N>&& entries) : simple_menu_shallow(name, std::move(icon)) {
+        simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::array<std::unique_ptr<T>, N>&& entries) : Base(name, std::move(icon)) {
             for(auto& entry : entries) {
                 this->entries.push_back(std::move(entry));
             }
         }
-        ~simple_menu() override = default;
+        ~simple_menu_generic() override = default;
 
         unsigned int get_submenus_count() const override {
             return entries.size();
@@ -131,4 +161,7 @@ class simple_menu : public simple_menu_shallow {
         std::vector<std::unique_ptr<menu_entry>> entries;
         unsigned int selected_submenu = 0;
 };
+using simple_menu = simple_menu_generic<simple_menu_shallow>;
+using simple_menu_shared = simple_menu_generic<simple_menu_shallow_shared>;
+
 }

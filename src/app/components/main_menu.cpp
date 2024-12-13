@@ -18,6 +18,7 @@ import :menu_utils;
 import :applications_menu;
 import :settings_menu;
 import :users_menu;
+import :files_menu;
 
 using namespace mfk::i18n::literals;
 
@@ -34,9 +35,12 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
     const auto& asset_directory = config::CONFIG.asset_directory;
     menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, shell, loader));
     menus.push_back(make_simple<menu::settings_menu>("Settings"_(), asset_directory/"icons/icon_category_settings.png", loader, shell, loader));
-    menus.push_back(make_simple_of<menu::menu>("Photo"_(), asset_directory/"icons/icon_category_photo.png", loader));
-    menus.push_back(make_simple_of<menu::menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader));
-    menus.push_back(make_simple_of<menu::menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader));
+    menus.push_back(make_simple<menu::files_menu>("Photo"_(), asset_directory/"icons/icon_category_photo.png", loader, shell,
+        Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_PICTURES), loader));
+    menus.push_back(make_simple<menu::files_menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader, shell,
+        Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_MUSIC), loader));
+    menus.push_back(make_simple<menu::files_menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader, shell,
+        Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_VIDEOS), loader));
     menus.push_back(make_simple_of<menu::menu>("TV"_(), asset_directory/"icons/icon_category_tv.png", loader));
     menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, shell, loader, ::menu::categoryFilter("Game")));
     menus.push_back(make_simple_of<menu::menu>("Network"_(), asset_directory/"icons/icon_category_network.png", loader));
@@ -245,7 +249,7 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         }
 
         auto& menu = menus[i];
-        renderer.draw_image(menu->get_icon(), x, base_pos.y, base_size, base_size);
+        renderer.draw_image_a(menu->get_icon(), x, base_pos.y, base_size, base_size);
         if(i == selected) {
             renderer.draw_text(menu->get_name(), x+(base_size*0.5f)/renderer.aspect_ratio, base_pos.y+base_size, base_size*0.4f, glm::vec4(1, 1, 1, 1), true);
         }
@@ -280,7 +284,7 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         }
         for(int i=selected_submenu-1; i >= 0 && y >= -base_size*0.65f; i--) {
             auto& submenu = menu->get_submenu(i);
-            renderer.draw_image(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
+            renderer.draw_image_a(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
             if(!in_submenu_now)
                 renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+(base_size*0.3f), base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
             y -= base_size*0.65f;
@@ -299,7 +303,7 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
                 if(!in_submenu_now) {
                     double size = base_size*glm::mix(0.6, 1.2, partial_transition);
                 double text_size = base_size*glm::mix(0.4, 0.6, partial_transition);
-                    renderer.draw_image(submenu.get_icon(), x+(base_size*0.5f-size/2.0f)/renderer.aspect_ratio, y, size, size);
+                    renderer.draw_image_a(submenu.get_icon(), x+(base_size*0.5f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                     if(!in_submenu_now)
                         renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
                 }
@@ -308,13 +312,13 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
             else if(i == last_selected_menu_item) {
                 double size = base_size*glm::mix(0.6, 1.2, 1.0f-partial_transition);
                 double text_size = base_size*glm::mix(0.4, 0.6, 1.0f-partial_transition);
-                renderer.draw_image(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
+                renderer.draw_image_a(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                 if(!in_submenu_now)
                     renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
                 y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
             }
             else {
-                renderer.draw_image(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
+                renderer.draw_image_a(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
                 if(!in_submenu_now)
                     renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+base_size*0.3f, base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
                 y += base_size*0.65f;
@@ -338,8 +342,8 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
     const auto& selected_menu = *menus[selected];
     const auto& selected_submenu = selected_menu.get_submenu(selected_menu.get_selected_submenu());
 
-    renderer.draw_image(selected_menu.get_icon(), base_pos.x, base_pos.y, 0.1f, 0.1f);
-    renderer.draw_image(selected_submenu.get_icon(), base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);
+    renderer.draw_image_a(selected_menu.get_icon(), base_pos.x, base_pos.y, 0.1f, 0.1f);
+    renderer.draw_image_a(selected_submenu.get_icon(), base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);
 
     if(!in_submenu)
         return;
@@ -363,7 +367,7 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
             double offset = (base_size - size) / 4.0;
 
             auto& entry = submenu->get_submenu(i);
-            renderer.draw_image(entry.get_icon(), base_pos.x + 0.1 + offset, base_pos.y+offsetY+0.15f*i, size, size);
+            renderer.draw_image_a(entry.get_icon(), base_pos.x + 0.1 + offset, base_pos.y+offsetY+0.15f*i, size, size);
             renderer.draw_text(entry.get_name(), base_pos.x + 0.2, base_pos.y+offsetY+0.15f*i+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
         }
     }

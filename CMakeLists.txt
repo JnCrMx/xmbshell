@@ -112,6 +112,7 @@ set(XMBSHELL_SOURCES
   src/app/components/news_display.cpp
   src/app/components/progress_overlay.cpp
   src/menu/applications_menu.cpp
+  src/menu/files_menu.cpp
   src/menu/settings_menu.cpp
   src/menu/users_menu.cpp
   src/dbus.cpp
@@ -133,6 +134,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/dbus.cppm
   src/menu/applications_menu.cppm
   src/menu/base.cppm
+  src/menu/files_menu.cppm
   src/menu/settings_menu.cppm
   src/menu/users_menu.cppm
   src/menu/utils.cppm

@@ -11,6 +11,8 @@ export namespace Glib {
     using Glib::get_real_name;
     using Glib::get_home_dir;
     using Glib::get_user_cache_dir;
+    using Glib::get_user_special_dir;
+    using Glib::UserDirectory;
     using Glib::MainLoop;
     using Glib::Variant;
     using Glib::VariantBase;
