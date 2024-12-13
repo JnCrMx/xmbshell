@@ -41,7 +41,10 @@ namespace menu {
     void files_menu::on_open() {
         simple_menu::on_open();
 
-        spdlog::info("files_menu::on_open, {}", path.string());
+        if(!std::filesystem::exists(path)) {
+            spdlog::error("Path does not exist: {}", path.string());
+            return;
+        }
 
         std::filesystem::directory_iterator it{path};
         for (const auto& entry : it) {
