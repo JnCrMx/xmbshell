@@ -195,11 +195,13 @@ foreach(shader ${XMBSHELL_SHADERS})
 endforeach()
 target_include_directories(xmbshell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 
+file(GLOB ICON_FILES icons/*.png)
+
 install(TARGETS xmbshell)
 install(FILES xmbshell.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES icons/xmbshell.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps RENAME xmbshell.png)
 install(FILES schemas/re.jcm.xmbos.xmbshell.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)
-install(DIRECTORY icons DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
+install(FILES ${ICON_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/icons)
 install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
 
 set(CPACK_PACKAGE_NAME "xmbshell")
