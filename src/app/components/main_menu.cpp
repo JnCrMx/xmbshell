@@ -116,13 +116,21 @@ bool main_menu::activate_current(action action) {
     auto& menu = *menus[selected];
     auto res = menu.activate(action);
     if(res == result::submenu) {
-        if(auto submenu = dynamic_cast<menu::menu*>(&menu.get_submenu(menu.get_selected_submenu()))) {
-            if(submenu->get_submenus_count() > 0 && !in_submenu) {
+        auto& entry = current_submenu ? current_submenu->get_submenu(current_submenu->get_selected_submenu())
+            : menu.get_submenu(menu.get_selected_submenu());
+        if(auto submenu = dynamic_cast<menu::menu*>(&entry)) {
+            if(submenu->get_submenus_count() > 0) {
+                if(current_submenu) {
+                    submenu_stack.push_back(current_submenu);
+                }
+
                 current_submenu = submenu;
                 current_submenu->on_open();
 
-                in_submenu = true;
-                last_submenu_transition = std::chrono::system_clock::now();
+                if(!in_submenu) {
+                    in_submenu = true;
+                    last_submenu_transition = std::chrono::system_clock::now();
+                }
                 return true;
             }
         }
@@ -133,10 +141,14 @@ bool main_menu::activate_current(action action) {
 bool main_menu::back() {
     if(in_submenu) {
         current_submenu->on_close();
-        current_submenu = nullptr;
-
-        in_submenu = false;
-        last_submenu_transition = std::chrono::system_clock::now();
+        if(submenu_stack.empty()) {
+            current_submenu = nullptr;
+            in_submenu = false;
+            last_submenu_transition = std::chrono::system_clock::now();
+        } else {
+            current_submenu = submenu_stack.back();
+            submenu_stack.pop_back();
+        }
         return true;
     }
     return false;
@@ -340,7 +352,7 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
     const double base_size = 0.1;
 
     const auto& selected_menu = *menus[selected];
-    const auto& selected_submenu = selected_menu.get_submenu(selected_menu.get_selected_submenu());
+    const auto& selected_submenu = *current_submenu;
 
     renderer.draw_image_a(selected_menu.get_icon(), base_pos.x, base_pos.y, 0.1f, 0.1f);
     renderer.draw_image_a(selected_submenu.get_icon(), base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);

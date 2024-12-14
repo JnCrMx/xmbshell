@@ -2,6 +2,7 @@ module;
 
 #include <chrono>
 #include <memory>
+#include <vector>
 
 export module xmbshell.app:main_menu;
 
@@ -56,6 +57,7 @@ class main_menu : public action_receiver {
 
         bool in_submenu = false;
         menu::menu* current_submenu = nullptr;
+        std::vector<menu::menu*> submenu_stack;
         time_point last_submenu_transition;
         constexpr static auto transition_submenu_activate_duration = std::chrono::milliseconds(100);
 
