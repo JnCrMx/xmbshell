@@ -366,9 +366,13 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
             double size = base_size*glm::mix(0.75, 1.0, partial_selection);
             double offset = (base_size - size) / 4.0;
 
+            double y = base_pos.y+offsetY+0.15f*i;
+            if(y < -size || y > 1.0+size)
+                continue;
+
             auto& entry = submenu->get_submenu(i);
-            renderer.draw_image_a(entry.get_icon(), base_pos.x + 0.1 + offset, base_pos.y+offsetY+0.15f*i, size, size);
-            renderer.draw_text(entry.get_name(), base_pos.x + 0.2, base_pos.y+offsetY+0.15f*i+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+            renderer.draw_image_a(entry.get_icon(), base_pos.x + 0.1 + offset, y, size, size);
+            renderer.draw_text(entry.get_name(), base_pos.x + 0.2, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
         }
     }
 }
