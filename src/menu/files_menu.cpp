@@ -15,6 +15,7 @@ import :menu_utils;
 import :message_overlay;
 
 import xmbshell.config;
+import xmbshell.utils;
 import dreamrender;
 import glibmm;
 import giomm;
@@ -101,5 +102,12 @@ namespace menu {
                 spdlog::warn("Unsupported file type: {}", entry.path().string());
             }
         }
+    }
+
+    void files_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {
+        v.push_back(std::make_pair(action::none, ""));
+        v.push_back(std::make_pair(action::none, ""));
+        v.push_back(std::make_pair(action::options, "Options"_()));
+        v.push_back(std::make_pair(action::extra, "Sort and Filter"_()));
     }
 }

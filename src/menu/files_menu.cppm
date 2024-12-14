@@ -2,6 +2,7 @@ module;
 
 #include <filesystem>
 #include <string>
+#include <vector>
 
 export module xmbshell.app:files_menu;
 
@@ -10,6 +11,7 @@ import glibmm;
 import giomm;
 import dreamrender;
 import xmbshell.config;
+import xmbshell.utils;
 import :menu_base;
 import :menu_utils;
 
@@ -33,6 +35,8 @@ class files_menu : public simple_menu {
         unsigned int get_submenus_count() const override {
             return is_open ? entries.size() : 1;
         }
+
+        void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
     private:
         app::xmbshell* xmb;
         std::filesystem::path path;
