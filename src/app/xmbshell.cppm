@@ -56,7 +56,7 @@ namespace app
             void render_controller_buttons(gui_renderer& renderer, float x, float y, std::ranges::range auto buttons) {
                 constexpr float min_width = 0.2f;
                 constexpr float size = 0.05f;
-                float size_x = size/renderer.aspect_ratio;
+                float size_x = static_cast<float>(size/renderer.aspect_ratio);
                 float total_width = 0.0f;
                 float last_width = 0.0f;
                 for (const auto& [action, text] : buttons) {
@@ -141,8 +141,8 @@ namespace app
 
             // input handling
             constexpr static int controller_axis_input_threshold = 10000;
-            time_point last_controller_axis_input_time[2];
-            std::optional<std::tuple<sdl::GameController*, action>> last_controller_axis_input[2];
+            std::array<time_point, 2> last_controller_axis_input_time;
+            std::array<std::optional<std::tuple<sdl::GameController*, action>>, 2> last_controller_axis_input;
             constexpr static auto controller_axis_input_duration = std::chrono::milliseconds(200);
 
             time_point last_controller_button_input_time;

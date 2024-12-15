@@ -23,7 +23,7 @@ export namespace menu {
 
 class files_menu : public simple_menu {
     public:
-        files_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, const std::filesystem::path& path, dreamrender::resource_loader& loader);
+        files_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, std::filesystem::path path, dreamrender::resource_loader& loader);
         ~files_menu() override = default;
 
         void on_open() override;

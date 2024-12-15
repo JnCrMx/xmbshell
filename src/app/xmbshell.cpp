@@ -191,7 +191,7 @@ namespace app
     {
         phase::prepare(swapchainImages, swapchainViews);
 
-        const int imageCount = swapchainImages.size();
+        const unsigned int imageCount = swapchainImages.size();
         {
             vk::DescriptorPoolSize size(vk::DescriptorType::eStorageImage, 2*imageCount);
             vk::DescriptorPoolCreateInfo pool_info({}, imageCount, size);
@@ -260,7 +260,9 @@ namespace app
             }
             commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(backgroundRenderPass.get(), backgroundFramebuffers[frame].get(),
                 vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
-            vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
+            vk::Viewport viewport(0.0f, 0.0f,
+                static_cast<float>(win->swapchainExtent.width),
+                static_cast<float>(win->swapchainExtent.height), 0.0f, 1.0f);
             vk::Rect2D scissor({0,0}, win->swapchainExtent);
             commandBuffer.setViewport(0, viewport);
             commandBuffer.setScissor(0, scissor);
@@ -273,7 +275,10 @@ namespace app
                 else if(config::CONFIG.backgroundType == config::config::background_type::image) {
                     if(backgroundTexture) {
                         image_render->renderImageSized(commandBuffer, frame, backgroundRenderPass.get(), *backgroundTexture,
-                            0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+                            0.0f, 0.0f,
+                            static_cast<int>(win->swapchainExtent.width),
+                            static_cast<int>(win->swapchainExtent.height)
+                        );
                     }
                 }
             }
@@ -303,7 +308,8 @@ namespace app
 
             commandBuffer.blitImage(swapchainImages[frame], vk::ImageLayout::eTransferSrcOptimal,
                 blurImageSrc->image, vk::ImageLayout::eTransferDstOptimal,
-                vk::ImageBlit(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), {vk::Offset3D(0, 0, 0), vk::Offset3D(win->swapchainExtent.width, win->swapchainExtent.height, 1)},
+                vk::ImageBlit(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+                    {vk::Offset3D(0, 0, 0), vk::Offset3D(static_cast<int>(win->swapchainExtent.width), static_cast<int>(win->swapchainExtent.height), 1)},
                     vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), {vk::Offset3D(0, 0, 0), vk::Offset3D(blurImageSrc->width, blurImageSrc->height, 1)}),
                 vk::Filter::eLinear);
 
@@ -330,7 +336,7 @@ namespace app
             int groupCountY = static_cast<int>(std::ceil(blurImageSrc->height/16.0));
 
             BlurConstants constants{};
-            constants.size = 20 * (blur_background ? blur_background_progress : (1.0 - blur_background_progress));
+            constants.size = static_cast<int>(20 * (blur_background ? blur_background_progress : (1.0 - blur_background_progress)));
             commandBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, blurPipeline.get());
             commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eCompute, blurPipelineLayout.get(), 0, {blurDescriptorSets[frame]}, {});
 
@@ -377,7 +383,8 @@ namespace app
 
             commandBuffer.blitImage(swapchainImages[frame], vk::ImageLayout::eTransferSrcOptimal,
                 blurImageDst->image, vk::ImageLayout::eTransferDstOptimal,
-                vk::ImageBlit(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), {vk::Offset3D(0, 0, 0), vk::Offset3D(win->swapchainExtent.width, win->swapchainExtent.height, 1)},
+                vk::ImageBlit(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+                    {vk::Offset3D(0, 0, 0), vk::Offset3D(static_cast<int>(win->swapchainExtent.width), static_cast<int>(win->swapchainExtent.height), 1)},
                     vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1), {vk::Offset3D(0, 0, 0), vk::Offset3D(blurImageDst->width, blurImageDst->height, 1)}),
                 vk::Filter::eLinear);
 
@@ -410,13 +417,13 @@ namespace app
             vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.0f});
             commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(shellRenderPass.get(), framebuffers[frame].get(),
                 vk::Rect2D({0, 0}, win->swapchainExtent), color), vk::SubpassContents::eInline);
-            vk::Viewport viewport(0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height, 0.0f, 1.0f);
+            vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(win->swapchainExtent.width), static_cast<float>(win->swapchainExtent.height), 0.0f, 1.0f);
             vk::Rect2D scissor({0,0}, win->swapchainExtent);
             commandBuffer.setViewport(0, viewport);
             commandBuffer.setScissor(0, scissor);
 
             image_render->renderImageSized(commandBuffer, frame, shellRenderPass.get(), blurImageDst->imageView.get(),
-                0.0f, 0.0f, win->swapchainExtent.width, win->swapchainExtent.height);
+                0.0f, 0.0f, static_cast<int>(win->swapchainExtent.width), static_cast<int>(win->swapchainExtent.height));
 
             gui_renderer ctx(commandBuffer, frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get(), simple_render.get());
             render_gui(ctx);
@@ -461,7 +468,7 @@ namespace app
             auto local_now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
 #endif
             renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(local_now)),
-                0.831770833f+config::CONFIG.dateTimeOffset, 0.086111111f, 0.021296296f*2.5f);
+                static_cast<float>(0.831770833f+config::CONFIG.dateTimeOffset), 0.086111111f, 0.021296296f*2.5f);
 
             news.render(renderer);
             if(choice_overlay || choice_overlay_progress < 1.0) {
@@ -474,7 +481,7 @@ namespace app
             }
         }
 
-        double debug_y = 0.0;
+        float debug_y = 0.0;
         if(config::CONFIG.showFPS) {
             renderer.draw_text("FPS: {:.2f}"_(win->currentFPS), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
             debug_y += 0.025f;
@@ -486,8 +493,8 @@ namespace app
                 usage += b.usage;
             }
             constexpr double mb = 1024.0*1024.0;
-            auto u = usage/mb;
-            auto b = budget/mb;
+            auto u = static_cast<double>(usage)/mb;
+            auto b = static_cast<double>(budget)/mb;
             renderer.draw_text("Memory: {:.2f}/{:.2f} MB"_(u, b), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
             debug_y += 0.025f;
         }
@@ -503,7 +510,7 @@ namespace app
         auto controller_type = get_controller_type();
 
         for(std::underlying_type_t<action> i = std::to_underlying(action::none)+1; i < std::to_underlying(action::_length); i++) {
-            action a = static_cast<action>(i);
+            auto a = static_cast<action>(i);
             if(controller_type == "none") {
                 continue;
             }

@@ -27,8 +27,8 @@ void generate_grid(int N, std::vector<glm::vec3> &vertices, std::vector<uint16_t
     {
         for(int i=0; i<=N; ++i)
         {
-            float x = 2.0*((float)i/(float)N)-1.0;
-            float y = 2.0*((float)j/(float)N)-1.0;
+            float x = 2.0f*((float)i/(float)N)-1.0f;
+            float y = 2.0f*((float)j/(float)N)-1.0f;
             float z = 0.0f;
             vertices.push_back(glm::vec3(x, y, z));
         }
@@ -54,7 +54,7 @@ void generate_grid(int N, std::vector<glm::vec3> &vertices, std::vector<uint16_t
     }
 }
 
-static auto startTime = std::chrono::high_resolution_clock::now();
+const static auto startTime = std::chrono::high_resolution_clock::now();
 
 export class wave_renderer {
     public:
@@ -145,8 +145,8 @@ export class wave_renderer {
             cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelines[renderPass].get());
 
             push_constants push{
-                glm::vec4(waveColor, 1.0),
-                (seconds.count() + partialSeconds.count())*speed
+                .color=glm::vec4(waveColor, 1.0),
+                .time=(static_cast<float>(seconds.count()) + partialSeconds.count())*speed
             };
             cmd.pushConstants(pipelineLayout.get(), vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(push_constants), &push);
 
@@ -161,11 +161,11 @@ export class wave_renderer {
         vk::Extent2D frameSize;
         double aspectRatio;
 
-        unsigned int vertexCount;
+        unsigned int vertexCount{};
         vma::UniqueBuffer vertexBuffer;
         vma::UniqueAllocation vertexAllocation;
 
-        unsigned int indexCount;
+        unsigned int indexCount{};
         vma::UniqueBuffer indexBuffer;
         vma::UniqueAllocation indexAllocation;
 

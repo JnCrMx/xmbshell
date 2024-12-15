@@ -7,6 +7,7 @@ module;
 #include <functional>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -32,7 +33,7 @@ namespace menu {
 
     class updater : public app::progress_item {
         public:
-            updater() {}
+            updater() = default;
 
             status init(std::string& message) override {
                 message = "Updating..."_();
@@ -56,7 +57,7 @@ namespace menu {
                     return status::running;
                 }
 
-                int status;
+                int status{};
                 if(waitpid(pid, &status, WNOHANG) != 0) {
                     int exit_code = WEXITSTATUS(status);
                     if(exit_code == 0) {
@@ -74,7 +75,7 @@ namespace menu {
                 return false;
             }
         private:
-            pid_t pid;
+            pid_t pid{};
             std::chrono::time_point<std::chrono::system_clock> start_time;
             constexpr static auto wait_duration = std::chrono::seconds(2);
     };
@@ -104,7 +105,7 @@ namespace menu {
                     return status::running;
                 }
 
-                int status;
+                int status{};
                 if(waitpid(pid, &status, WNOHANG) != 0) {
                     int exit_code = WEXITSTATUS(status);
                     if(exit_code == 0) {
@@ -131,24 +132,24 @@ namespace menu {
                 return false;
             }
         private:
-            pid_t pid;
+            pid_t pid{};
             std::chrono::time_point<std::chrono::system_clock> start_time;
             constexpr static auto wait_duration = std::chrono::milliseconds(500);
             app::xmbshell* xmb;
     };
 
     std::unique_ptr<action_menu_entry> entry_base(dreamrender::resource_loader& loader,
-        const std::string& name, const std::string& key,
+        std::string name, const std::string& key,
         std::function<result()> callback)
     {
         std::string filename = std::format("icon_settings_{}.png", key);
-        return make_simple<action_menu_entry>(name, config::CONFIG.asset_directory/"icons"/filename, loader, callback);
+        return make_simple<action_menu_entry>(std::move(name), config::CONFIG.asset_directory/"icons"/filename, loader, callback);
     }
 
     std::unique_ptr<action_menu_entry> entry_bool(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        const std::string& name, const std::string& schema, const std::string& key)
+        std::string name, const std::string& schema, const std::string& key)
     {
-        return entry_base(loader, name, key, [xmb, key, schema](){
+        return entry_base(loader, std::move(name), key, [xmb, key, schema](){
             auto settings = Gio::Settings::create(schema);
             bool value = settings->get_boolean(key);
             xmb->set_choice_overlay(app::choice_overlay{
@@ -163,23 +164,23 @@ namespace menu {
     }
 
     std::unique_ptr<action_menu_entry> entry_int(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        const std::string& name, const std::string& schema, const std::string& key, int min, int max, int step = 1)
+        std::string name, const std::string& schema, const std::string& key, int min, int max, int step = 1)
     {
-        return entry_base(loader, name, key, [xmb, key, schema, min, max, step](){
+        return entry_base(loader, std::move(name), key, [xmb, key, schema, min, max, step](){
             auto settings = Gio::Settings::create(schema);
             int value = settings->get_int(key);
             std::vector<std::string> choices;
             for(int i = min; i <= max; i += step) {
                 choices.push_back(std::to_string(i));
             }
-            int current_choice = static_cast<unsigned int>((value - min)/step);
+            int current_choice = static_cast<int>((value - min)/step);
             if(current_choice < 0 || current_choice >= choices.size()) {
                 current_choice = 0;
             }
             xmb->set_choice_overlay(app::choice_overlay{
                 choices, static_cast<unsigned int>(current_choice),
                 [settings, schema, key, min, step](unsigned int choice) {
-                    int value = choice*step + min;
+                    int value = static_cast<int>(choice)*step + min;
                     settings->set_int(key, value);
                     settings->apply();
                 }
@@ -188,10 +189,10 @@ namespace menu {
         });
     }
     std::unique_ptr<action_menu_entry> entry_int(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        const std::string& name, const std::string& schema, const std::string& key, std::ranges::range auto values)
+        std::string name, const std::string& schema, const std::string& key, std::ranges::range auto values)
         requires std::is_integral_v<std::ranges::range_value_t<decltype(values)>>
     {
-        return entry_base(loader, name, key, [xmb, key, schema, values](){
+        return entry_base(loader, std::move(name), key, [xmb, key, schema, values](){
             auto settings = Gio::Settings::create(schema);
             int value = settings->get_int(key);
             std::vector<std::string> choices;
@@ -202,7 +203,7 @@ namespace menu {
             xmb->set_choice_overlay(app::choice_overlay{
                 choices, current_choice,
                 [settings, schema, key, values](unsigned int choice) {
-                    int value = values[choice];
+                    int value = *std::ranges::next(std::ranges::cbegin(values), choice);
                     settings->set_int(key, value);
                     settings->apply();
                 }
@@ -211,9 +212,9 @@ namespace menu {
         });
     }
     std::unique_ptr<action_menu_entry> entry_enum(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        const std::string& name, const std::string& schema, const std::string& key, std::ranges::range auto values)
+        std::string name, const std::string& schema, const std::string& key, std::ranges::range auto values)
     {
-        return entry_base(loader, name, key, [xmb, key, schema, values](){
+        return entry_base(loader, std::move(name), key, [xmb, key, schema, values](){
             auto settings = Gio::Settings::create(schema);
             std::string value = settings->get_string(key);
             std::vector<std::string> choices;
@@ -235,7 +236,7 @@ namespace menu {
         });
     }
 
-    settings_menu::settings_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
+    settings_menu::settings_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(std::move(name), std::move(icon)) {
         const std::filesystem::path& asset_dir = config::CONFIG.asset_directory;
         entries.push_back(make_simple<simple_menu>("Video Settings"_(), asset_dir/"icons/icon_settings_video.png", loader,
             std::array{

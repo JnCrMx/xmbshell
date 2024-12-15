@@ -20,7 +20,7 @@ export namespace menu {
 
 class settings_menu : public simple_menu {
     public:
-        settings_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader);
+        settings_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader);
         ~settings_menu() override = default;
 };
 

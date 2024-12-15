@@ -42,7 +42,7 @@ namespace dbus
         object->registerProperty("re.jcm.xmbos.Render", "maxFps", "i",
             [this](sdbus::PropertyGetReply& reply){reply << static_cast<int>(config::CONFIG.maxFPS);},
             [this](sdbus::PropertySetCall& call){
-                int maxFPS;
+                int maxFPS{};
                 call >> maxFPS;
                 config::CONFIG.setMaxFPS(maxFPS);
             });

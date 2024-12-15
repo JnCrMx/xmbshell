@@ -25,7 +25,7 @@ import i18n;
 namespace menu {
     using namespace mfk::i18n::literals;
 
-    users_menu::users_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(name, std::move(icon)) {
+    users_menu::users_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(std::move(name), std::move(icon)) {
         try {
             login1 = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager");
             accounts = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.Accounts", "/org/freedesktop/Accounts", "org.freedesktop.Accounts");

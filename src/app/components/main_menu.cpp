@@ -235,19 +235,20 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         submenu_transition);
     const double base_size = glm::mix(0.1, 0.075, submenu_transition);
 
-    float real_selection;
-    int selected = this->selected;
+    float real_selection{};
+    float selected_f = selected;
+    float last_selected_f = last_selected;
 
     if(selected == last_selected) {
-        real_selection = selected;
+        real_selection = selected_f;
     } else {
-        auto time_since_transition = std::chrono::duration<double>(now - last_selected_transition);
-        real_selection = last_selected + (selected - last_selected) *
+        auto time_since_transition = std::chrono::duration<float>(now - last_selected_transition);
+        real_selection = last_selected_f + (selected - last_selected) *
             time_since_transition / transition_duration;
-        if(selected > last_selected && real_selection > selected) {
-            real_selection = selected;
-        } else if(selected < last_selected && real_selection < selected) {
-            real_selection = selected;
+        if(selected > last_selected && real_selection > selected_f) {
+            real_selection = selected_f;
+        } else if(selected < last_selected && real_selection < selected_f) {
+            real_selection = selected_f;
         }
     }
 
@@ -269,7 +270,7 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
     }
 
     // This is spectacularly bad code, but it will work for now
-    x = selected_menu_x - ((base_size*1.5f)/renderer.aspect_ratio)*(real_selection - selected);
+    x = selected_menu_x - ((base_size*1.5f)/renderer.aspect_ratio)*(real_selection - selected_f);
     auto& menu = menus[selected];
     int selected_submenu = menu->get_selected_submenu();
     float partial_transition = 1.0f;

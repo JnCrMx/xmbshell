@@ -23,20 +23,20 @@ void news_display::tick() {
 void news_display::render(dreamrender::gui_renderer& renderer) {
     tick();
 
-    constexpr double base_x = 0.75;
-    constexpr double base_y = 0.15;
-    constexpr double box_width = 0.15;
-    constexpr double font_size = 0.021296296*2.5;
-    constexpr double speed = 0.05;
-    constexpr double spacing = 0.025;
+    constexpr float base_x = 0.75f;
+    constexpr float base_y = 0.15f;
+    constexpr float box_width = 0.15f;
+    constexpr float font_size = 0.021296296f*2.5f;
+    constexpr float speed = 0.05f;
+    constexpr float spacing = 0.025f;
 
     static auto begin = std::chrono::system_clock::now();
     auto now = std::chrono::system_clock::now();
-    auto elapsed = std::chrono::duration<double>(now - begin).count() * speed;
+    auto elapsed = std::chrono::duration<float>(now - begin).count() * speed;
 
     std::string_view news = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
-    double width = renderer.measure_text(news, font_size).x;
-    double x = std::fmod(elapsed, width + spacing);
+    float width = renderer.measure_text(news, font_size).x;
+    float x = std::fmod(elapsed, width + spacing);
 
     renderer.set_clip(base_x, base_y, box_width, font_size);
 

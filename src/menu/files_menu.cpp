@@ -33,8 +33,8 @@ namespace menu {
 
     using namespace mfk::i18n::literals;
 
-    files_menu::files_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, const std::filesystem::path& path, dreamrender::resource_loader& loader)
-    : simple_menu(name, std::move(icon)), xmb(xmb), path(path), loader(loader)
+    files_menu::files_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, std::filesystem::path path, dreamrender::resource_loader& loader)
+    : simple_menu(std::move(name), std::move(icon)), xmb(xmb), path(std::move(path)), loader(loader)
     {
 
     }
@@ -71,7 +71,7 @@ namespace menu {
             }
 
             std::string content_type_key = content_type;
-            std::replace(content_type_key.begin(), content_type_key.end(), '/', '_');
+            std::ranges::replace(content_type_key, '/', '_');
 
             std::filesystem::path icon_file_path = config::CONFIG.asset_directory/
                 "icons"/("icon_files_type_"+content_type_key+".png");
@@ -105,9 +105,9 @@ namespace menu {
     }
 
     void files_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {
-        v.push_back(std::make_pair(action::none, ""));
-        v.push_back(std::make_pair(action::none, ""));
-        v.push_back(std::make_pair(action::options, "Options"_()));
-        v.push_back(std::make_pair(action::extra, "Sort and Filter"_()));
+        v.emplace_back(action::none, "");
+        v.emplace_back(action::none, "");
+        v.emplace_back(action::options, "Options"_());
+        v.emplace_back(action::extra, "Sort and Filter"_());
     }
 }

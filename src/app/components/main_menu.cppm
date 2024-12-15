@@ -61,7 +61,7 @@ class main_menu : public action_receiver {
         time_point last_submenu_transition;
         constexpr static auto transition_submenu_activate_duration = std::chrono::milliseconds(100);
 
-        int last_selected_submenu_item;
+        int last_selected_submenu_item = 0;
         time_point last_selected_submenu_item_transition;
         constexpr static auto transition_submenu_item_duration = std::chrono::milliseconds(100);
 };

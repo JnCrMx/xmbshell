@@ -23,7 +23,7 @@ std::optional<glm::vec3> parse_color(std::string_view hex) {
     }
     auto parseHex = [](std::string_view hex) -> std::optional<unsigned int> {
 #if __cpp_lib_to_chars >= 201611L
-        unsigned int value;
+        unsigned int value{};
         if(std::from_chars(hex.data(), hex.data() + hex.size(), value, 16).ec == std::errc()) {
             return value;
         }
@@ -37,9 +37,9 @@ std::optional<glm::vec3> parse_color(std::string_view hex) {
         return std::nullopt;
     };
     return glm::vec3(
-        parseHex(hex.substr(1, 2)).value_or(0) / 255.0f,
-        parseHex(hex.substr(3, 2)).value_or(0) / 255.0f,
-        parseHex(hex.substr(5, 2)).value_or(0) / 255.0f
+        static_cast<float>(parseHex(hex.substr(1, 2)).value_or(0)) / 255.0f,
+        static_cast<float>(parseHex(hex.substr(3, 2)).value_or(0)) / 255.0f,
+        static_cast<float>(parseHex(hex.substr(5, 2)).value_or(0)) / 255.0f
     );
 }
 

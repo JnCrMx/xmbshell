@@ -49,7 +49,7 @@ class simple : public T {
     public:
         using icon_type = dreamrender::texture;
 
-        simple(const std::string& name, icon_type&& icon) : name(name), icon(std::move(icon)) {}
+        simple(std::string name, icon_type&& icon) : name(std::move(name)), icon(std::move(icon)) {}
         ~simple() override = default;
 
         const std::string& get_name() const override {
@@ -71,7 +71,7 @@ class simple_shared : public T {
     public:
         using icon_type = std::shared_ptr<dreamrender::texture>;
 
-        simple_shared(const std::string& name, icon_type&& icon) : name(name), icon(std::move(icon)) {}
+        simple_shared(std::string name, icon_type&& icon) : name(std::move(name)), icon(std::move(icon)) {}
         ~simple_shared() override = default;
 
         const std::string& get_name() const override {
@@ -96,9 +96,9 @@ using simple_menu_entry_shared = simple_shared<menu_entry>;
 template<typename Base>
 class action_menu_entry_generic : public Base {
     public:
-        action_menu_entry_generic(const std::string& name, Base::icon_type&& icon,
+        action_menu_entry_generic(std::string name, Base::icon_type&& icon,
             std::function<result()> on_activate, std::function<result(action)> on_action = {})
-            : Base(name, std::move(icon)), on_activate(on_activate), on_action(on_action) {}
+            : Base(std::move(name), std::move(icon)), on_activate(std::move(on_activate)), on_action(std::move(on_action)) {}
         ~action_menu_entry_generic() override = default;
 
         result activate(action action) override {
@@ -119,11 +119,11 @@ using action_menu_entry_shared = action_menu_entry_generic<simple_menu_entry_sha
 template<typename Base>
 class simple_menu_generic : public Base {
     public:
-        simple_menu_generic(const std::string& name, Base::icon_type&& icon) : Base(name, std::move(icon)) {}
+        simple_menu_generic(std::string name, Base::icon_type&& icon) : Base(std::move(name), std::move(icon)) {}
 
         template<std::derived_from<menu_entry> T, std::size_t N>
         simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::array<std::unique_ptr<T>, N>&& entries) : Base(name, std::move(icon)) {
-            for(auto& entry : entries) {
+            for(auto& entry : std::move(entries)) {
                 this->entries.push_back(std::move(entry));
             }
         }

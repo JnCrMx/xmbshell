@@ -50,7 +50,7 @@ export namespace menu {
 
     class applications_menu : public simple_menu {
         public:
-            applications_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader, AppFilter filter = noFilter());
+            applications_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader, AppFilter filter = noFilter());
             ~applications_menu() override = default;
 
             result activate(action action) override;

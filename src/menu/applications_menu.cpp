@@ -1,11 +1,9 @@
 module;
 
+#include <algorithm>
 #include <filesystem>
 #include <functional>
-#include <mutex>
-#include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 module xmbshell.app;
@@ -25,8 +23,8 @@ namespace menu {
 
 using namespace mfk::i18n::literals;
 
-applications_menu::applications_menu(const std::string& name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader, AppFilter filter)
-    : simple_menu(name, std::move(icon)), xmb(xmb), loader(loader), filter(filter)
+applications_menu::applications_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader, AppFilter filter)
+    : simple_menu(std::move(name), std::move(icon)), xmb(xmb), loader(loader), filter(filter)
 {
     auto appInfos = Gio::AppInfo::get_all();
     for (const auto& app : appInfos) {
@@ -56,7 +54,7 @@ std::unique_ptr<action_menu_entry> applications_menu::create_action_menu_entry(G
 
     dreamrender::texture icon_texture(loader.getDevice(), loader.getAllocator());
     auto entry = std::make_unique<action_menu_entry>(app->get_display_name(), std::move(icon_texture),
-        std::function<result()>{}, std::bind(&applications_menu::activate_app, this, app, std::placeholders::_1));
+        std::function<result()>{}, [this, app](auto && PH1) { return activate_app(app, std::forward<decltype(PH1)>(PH1)); });
     if(!icon_path.empty()) {
         loader.loadTexture(&entry->get_icon(), icon_path);
     }
@@ -69,7 +67,7 @@ void applications_menu::reload() {
         if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
             bool should_include = filter(*desktop_app.get()) && (show_hidden || !config::CONFIG.excludedApplications.contains(desktop_app->get_id()));
             spdlog::trace("Found application: {} ({})", desktop_app->get_display_name(), desktop_app->get_id());
-            auto it = std::find_if(apps.begin(), apps.end(), [&desktop_app](const Glib::RefPtr<Gio::DesktopAppInfo>& app){
+            auto it = std::ranges::find_if(apps, [&desktop_app](const Glib::RefPtr<Gio::DesktopAppInfo>& app){
                 return app->get_id() == desktop_app->get_id();
             });
             if(it == apps.end()) {
@@ -147,10 +145,10 @@ result applications_menu::activate(action action) {
 }
 
 void applications_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {
-    v.push_back(std::make_pair(action::none, ""));
-    v.push_back(std::make_pair(action::none, ""));
-    v.push_back(std::make_pair(action::options, "Options"_()));
-    v.push_back(std::make_pair(action::extra, show_hidden ? "Hide excluded apps"_() : "Show excluded apps"_()));
+    v.emplace_back(action::none, "");
+    v.emplace_back(action::none, "");
+    v.emplace_back(action::options, "Options"_());
+    v.emplace_back(action::extra, show_hidden ? "Hide excluded apps"_() : "Show excluded apps"_());
 }
 
 }

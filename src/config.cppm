@@ -7,6 +7,7 @@ module;
 #include <map>
 #include <functional>
 #include <unordered_set>
+#include <version>
 
 export module xmbshell.config;
 
@@ -41,21 +42,21 @@ export namespace config
             double                          maxFPS = 100;
             std::chrono::duration<double>   frameTime = std::chrono::duration<double>(std::chrono::seconds(1))/maxFPS;
 
-            bool showFPS;
-            bool showMemory;
+            bool showFPS    = false;
+            bool showMemory = false;
 
             std::filesystem::path   fontPath;
-            background_type			backgroundType;
-            glm::vec3               backgroundColor;
+            background_type			backgroundType = background_type::wave;
+            glm::vec3               backgroundColor{};
             std::filesystem::path   backgroundImage;
-            glm::vec3               waveColor;
+            glm::vec3               waveColor{};
             std::string             dateTimeFormat = constants::fallback_datetime_format;
             double                  dateTimeOffset = 0.0;
 
             std::unordered_set<std::string> excludedApplications;
 
-            bool controllerRumble;
-            bool controllerAnalogStick;
+            bool controllerRumble = true;
+            bool controllerAnalogStick = true;
 
             std::string controllerType;
 
