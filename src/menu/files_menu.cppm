@@ -31,6 +31,8 @@ class files_menu : public simple_menu {
         void on_close() override {
             simple_menu::on_close();
             entries.clear();
+            extra_data_entries.clear();
+            old_selected_submenu = selected_submenu;
         }
 
         unsigned int get_submenus_count() const override {
@@ -74,9 +76,6 @@ class files_menu : public simple_menu {
             Glib::RefPtr<Gio::FileInfo> info,
             action action);
 
-        bool copy_file(const std::filesystem::path& src, const std::filesystem::path& dst);
-        bool cut_file(const std::filesystem::path& src, const std::filesystem::path& dst);
-
         void reload();
         void resort();
 
@@ -97,6 +96,8 @@ class files_menu : public simple_menu {
         int selected_filter = 0;
         int selected_sort = 0;
         bool sort_descending = false;
+
+        unsigned int old_selected_submenu = 0;
 };
 
 }

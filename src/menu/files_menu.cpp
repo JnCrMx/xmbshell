@@ -115,11 +115,17 @@ namespace menu {
             all_files.insert(entry.path());
         }
 
-        // TODO: translate selected_submenu
         for(auto it = entries.begin(); it != entries.end();) {
-            if(!all_files.contains(extra_data_entries[it - entries.begin()].path)) {
+            auto dist = std::distance(entries.begin(), it);
+            if(!all_files.contains(extra_data_entries[dist].path)) {
                 it = entries.erase(it);
-                extra_data_entries.erase(extra_data_entries.begin() + (it - entries.begin()));
+                extra_data_entries.erase(extra_data_entries.begin() + dist);
+
+                if(selected_submenu == dist) {
+                    selected_submenu = 0;
+                } else if(selected_submenu > dist) {
+                    --selected_submenu;
+                }
             } else {
                 ++it;
             }
@@ -146,8 +152,7 @@ namespace menu {
             entries.push_back(std::move(old_entries[i]));
             extra_data_entries.push_back(std::move(old_extra_data_entries[i]));
         }
-
-        // TODO: translate selected_submenu
+        selected_submenu = std::ranges::find(indices, selected_submenu) - indices.begin();
     }
 
     void files_menu::on_open() {
@@ -159,7 +164,14 @@ namespace menu {
         }
 
         reload();
+        selected_submenu = old_selected_submenu;
+        if(selected_submenu >= entries.size()) {
+            selected_submenu = 0;
+        }
     }
+
+    bool copy_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst);
+    bool cut_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst);
 
     result files_menu::activate_file(const std::filesystem::path& path,
             Glib::RefPtr<Gio::File> file,
@@ -169,27 +181,30 @@ namespace menu {
         if(action == action::options) {
             std::vector options{
             //  0        , 1                   , 2                    , 3        , 4       , 5
-                "Open"_(), "Open externally"_(), "View information"_(), "Copy"_(), "Cut"_(), "Delete"_()
+                "Open"_(), "Open externally"_(), "View information"_(), "Copy"_(), "Cut"_(), "Delete"_(), "Refresh"_()
             };
             if(const auto& cb = xmb->get_clipboard()) {
                 if(std::holds_alternative<std::function<bool(std::filesystem::path)>>(*cb)) {
-                    //                6
+                    //                7
                     options.push_back("Paste"_());
                 }
             }
             xmb->set_choice_overlay(app::choice_overlay{options, 0, [this, path](unsigned int index){
                 switch(index) {
                     case 3:
-                        xmb->set_clipboard([this, path](std::filesystem::path dst){
-                            return copy_file(path, dst);
+                        xmb->set_clipboard([xmb = this->xmb, path](std::filesystem::path dst){
+                            return copy_file(xmb, path, dst);
                         });
                         break;
                     case 4:
-                        xmb->set_clipboard([this, path](std::filesystem::path dst){
-                            return cut_file(path, dst);
+                        xmb->set_clipboard([xmb = this->xmb, path](std::filesystem::path dst){
+                            return cut_file(xmb, path, dst);
                         });
                         break;
                     case 6:
+                        reload();
+                        break;
+                    case 7:
                         if(const auto& cb = xmb->get_clipboard()) {
                             if(auto f = std::get_if<std::function<bool(std::filesystem::path)>>(&cb.value())) {
                                 if((*f)(path)) {
@@ -207,7 +222,7 @@ namespace menu {
         return result::unsupported;
     }
 
-    bool files_menu::copy_file(const std::filesystem::path& src, const std::filesystem::path& dst) {
+    bool copy_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst) {
         std::filesystem::path p = dst;
         if(!std::filesystem::is_directory(p)) {
             p = p.parent_path();
@@ -233,7 +248,7 @@ namespace menu {
         return false;
     }
 
-    bool files_menu::cut_file(const std::filesystem::path& src, const std::filesystem::path& dst) {
+    bool cut_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst) {
         std::filesystem::path p = dst;
         if(!std::filesystem::is_directory(p)) {
             p = p.parent_path();
