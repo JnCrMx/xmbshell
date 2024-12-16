@@ -2,6 +2,7 @@ module;
 
 #include <algorithm>
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -13,6 +14,7 @@ import :files_menu;
 import :menu_base;
 import :menu_utils;
 import :message_overlay;
+import :choice_overlay;
 
 import xmbshell.config;
 import xmbshell.utils;
@@ -94,14 +96,29 @@ namespace menu {
                 entries.push_back(std::move(menu));
             }
             else if (entry.is_regular_file()) {
-                auto menu = make_simple<action_menu_entry>(entry.path().filename().string(), icon_file_path, loader, [](){
-                    return result::unsupported;
-                });
+                auto menu = make_simple<action_menu_entry>(entry.path().filename().string(), icon_file_path, loader,
+                    std::function<result()>{}, [this, entry, file, info](auto && PH1) {
+                        return activate_file(entry.path(), std::move(file), std::move(info), std::forward<decltype(PH1)>(PH1));
+                    });
                 entries.push_back(std::move(menu));
             } else {
                 spdlog::warn("Unsupported file type: {}", entry.path().string());
             }
         }
+    }
+
+    result files_menu::activate_file(const std::filesystem::path& path,
+            Glib::RefPtr<Gio::File> file,
+            Glib::RefPtr<Gio::FileInfo> info,
+            action action)
+    {
+        if(action == action::options) {
+            xmb->set_choice_overlay(app::choice_overlay{std::vector{
+                "Open"_(), "Open externally"_(), "View information"_(), "Copy"_(), "Cut"_(), "Delete"_()
+            }, 0, [this](unsigned int index){}});
+            return result::success;
+        }
+        return result::unsupported;
     }
 
     void files_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {

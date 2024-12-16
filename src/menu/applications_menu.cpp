@@ -131,6 +131,7 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
                     return;
             }
         }});
+        return result::success;
     }
     return result::unsupported;
 }

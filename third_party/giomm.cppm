@@ -12,6 +12,7 @@ export namespace Gio {
     using Gio::FileIcon;
     using Gio::ThemedIcon;
     using Gio::File;
+    using Gio::FileInfo;
     using Gio::Settings;
     using Gio::SettingsSchema;
     using Gio::SettingsSchemaSource;

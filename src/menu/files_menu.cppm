@@ -38,6 +38,11 @@ class files_menu : public simple_menu {
 
         void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
     private:
+        result activate_file(const std::filesystem::path& path,
+            Glib::RefPtr<Gio::File> file,
+            Glib::RefPtr<Gio::FileInfo> info,
+            action action);
+
         app::xmbshell* xmb;
         std::filesystem::path path;
         dreamrender::resource_loader& loader;
