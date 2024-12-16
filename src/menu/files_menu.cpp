@@ -44,6 +44,10 @@ namespace menu {
     }
 
     void files_menu::reload() {
+        if(selected_submenu < extra_data_entries.size()) {
+            old_selected_item = extra_data_entries[selected_submenu].path;
+        }
+
         std::filesystem::directory_iterator it{path};
 
         std::unordered_set<std::filesystem::path> all_files;
@@ -131,10 +135,26 @@ namespace menu {
             }
         }
 
+        bool to_beginning = false;
+        if(auto it = std::ranges::find_if(extra_data_entries, [this](const auto& e) {
+            return e.path == old_selected_item;
+        }); it != extra_data_entries.end()) {
+            selected_submenu = std::distance(extra_data_entries.begin(), it);
+        } else {
+            selected_submenu = 0;
+            to_beginning = true;
+        }
         resort();
+        if(to_beginning) {
+            selected_submenu = 0;
+        }
     }
 
     void files_menu::resort() {
+        if(selected_submenu < extra_data_entries.size()) {
+            old_selected_item = extra_data_entries[selected_submenu].path;
+        }
+
         std::vector<unsigned int> indices(entries.size());
         std::ranges::iota(indices, 0);
 
@@ -152,7 +172,14 @@ namespace menu {
             entries.push_back(std::move(old_entries[i]));
             extra_data_entries.push_back(std::move(old_extra_data_entries[i]));
         }
-        selected_submenu = std::ranges::find(indices, selected_submenu) - indices.begin();
+
+        if(auto it = std::ranges::find_if(extra_data_entries, [this](const auto& e) {
+            return e.path == old_selected_item;
+        }); it != extra_data_entries.end()) {
+            selected_submenu = std::distance(extra_data_entries.begin(), it);
+        } else {
+            selected_submenu = 0;
+        }
     }
 
     void files_menu::on_open() {
@@ -164,14 +191,10 @@ namespace menu {
         }
 
         reload();
-        selected_submenu = old_selected_submenu;
-        if(selected_submenu >= entries.size()) {
-            selected_submenu = 0;
-        }
     }
 
     bool copy_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst);
-    bool cut_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst);
+    bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst);
 
     result files_menu::activate_file(const std::filesystem::path& path,
             Glib::RefPtr<Gio::File> file,
@@ -197,8 +220,8 @@ namespace menu {
                         });
                         break;
                     case 4:
-                        xmb->set_clipboard([xmb = this->xmb, path](std::filesystem::path dst){
-                            return cut_file(xmb, path, dst);
+                        xmb->set_clipboard([xmb = this->xmb, exists = std::weak_ptr<void>{exists_flag}, ptr = this, path](std::filesystem::path dst){
+                            return cut_file(xmb, exists, ptr, path, dst);
                         });
                         break;
                     case 6:
@@ -248,7 +271,7 @@ namespace menu {
         return false;
     }
 
-    bool cut_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst) {
+    bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst) {
         std::filesystem::path p = dst;
         if(!std::filesystem::is_directory(p)) {
             p = p.parent_path();
@@ -262,6 +285,9 @@ namespace menu {
 
         try {
             std::filesystem::rename(src, p);
+            if(auto sp = exists.lock()) {
+                ptr->reload();
+            }
             return true;
         } catch(const std::exception& e) {
             spdlog::error("Failed to copy file: {}", e.what());

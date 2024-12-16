@@ -30,9 +30,9 @@ class files_menu : public simple_menu {
         void on_open() override;
         void on_close() override {
             simple_menu::on_close();
+            old_selected_item = extra_data_entries[selected_submenu].path;
             entries.clear();
             extra_data_entries.clear();
-            old_selected_submenu = selected_submenu;
         }
 
         unsigned int get_submenus_count() const override {
@@ -97,7 +97,9 @@ class files_menu : public simple_menu {
         int selected_sort = 0;
         bool sort_descending = false;
 
-        unsigned int old_selected_submenu = 0;
+        std::filesystem::path old_selected_item;
+        std::shared_ptr<void> exists_flag;
+        friend bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst);
 };
 
 }
