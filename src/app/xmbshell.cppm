@@ -3,10 +3,13 @@ module;
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
-#include <vector>
 #include <utility>
+#include <variant>
+#include <vector>
 
 export module xmbshell.app:main;
 
@@ -25,6 +28,11 @@ import :progress_overlay;
 
 namespace app
 {
+    export using clipboard = std::variant<
+        std::string, std::function<std::string()>,
+        std::function<bool(std::filesystem::path)>
+    >;
+
     using namespace dreamrender;
     export class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler
     {
@@ -105,6 +113,11 @@ namespace app
                 message_overlay = std::move(overlay);
             }
             const std::optional<message_overlay>& get_message_overlay() const { return message_overlay; }
+
+            void set_clipboard(clipboard&& clipboard) {
+                this->clipboard = std::move(clipboard);
+            }
+            const std::optional<clipboard>& get_clipboard() const { return clipboard; }
         private:
             using time_point = std::chrono::time_point<std::chrono::system_clock>;
 
@@ -161,6 +174,8 @@ namespace app
 
             std::optional<app::progress_overlay> progress_overlay = std::nullopt;
             std::optional<app::message_overlay> message_overlay = std::nullopt;
+
+            std::optional<clipboard> clipboard;
 
             // transition duration constants
             constexpr static auto blur_background_transition_duration = std::chrono::milliseconds(500);

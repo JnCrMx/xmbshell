@@ -4,6 +4,8 @@ module;
 #include <filesystem>
 #include <functional>
 #include <string>
+#include <unordered_set>
+#include <variant>
 #include <vector>
 
 #include <unistd.h>
@@ -41,15 +43,10 @@ namespace menu {
 
     }
 
-    void files_menu::on_open() {
-        simple_menu::on_open();
-
-        if(!std::filesystem::exists(path)) {
-            spdlog::error("Path does not exist: {}", path.string());
-            return;
-        }
-
+    void files_menu::reload() {
         std::filesystem::directory_iterator it{path};
+
+        std::unordered_set<std::filesystem::path> all_files;
         for (const auto& entry : it) {
             auto file = Gio::File::create_for_path(entry.path().string());
             auto info = file->query_info(
@@ -61,14 +58,23 @@ namespace menu {
                 "standard::is-backup"           ","
                 "thumbnail::path"               ","
                 "thumbnail::is-valid");
+
             std::string display_name = info->get_display_name();
-            std::string content_type = info->get_attribute_string("standard::content-type");
-            bool is_hidden = info->get_attribute_boolean("standard::is-hidden");
-            bool is_backup = info->get_attribute_boolean("standard::is-backup");
+            std::string content_type = info->get_attribute_string("standard::fast-content-type");
             bool thumbnail_is_valid = info->get_attribute_boolean("thumbnail::is-valid");
             std::string thumbnail_path = info->get_attribute_as_string("thumbnail::path");
 
-            if(is_hidden || is_backup) {
+            if(!filter(*info.get())) {
+                continue;
+            }
+
+            // Skip entries we already have (TODO: update icon if needed)
+            if(auto it = std::ranges::find_if(extra_data_entries, [&entry](const auto& e) {
+                return e.path == entry.path();
+            }); it != extra_data_entries.end()) {
+                it->file = file;
+                it->info = info;
+                all_files.insert(entry.path());
                 continue;
             }
 
@@ -103,8 +109,56 @@ namespace menu {
                 entries.push_back(std::move(menu));
             } else {
                 spdlog::warn("Unsupported file type: {}", entry.path().string());
+                continue;
+            }
+            extra_data_entries.emplace_back(entry.path(), file, info);
+            all_files.insert(entry.path());
+        }
+
+        // TODO: translate selected_submenu
+        for(auto it = entries.begin(); it != entries.end();) {
+            if(!all_files.contains(extra_data_entries[it - entries.begin()].path)) {
+                it = entries.erase(it);
+                extra_data_entries.erase(extra_data_entries.begin() + (it - entries.begin()));
+            } else {
+                ++it;
             }
         }
+
+        resort();
+    }
+
+    void files_menu::resort() {
+        std::vector<unsigned int> indices(entries.size());
+        std::ranges::iota(indices, 0);
+
+        std::ranges::sort(indices, [this](unsigned int a, unsigned int b) {
+            const auto& a_entry = *extra_data_entries[a].info.get();
+            const auto& b_entry = *extra_data_entries[b].info.get();
+            return sort(a_entry, b_entry) ^ sort_descending;
+        });
+
+        decltype(entries) old_entries = std::move(entries);
+        decltype(extra_data_entries) old_extra_data_entries = std::move(extra_data_entries);
+        entries.clear();
+        extra_data_entries.clear();
+        for(auto i : indices) {
+            entries.push_back(std::move(old_entries[i]));
+            extra_data_entries.push_back(std::move(old_extra_data_entries[i]));
+        }
+
+        // TODO: translate selected_submenu
+    }
+
+    void files_menu::on_open() {
+        simple_menu::on_open();
+
+        if(!std::filesystem::exists(path)) {
+            spdlog::error("Path does not exist: {}", path.string());
+            return;
+        }
+
+        reload();
     }
 
     result files_menu::activate_file(const std::filesystem::path& path,
@@ -113,15 +167,102 @@ namespace menu {
             action action)
     {
         if(action == action::options) {
-            xmb->set_choice_overlay(app::choice_overlay{std::vector{
+            std::vector options{
+            //  0        , 1                   , 2                    , 3        , 4       , 5
                 "Open"_(), "Open externally"_(), "View information"_(), "Copy"_(), "Cut"_(), "Delete"_()
-            }, 0, [this](unsigned int index){}});
+            };
+            if(const auto& cb = xmb->get_clipboard()) {
+                if(std::holds_alternative<std::function<bool(std::filesystem::path)>>(*cb)) {
+                    //                6
+                    options.push_back("Paste"_());
+                }
+            }
+            xmb->set_choice_overlay(app::choice_overlay{options, 0, [this, path](unsigned int index){
+                switch(index) {
+                    case 3:
+                        xmb->set_clipboard([this, path](std::filesystem::path dst){
+                            return copy_file(path, dst);
+                        });
+                        break;
+                    case 4:
+                        xmb->set_clipboard([this, path](std::filesystem::path dst){
+                            return cut_file(path, dst);
+                        });
+                        break;
+                    case 6:
+                        if(const auto& cb = xmb->get_clipboard()) {
+                            if(auto f = std::get_if<std::function<bool(std::filesystem::path)>>(&cb.value())) {
+                                if((*f)(path)) {
+                                    reload();
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }});
             return result::success;
         }
         return result::unsupported;
     }
 
+    bool files_menu::copy_file(const std::filesystem::path& src, const std::filesystem::path& dst) {
+        std::filesystem::path p = dst;
+        if(!std::filesystem::is_directory(p)) {
+            p = p.parent_path();
+        }
+        p /= src.filename();
+
+        if(std::filesystem::exists(p)) {
+            spdlog::error("File already exists: {}", p.string());
+            return false;
+        }
+
+        try {
+            std::filesystem::copy_file(src, p, std::filesystem::copy_options::overwrite_existing);
+            return true;
+        } catch(const std::exception& e) {
+            spdlog::error("Failed to copy file: {}", e.what());
+
+            std::string message = e.what();
+            xmb->set_message_overlay(app::message_overlay{
+                "Copy failed"_(), "Failed to copy file: {}"_(message), {"OK"_()}
+            });
+        }
+        return false;
+    }
+
+    bool files_menu::cut_file(const std::filesystem::path& src, const std::filesystem::path& dst) {
+        std::filesystem::path p = dst;
+        if(!std::filesystem::is_directory(p)) {
+            p = p.parent_path();
+        }
+        p /= src.filename();
+
+        if(std::filesystem::exists(p)) {
+            spdlog::error("File already exists: {}", p.string());
+            return false;
+        }
+
+        try {
+            std::filesystem::rename(src, p);
+            return true;
+        } catch(const std::exception& e) {
+            spdlog::error("Failed to copy file: {}", e.what());
+
+            std::string message = e.what();
+            xmb->set_message_overlay(app::message_overlay{
+                "Move failed"_(), "Failed to move file: {}"_(message), {"OK"_()}
+            });
+        }
+        return false;
+    }
+
     void files_menu::get_button_actions(std::vector<std::pair<action, std::string>>& v) {
+        if(!v.empty()) {
+            return;
+        }
         v.emplace_back(action::none, "");
         v.emplace_back(action::none, "");
         v.emplace_back(action::options, "Options"_());

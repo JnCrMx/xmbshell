@@ -1,6 +1,7 @@
 module;
 
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -37,15 +38,65 @@ class files_menu : public simple_menu {
         }
 
         void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
+
+        static constexpr auto filter_all = [](const Gio::FileInfo&) { return true; };
+        static constexpr auto filter_visible = [](const Gio::FileInfo& info) {
+            return !info.is_hidden() && !info.is_hidden();
+        };
+
+        static constexpr auto sort_by_name = [](const Gio::FileInfo& a, const Gio::FileInfo& b) {
+            return a.get_display_name() < b.get_display_name();
+        };
+        static constexpr auto sort_by_size = [](const Gio::FileInfo& a, const Gio::FileInfo& b) {
+            return a.get_size() < b.get_size();
+        };
+        static constexpr auto sort_by_type = [](const Gio::FileInfo& a, const Gio::FileInfo& b) {
+            std::string av = a.get_attribute_string("standard::fast-content-type");
+            std::string bv = b.get_attribute_string("standard::fast-content-type");
+            return av < bv;
+        };
+
+        using filter_entry_type = std::pair<std::string_view, std::add_pointer_t<bool(const Gio::FileInfo&)>>;
+        static constexpr std::array filters{
+            filter_entry_type{"Normal", filter_visible},
+            filter_entry_type{"All files", filter_all},
+        };
+
+        using sort_entry_type = std::pair<std::string_view, std::add_pointer_t<bool(const Gio::FileInfo&, const Gio::FileInfo&)>>;
+        static constexpr std::array sorts{
+            sort_entry_type{"Name", sort_by_name},
+            sort_entry_type{"Size", sort_by_size},
+            sort_entry_type{"Type", sort_by_type},
+        };
     private:
         result activate_file(const std::filesystem::path& path,
             Glib::RefPtr<Gio::File> file,
             Glib::RefPtr<Gio::FileInfo> info,
             action action);
 
+        bool copy_file(const std::filesystem::path& src, const std::filesystem::path& dst);
+        bool cut_file(const std::filesystem::path& src, const std::filesystem::path& dst);
+
+        void reload();
+        void resort();
+
         app::xmbshell* xmb;
         std::filesystem::path path;
         dreamrender::resource_loader& loader;
+
+        struct extra_data {
+            std::filesystem::path path;
+            Glib::RefPtr<Gio::File> file;
+            Glib::RefPtr<Gio::FileInfo> info;
+        };
+        std::vector<extra_data> extra_data_entries;
+
+        std::function<bool(const Gio::FileInfo&)> filter = filter_visible;
+        std::function<bool(const Gio::FileInfo& a, const Gio::FileInfo& b)> sort = sort_by_name;
+
+        int selected_filter = 0;
+        int selected_sort = 0;
+        bool sort_descending = false;
 };
 
 }
