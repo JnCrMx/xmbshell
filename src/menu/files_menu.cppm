@@ -30,7 +30,9 @@ class files_menu : public simple_menu {
         void on_open() override;
         void on_close() override {
             simple_menu::on_close();
-            old_selected_item = extra_data_entries[selected_submenu].path;
+            if(selected_submenu < extra_data_entries.size()) {
+                old_selected_item = extra_data_entries[selected_submenu].path;
+            }
             entries.clear();
             extra_data_entries.clear();
         }
