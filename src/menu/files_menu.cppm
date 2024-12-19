@@ -38,6 +38,7 @@ class files_menu : public simple_menu {
         unsigned int get_submenus_count() const override {
             return is_open ? entries.size() : 1;
         }
+        result activate(action action) override;
 
         void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
 
@@ -71,11 +72,6 @@ class files_menu : public simple_menu {
             sort_entry_type{"Type", sort_by_type},
         };
     private:
-        result activate_file(const std::filesystem::path& path,
-            Glib::RefPtr<Gio::File> file,
-            Glib::RefPtr<Gio::FileInfo> info,
-            action action);
-
         void reload();
         void resort();
 
@@ -98,7 +94,7 @@ class files_menu : public simple_menu {
         bool sort_descending = false;
 
         std::filesystem::path old_selected_item;
-        std::shared_ptr<void> exists_flag;
+        std::shared_ptr<bool> exists_flag = std::make_shared<bool>(true);
         friend bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst);
 };
 

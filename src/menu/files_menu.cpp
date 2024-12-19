@@ -54,6 +54,7 @@ namespace menu {
         for (const auto& entry : it) {
             auto file = Gio::File::create_for_path(entry.path().string());
             auto info = file->query_info(
+                "standard::type"                ","
                 "standard::fast-content-type"   ","
                 "standard::display-name"        ","
                 "standard::symbolic-icon"       ","
@@ -106,10 +107,7 @@ namespace menu {
                 entries.push_back(std::move(menu));
             }
             else if (entry.is_regular_file()) {
-                auto menu = make_simple<action_menu_entry>(entry.path().filename().string(), icon_file_path, loader,
-                    std::function<result()>{}, [this, entry, file, info](auto && PH1) {
-                        return activate_file(entry.path(), std::move(file), std::move(info), std::forward<decltype(PH1)>(PH1));
-                    });
+                auto menu = make_simple<simple_menu_entry>(entry.path().filename().string(), icon_file_path, loader);
                 entries.push_back(std::move(menu));
             } else {
                 spdlog::warn("Unsupported file type: {}", entry.path().string());
@@ -196,49 +194,73 @@ namespace menu {
     bool copy_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst);
     bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst);
 
-    result files_menu::activate_file(const std::filesystem::path& path,
-            Glib::RefPtr<Gio::File> file,
-            Glib::RefPtr<Gio::FileInfo> info,
-            action action)
+    result files_menu::activate(action action)
     {
+        auto r = simple_menu::activate(action);
+        if(r != result::unsupported) {
+            if(action == action::ok || r != result::submenu || !is_open) {
+                return r;
+            }
+        }
+
+        if(selected_submenu >= extra_data_entries.size()) {
+            return result::failure;
+        }
+        auto& [path, file, info] = extra_data_entries.at(selected_submenu);
+
         if(action == action::options) {
+            auto action_open = [](){};
+            auto action_open_external = [](){};
+            auto action_view_information = [](){};
+            auto action_copy = [this, path](){
+                xmb->set_clipboard([xmb = this->xmb, path](std::filesystem::path dst){
+                    return copy_file(xmb, path, dst);
+                });
+            };
+            auto action_cut = [this, path](){
+                xmb->set_clipboard([xmb = this->xmb, exists = std::weak_ptr<bool>{exists_flag}, ptr = this, path](std::filesystem::path dst){
+                    return cut_file(xmb, exists, ptr, path, dst);
+                });
+            };
+            auto action_delete = [](){};
+            auto action_refresh = [this](){
+                reload();
+            };
+            auto action_paste_here = [this, path = this->path](){
+                if(const auto& cb = xmb->get_clipboard()) {
+                    if(auto f = std::get_if<std::function<bool(std::filesystem::path)>>(&cb.value())) {
+                        if((*f)(path)) {
+                            reload();
+                        }
+                    }
+                }
+            };
+            auto action_paste_into = [this, path](){
+                if(const auto& cb = xmb->get_clipboard()) {
+                    if(auto f = std::get_if<std::function<bool(std::filesystem::path)>>(&cb.value())) {
+                        if((*f)(path)) {
+                            reload();
+                        }
+                    }
+                }
+            };
+
+            std::vector<std::function<void()>> actions = {
+                action_open, action_open_external, action_view_information, action_copy, action_cut, action_delete, action_refresh
+            };
             std::vector options{
-            //  0        , 1                   , 2                    , 3        , 4       , 5
-                "Open"_(), "Open externally"_(), "View information"_(), "Copy"_(), "Cut"_(), "Delete"_(), "Refresh"_()
+                "Open"_(),   "Open externally"_(), "View information"_(),   "Copy"_(),   "Cut"_(),   "Delete"_(),   "Refresh"_()
             };
             if(const auto& cb = xmb->get_clipboard()) {
                 if(std::holds_alternative<std::function<bool(std::filesystem::path)>>(*cb)) {
-                    //                7
-                    options.push_back("Paste"_());
+                    options.push_back("Paste here"_()); actions.emplace_back(action_paste_here);
+                    if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
+                        options.push_back("Paste into"_()); actions.emplace_back(action_paste_into);
+                    }
                 }
             }
-            xmb->set_choice_overlay(app::choice_overlay{options, 0, [this, path](unsigned int index){
-                switch(index) {
-                    case 3:
-                        xmb->set_clipboard([xmb = this->xmb, path](std::filesystem::path dst){
-                            return copy_file(xmb, path, dst);
-                        });
-                        break;
-                    case 4:
-                        xmb->set_clipboard([xmb = this->xmb, exists = std::weak_ptr<void>{exists_flag}, ptr = this, path](std::filesystem::path dst){
-                            return cut_file(xmb, exists, ptr, path, dst);
-                        });
-                        break;
-                    case 6:
-                        reload();
-                        break;
-                    case 7:
-                        if(const auto& cb = xmb->get_clipboard()) {
-                            if(auto f = std::get_if<std::function<bool(std::filesystem::path)>>(&cb.value())) {
-                                if((*f)(path)) {
-                                    reload();
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            xmb->set_choice_overlay(app::choice_overlay{options, 0, [this, actions](unsigned int index){
+                actions.at(index)();
             }});
             return result::success;
         }
@@ -248,7 +270,8 @@ namespace menu {
     bool copy_file(app::xmbshell* xmb, const std::filesystem::path& src, const std::filesystem::path& dst) {
         std::filesystem::path p = dst;
         if(!std::filesystem::is_directory(p)) {
-            p = p.parent_path();
+            spdlog::error("Target is not a directory: {}", p.string());
+            return false;
         }
         p /= src.filename();
 
@@ -274,7 +297,8 @@ namespace menu {
     bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst) {
         std::filesystem::path p = dst;
         if(!std::filesystem::is_directory(p)) {
-            p = p.parent_path();
+            spdlog::error("Target is not a directory: {}", p.string());
+            return false;
         }
         p /= src.filename();
 
@@ -286,6 +310,7 @@ namespace menu {
         try {
             std::filesystem::rename(src, p);
             if(auto sp = exists.lock()) {
+                spdlog::debug("Reloading source after move operation");
                 ptr->reload();
             }
             return true;
