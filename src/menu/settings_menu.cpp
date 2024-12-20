@@ -113,13 +113,13 @@ namespace menu {
                         return status::success;
                     } else if(exit_code == 1) {
                         message = {};
-                        xmb->set_message_overlay(app::message_overlay{"Update Available"_(), "An update is available. Would you like to install it?"_(),
-                            {"Yes"_(), "No"_()}, [xmb = this->xmb](unsigned int choice){
+                        xmb->emplace_overlay<app::message_overlay>("Update Available"_(), "An update is available. Would you like to install it?"_(),
+                            std::vector<std::string>{"Yes"_(), "No"_()}, [xmb = this->xmb](unsigned int choice){
                                 if(choice == 0) {
-                                    xmb->set_progress_overlay(app::progress_overlay{"Updating"_(), std::make_unique<updater>()});
+                                    xmb->emplace_overlay<app::progress_overlay>("Updating"_(), std::make_unique<updater>());
                                 }
                             }
-                        });
+                        );
                         return status::success;
                     } else {
                         message = "Failed to check for updates."_();
@@ -152,13 +152,13 @@ namespace menu {
         return entry_base(loader, std::move(name), key, [xmb, key, schema](){
             auto settings = Gio::Settings::create(schema);
             bool value = settings->get_boolean(key);
-            xmb->set_choice_overlay(app::choice_overlay{
+            xmb->emplace_overlay<app::choice_overlay>(
                 std::vector<std::string>{"Off"_(), "On"_()}, value ? 1u : 0u,
                 [settings, schema, key](unsigned int choice) {
                     settings->set_boolean(key, choice == 1);
                     settings->apply();
                 }
-            });
+            );
             return result::success;
         });
     }
@@ -177,14 +177,14 @@ namespace menu {
             if(current_choice < 0 || current_choice >= choices.size()) {
                 current_choice = 0;
             }
-            xmb->set_choice_overlay(app::choice_overlay{
+            xmb->emplace_overlay<app::choice_overlay>(
                 choices, static_cast<unsigned int>(current_choice),
                 [settings, schema, key, min, step](unsigned int choice) {
                     int value = static_cast<int>(choice)*step + min;
                     settings->set_int(key, value);
                     settings->apply();
                 }
-            });
+            );
             return result::success;
         });
     }
@@ -200,14 +200,14 @@ namespace menu {
                 choices.push_back(std::to_string(v));
             }
             unsigned int current_choice = std::find(values.begin(), values.end(), value) - values.begin();
-            xmb->set_choice_overlay(app::choice_overlay{
+            xmb->emplace_overlay<app::choice_overlay>(
                 choices, current_choice,
                 [settings, schema, key, values](unsigned int choice) {
                     int value = *std::ranges::next(std::ranges::cbegin(values), choice);
                     settings->set_int(key, value);
                     settings->apply();
                 }
-            });
+            );
             return result::success;
         });
     }
@@ -224,14 +224,14 @@ namespace menu {
                 keys.push_back(key);
             }
             unsigned int current_choice = std::distance(keys.begin(), std::find(keys.begin(), keys.end(), value));
-            xmb->set_choice_overlay(app::choice_overlay{
+            xmb->emplace_overlay<app::choice_overlay>(
                 choices, current_choice,
                 [settings, schema, key, keys](unsigned int choice) {
                     auto value = keys[choice];
                     settings->set_string(key, value);
                     settings->apply();
                 }
-            });
+            );
             return result::success;
         });
     }
@@ -281,7 +281,7 @@ namespace menu {
         if(std::getenv("APPIMAGE")) {
             entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), asset_dir/"icons/icon_settings_update.png", loader, [xmb](){
                 spdlog::info("Update request from XMB");
-                xmb->set_progress_overlay(app::progress_overlay{"System Update"_(), std::make_unique<update_checker>(xmb), false});
+                xmb->emplace_overlay<app::progress_overlay>("System Update"_(), std::make_unique<update_checker>(xmb), false);
                 return result::unsupported;
             }));
         }

@@ -10,6 +10,7 @@ import sdl2;
 import vulkan_hpp;
 import vma;
 import xmbshell.utils;
+import :component;
 
 namespace app {
 
@@ -29,12 +30,12 @@ export class progress_item {
         }
 };
 
-export class progress_overlay : public action_receiver {
+export class progress_overlay : public component, public action_receiver {
     public:
         progress_overlay(std::string title, std::unique_ptr<progress_item>&& item, bool show_progress = true);
 
-        result tick(class xmbshell* xmb);
-        void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb);
+        result tick(class xmbshell* xmb) override;
+        void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override;
         result on_action(action action) override;
     private:
         std::string title;

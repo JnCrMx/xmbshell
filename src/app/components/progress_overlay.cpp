@@ -4,6 +4,7 @@ module;
 #include <memory>
 #include <ranges>
 #include <string>
+#include <vector>
 
 module xmbshell.app;
 import :progress_overlay;
@@ -37,14 +38,14 @@ namespace app {
         if(failed) {
             spdlog::error("Progress failed: \"{}\"", status_message);
             if(!status_message.empty()) {
-                xmb->set_message_overlay(message_overlay{title, status_message, {"OK"}, {}, true});
+                xmb->emplace_overlay<message_overlay>(title, status_message, std::vector<std::string>{"OK"});
             }
             return result::failure | result::close;
         }
         if(done) {
             spdlog::info("Progress done: \"{}\"", status_message);
             if(!status_message.empty()) {
-                xmb->set_message_overlay(message_overlay{title, status_message, {"OK"}, {}, true});
+                xmb->emplace_overlay<message_overlay>(title, status_message, std::vector<std::string>{"OK"});
             }
             return result::success | result::close;
         }

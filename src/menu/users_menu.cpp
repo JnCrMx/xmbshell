@@ -62,8 +62,8 @@ namespace menu {
         }
 
         entries.push_back(make_simple<action_menu_entry>("Quit"_(), config::CONFIG.asset_directory/"icons/icon_action_quit.png", loader, [xmb](){
-            xmb->set_message_overlay(app::message_overlay{"Quit"_(), "Do you really want to quit the application?"_(),
-                {"Yes"_(), "No"_()}, [xmb](unsigned int choice){
+            xmb->emplace_overlay<app::message_overlay>("Quit"_(), "Do you really want to quit the application?"_(),
+                std::vector<std::string>{"Yes"_(), "No"_()}, [xmb](unsigned int choice){
                     if(choice == 0) {
                         sdl::Event event = {
                             .quit = {
@@ -74,44 +74,44 @@ namespace menu {
                         sdl::PushEvent(&event);
                     }
                 }
-            });
+            );
             return result::success;
         }));
 
         if(login1) try {
             if(Glib::Variant<Glib::ustring> v; login1->call_sync("CanPowerOff", Glib::VariantContainerBase{}).get_child(v), v.get() == "yes") {
                 entries.push_back(make_simple<action_menu_entry>("Power off"_(), config::CONFIG.asset_directory/"icons/icon_action_poweroff.png", loader, [this, xmb](){
-                    xmb->set_message_overlay(app::message_overlay{"Power off"_(), "Do you really want to power off the system?"_(),
-                        {"Yes"_(), "No"_()}, [this](unsigned int choice){
+                    xmb->emplace_overlay<app::message_overlay>("Power off"_(), "Do you really want to power off the system?"_(),
+                        std::vector<std::string>{"Yes"_(), "No"_()}, [this](unsigned int choice){
                             if(choice == 0) {
                                 login1->call_sync("PowerOff", Glib::VariantContainerBase::create_tuple(Glib::Variant<bool>::create(true)));
                             }
                         }
-                    });
+                    );
                     return result::success;
                 }));
             }
             if(Glib::Variant<Glib::ustring> v; login1->call_sync("CanReboot", Glib::VariantContainerBase{}).get_child(v), v.get() == "yes") {
                 entries.push_back(make_simple<action_menu_entry>("Reboot"_(), config::CONFIG.asset_directory/"icons/icon_action_reboot.png", loader, [this, xmb](){
-                    xmb->set_message_overlay(app::message_overlay{"Reboot"_(), "Do you really want to reboot the system?"_(),
-                        {"Yes"_(), "No"_()}, [this](unsigned int choice){
+                    xmb->emplace_overlay<app::message_overlay>("Reboot"_(), "Do you really want to reboot the system?"_(),
+                        std::vector<std::string>{"Yes"_(), "No"_()}, [this](unsigned int choice){
                             if(choice == 0) {
                                 login1->call_sync("Reboot", Glib::VariantContainerBase::create_tuple(Glib::Variant<bool>::create(true)));
                             }
                         }
-                    });
+                    );
                     return result::success;
                 }));
             }
             if(Glib::Variant<Glib::ustring> v; login1->call_sync("CanSuspend", Glib::VariantContainerBase{}).get_child(v), v.get() == "yes") {
                 entries.push_back(make_simple<action_menu_entry>("Suspend"_(), config::CONFIG.asset_directory/"icons/icon_action_suspend.png", loader, [this, xmb](){
-                    xmb->set_message_overlay(app::message_overlay{"Suspend"_(), "Do you really want to suspend the system?"_(),
-                        {"Yes"_(), "No"_()}, [this](unsigned int choice){
+                    xmb->emplace_overlay<app::message_overlay>("Suspend"_(), "Do you really want to suspend the system?"_(),
+                        std::vector<std::string>{"Yes"_(), "No"_()}, [this](unsigned int choice){
                             if(choice == 0) {
                                 login1->call_sync("Suspend", Glib::VariantContainerBase::create_tuple(Glib::Variant<bool>::create(true)));
                             }
                         }
-                    });
+                    );
                     return result::success;
                 }));
             }

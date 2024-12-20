@@ -259,9 +259,9 @@ namespace menu {
                     }
                 }
             }
-            xmb->set_choice_overlay(app::choice_overlay{options, 0, [this, actions](unsigned int index){
+            xmb->emplace_overlay<app::choice_overlay>(options, 0, [this, actions](unsigned int index){
                 actions.at(index)();
-            }});
+            });
             return result::success;
         }
         return result::unsupported;
@@ -287,9 +287,9 @@ namespace menu {
             spdlog::error("Failed to copy file: {}", e.what());
 
             std::string message = e.what();
-            xmb->set_message_overlay(app::message_overlay{
-                "Copy failed"_(), "Failed to copy file: {}"_(message), {"OK"_()}
-            });
+            xmb->emplace_overlay<app::message_overlay>("Copy failed"_(), "Failed to copy file: {}"_(message),
+                std::vector<std::string>{"OK"_()}
+            );
         }
         return false;
     }
@@ -318,9 +318,9 @@ namespace menu {
             spdlog::error("Failed to copy file: {}", e.what());
 
             std::string message = e.what();
-            xmb->set_message_overlay(app::message_overlay{
-                "Move failed"_(), "Failed to move file: {}"_(message), {"OK"_()}
-            });
+            xmb->emplace_overlay<app::message_overlay>("Move failed"_(), "Failed to move file: {}"_(message),
+                std::vector<std::string>{"OK"_()}
+            );
         }
         return false;
     }

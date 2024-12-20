@@ -94,7 +94,7 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
         return app->launch(std::vector<Glib::RefPtr<Gio::File>>()) ? result::success : result::failure;
     } else if(action == action::options) {
         bool hidden = config::CONFIG.excludedApplications.contains(app->get_id());
-        xmb->set_choice_overlay(app::choice_overlay{std::vector{
+        xmb->emplace_overlay<app::choice_overlay>(std::vector{
             "Launch application"_(), "View information"_(), hidden ? "Show in XMB"_() : "Remove from XMB"_()
         }, 0, [this, app, hidden](unsigned int index){
             switch(index) {
@@ -111,26 +111,26 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
                     info += "Command Line: "_() + app->get_commandline() + "\n";
                     info += "Icon: "_() + app->get_icon()->to_string() + "\n";
                     info += "Categories: "_() + app->get_categories() + "\n";
-                    xmb->set_message_overlay(app::message_overlay{"Application Information"_(), info, {"OK"_()}, [](unsigned int){}, false});
+                    xmb->emplace_overlay<app::message_overlay>("Application Information"_(), info, std::vector<std::string>{"OK"_()}, [](unsigned int){}, false);
                     return;
                     }
                 case 2:
                     if(!hidden) {
-                        xmb->set_message_overlay(app::message_overlay{"Remove Application"_(),
+                        xmb->emplace_overlay<app::message_overlay>("Remove Application"_(),
                             "Are you sure you want to remove this application from XMB Shell?"_(),
-                            {"Yes"_(), "No"_()}, [this, app](unsigned int index){
+                            std::vector<std::string>{"Yes"_(), "No"_()}, [this, app](unsigned int index){
                             if(index == 0) {
                                 config::CONFIG.excludeApplication(app->get_id());
                                 reload();
                             }
-                        }, true});
+                        }, true);
                     } else {
                         config::CONFIG.excludeApplication(app->get_id(), false);
                         reload();
                     }
                     return;
             }
-        }});
+        });
         return result::success;
     }
     return result::unsupported;

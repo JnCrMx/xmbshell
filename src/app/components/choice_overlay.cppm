@@ -12,18 +12,21 @@ import sdl2;
 import vulkan_hpp;
 import vma;
 import xmbshell.utils;
+import :component;
 
 namespace app {
 
-export class choice_overlay : public action_receiver {
+export class choice_overlay : public component, public action_receiver {
     public:
         choice_overlay(std::vector<std::string> choices, unsigned int selection_index = 0,
             std::function<void(unsigned int)> confirm_callback = [](unsigned int){},
             std::function<void()> cancel_callback = [](){}
         );
 
-        void render(dreamrender::gui_renderer& renderer);
+        void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override;
         result on_action(action action) override;
+
+        bool is_opaque() const override { return false; }
     private:
         using time_point = std::chrono::time_point<std::chrono::system_clock>;
 

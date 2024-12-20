@@ -20,6 +20,7 @@ import glm;
 import sdl2;
 import vulkan_hpp;
 
+import :component;
 import :choice_overlay;
 import :main_menu;
 import :message_overlay;
@@ -97,22 +98,20 @@ namespace app
             }
             bool get_blur_background() const { return blur_background; }
 
-            void set_choice_overlay(const std::optional<choice_overlay>& overlay) {
-                old_choice_overlay = std::move(choice_overlay);
-                choice_overlay = overlay;
-                last_choice_overlay_change = std::chrono::system_clock::now();
+            app::component* push_overlay(std::unique_ptr<app::component>&& component) {
+                last_overlay_change = std::chrono::system_clock::now();
+                auto ptr = component.get();
+                overlays.emplace_back(std::move(component));
+                return ptr;
             }
-            const std::optional<choice_overlay>& get_choice_overlay() const { return choice_overlay; }
-
-            void set_progress_overlay(std::optional<progress_overlay>&& overlay) {
-                progress_overlay = std::move(overlay);
+            template<typename T, typename... Args>
+            T* emplace_overlay(Args&&... args) {
+                last_overlay_change = std::chrono::system_clock::now();
+                auto p = std::make_unique<T>(std::forward<Args>(args)...);
+                auto ptr = p.get();
+                overlays.emplace_back(std::move(p));
+                return ptr;
             }
-            const std::optional<progress_overlay>& get_progress_overlay() const { return progress_overlay; }
-
-            void set_message_overlay(std::optional<message_overlay>&& overlay) {
-                message_overlay = std::move(overlay);
-            }
-            const std::optional<message_overlay>& get_message_overlay() const { return message_overlay; }
 
             void set_clipboard(clipboard&& clipboard) {
                 this->clipboard = std::move(clipboard);
@@ -168,17 +167,14 @@ namespace app
             bool blur_background = false;
             time_point last_blur_background_change;
 
-            std::optional<app::choice_overlay> choice_overlay = std::nullopt;
-            std::optional<app::choice_overlay> old_choice_overlay = std::nullopt;
-            time_point last_choice_overlay_change;
-
-            std::optional<app::progress_overlay> progress_overlay = std::nullopt;
-            std::optional<app::message_overlay> message_overlay = std::nullopt;
+            std::vector<std::unique_ptr<app::component>> overlays;
+            time_point last_overlay_change;
+            std::unique_ptr<app::component> old_overlay;
 
             std::optional<clipboard> clipboard;
 
             // transition duration constants
             constexpr static auto blur_background_transition_duration = std::chrono::milliseconds(500);
-            constexpr static auto choice_overlay_transition_duration = std::chrono::milliseconds(100);
+            constexpr static auto overlay_transition_duration = std::chrono::milliseconds(100);
     };
 }

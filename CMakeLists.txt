@@ -132,6 +132,7 @@ set(XMBSHELL_SOURCES
 set(XMBSHELL_MODULE_SOURCES
   src/app/module.cppm
   src/app/xmbshell.cppm
+  src/app/component.cppm
   src/app/components/choice_overlay.cppm
   src/app/components/main_menu.cppm
   src/app/components/message_overlay.cppm
