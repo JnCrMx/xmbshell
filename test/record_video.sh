@@ -8,4 +8,4 @@ ffmpeg -threads 1 -framerate 30 -f x11grab -draw_mouse 0 -i :99 -preset ultrafas
 xdotool key --delay 500 Up Down Right Return Down Down Up Escape Down Return Down Up Escape Right Right Right Right Right Down Down Down Up Up Up
 wait
 
-ffmpeg -threads 1 -i build/test-output.mkv build/test-output.webm
+ffmpeg -threads 1 -i build/test-output.mkv build/test-output.webm build/test-output.webp

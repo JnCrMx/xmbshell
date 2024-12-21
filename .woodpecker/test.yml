@@ -59,7 +59,7 @@ steps:
     settings:
       <<: *minio-settings
       bucket: woodpecker
-      source: build/test-output.webm
+      source: build/test-output.web*
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
