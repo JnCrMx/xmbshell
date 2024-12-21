@@ -26,7 +26,9 @@ export class choice_overlay : public component, public action_receiver {
         void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override;
         result on_action(action action) override;
 
-        bool is_opaque() const override { return false; }
+        [[nodiscard]] bool is_opaque() const override { return false; }
+        [[nodiscard]] bool do_fade_in() const override { return true; }
+        [[nodiscard]] bool do_fade_out() const override { return true; }
     private:
         using time_point = std::chrono::time_point<std::chrono::system_clock>;
 

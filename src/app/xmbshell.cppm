@@ -34,6 +34,10 @@ namespace app
         std::function<bool(std::filesystem::path)>
     >;
 
+    enum class transition_direction {
+        in, out
+    };
+
     using namespace dreamrender;
     export class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler
     {
@@ -99,18 +103,37 @@ namespace app
             bool get_blur_background() const { return blur_background; }
 
             app::component* push_overlay(std::unique_ptr<app::component>&& component) {
-                last_overlay_change = std::chrono::system_clock::now();
                 auto ptr = component.get();
                 overlays.emplace_back(std::move(component));
+
+                if(ptr->do_fade_in()) {
+                    overlay_fade_direction = transition_direction::in;
+                    overlay_fade_time = std::chrono::system_clock::now();
+                }
+
                 return ptr;
             }
             template<typename T, typename... Args>
             T* emplace_overlay(Args&&... args) {
-                last_overlay_change = std::chrono::system_clock::now();
                 auto p = std::make_unique<T>(std::forward<Args>(args)...);
                 auto ptr = p.get();
                 overlays.emplace_back(std::move(p));
+
+                if(ptr->do_fade_in()) {
+                    overlay_fade_direction = transition_direction::in;
+                    overlay_fade_time = std::chrono::system_clock::now();
+                }
+
                 return ptr;
+            }
+            void remove_overlay(unsigned int index) {
+                if(index >= overlays.size()) return;
+                if(overlays[index]->do_fade_out()) {
+                    overlay_fade_direction = transition_direction::out;
+                    overlay_fade_time = std::chrono::system_clock::now();
+                    old_overlay = std::move(overlays[index]);
+                }
+                overlays.erase(overlays.begin()+index);
             }
 
             void set_clipboard(clipboard&& clipboard) {
@@ -168,7 +191,9 @@ namespace app
             time_point last_blur_background_change;
 
             std::vector<std::unique_ptr<app::component>> overlays;
-            time_point last_overlay_change;
+
+            transition_direction overlay_fade_direction{};
+            time_point overlay_fade_time;
             std::unique_ptr<app::component> old_overlay;
 
             std::optional<clipboard> clipboard;

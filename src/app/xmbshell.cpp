@@ -457,12 +457,13 @@ namespace app
 
         auto now = std::chrono::system_clock::now();
         // TODO: somehow fix this.... god this is gonna be a huge mess
-        double overlay_progress = utils::progress(now, last_overlay_change, overlay_transition_duration);
-        bool overlay_transition = has_overlay || overlay_progress < 1.0;
+        double overlay_progress = utils::progress(now, overlay_fade_time, overlay_transition_duration);
+        double dir_progress = overlay_fade_direction == transition_direction::in ? overlay_progress : 1.0 - overlay_progress;
+        bool overlay_transition = overlay_progress < 1.0;
         if(render_menu){
-            if(overlay_transition) {
+            if(overlay_transition || has_overlay) {
                 constexpr glm::vec4 factor{0.25f, 0.25f, 0.25f, 1.0f};
-                renderer.push_color(glm::mix(glm::vec4(1.0), factor, has_overlay ? overlay_progress : 1.0 - overlay_progress));
+                renderer.push_color(glm::mix(glm::vec4(1.0), factor, dir_progress));
             }
             menu.render(renderer);
 
@@ -482,7 +483,7 @@ namespace app
                 static_cast<float>(0.831770833f+config::CONFIG.dateTimeOffset), 0.086111111f, 0.021296296f*2.5f);
 
             news.render(renderer);
-            if(overlay_transition) {
+            if(overlay_transition || has_overlay) {
                 renderer.pop_color();
             }
             /*if(choice_overlay || choice_overlay_progress < 1.0) {
@@ -496,13 +497,21 @@ namespace app
         }
 
         for(unsigned int i=overlay_begin; i < overlays.size(); i++) {
+            // TODO: support darkening overlays on top of overlays (i.e. a choice_overlay over a message_overlay)
             if(i == overlays.size()-1 && overlay_transition) {
-                renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), has_overlay ? overlay_progress : 1.0 - overlay_progress));
+                renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), dir_progress));
                 overlays[i]->render(renderer, this);
                 renderer.pop_color();
             } else {
                 overlays[i]->render(renderer, this);
             }
+        }
+        if(overlay_transition && overlay_fade_direction == transition_direction::out && old_overlay) {
+            renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), dir_progress));
+            old_overlay->render(renderer, this);
+            renderer.pop_color();
+        } else if(old_overlay) {
+            old_overlay.reset();
         }
 
         float debug_y = 0.0;
@@ -593,7 +602,7 @@ namespace app
         for(unsigned int i=0; i<overlays.size(); i++) {
             auto res = overlays[i]->tick(this);
             if(res & result::close) {
-                overlays.erase(overlays.begin()+i);
+                remove_overlay(i);
                 i--;
             }
             handle(res);
@@ -606,7 +615,8 @@ namespace app
             if(auto* recv = dynamic_cast<action_receiver*>(e.get())) {
                 result res = recv->on_action(action);
                 if(res & result::close) {
-                    overlays.erase(overlays.begin()+i);
+                    remove_overlay(i);
+                    i--;
                 }
                 handle(res);
                 if(res != result::unsupported) {
