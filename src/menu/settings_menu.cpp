@@ -53,6 +53,8 @@ namespace menu {
             status progress(double& progress, std::string& message) override {
                 auto now = std::chrono::system_clock::now();
                 if(now - start_time < wait_duration) {
+                    // We have no idea about the actual progress, so we will just lie.
+                    // I hate appimageupdatetool.
                     progress = utils::progress(now, start_time, wait_duration);
                     return status::running;
                 }
@@ -111,7 +113,7 @@ namespace menu {
                     if(exit_code == 0) {
                         message = "No updates available."_();
                         return status::success;
-                    } else if(exit_code == 1) {
+                    } else if(exit_code == 1) { // This also gets triggered if the update tool is not found or the update check fails. Oh well...
                         message = {};
                         xmb->emplace_overlay<app::message_overlay>("Update Available"_(), "An update is available. Would you like to install it?"_(),
                             std::vector<std::string>{"Yes"_(), "No"_()}, [xmb = this->xmb](unsigned int choice){

@@ -96,6 +96,7 @@ class files_menu : public simple_menu {
         bool sort_descending = false;
 
         std::filesystem::path old_selected_item;
+        // This is extremely hacky, but it works for now.
         std::shared_ptr<bool> exists_flag = std::make_shared<bool>(true);
         friend bool cut_file(app::xmbshell* xmb, std::weak_ptr<void> exists, files_menu* ptr, const std::filesystem::path& src, const std::filesystem::path& dst);
 };

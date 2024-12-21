@@ -28,13 +28,6 @@ import spdlog;
 import i18n;
 
 namespace menu {
-    using namespace std::string_view_literals;
-    constexpr auto supported_image_extensions = {
-        ".avi"sv, ".avif"sv, ".bmp"sv, ".cur"sv, ".gif"sv, ".ico"sv, ".jpg"sv, ".jpeg"sv, ".jxl"sv,
-        ".lbm"sv, ".pcx"sv, ".png"sv, ".pnm"sv, ".qoi"sv, ".svg"sv, ".tga"sv, ".tiff"sv, ".webp"sv,
-        ".xcf"sv, ".xpm"sv, ".xv"sv
-    };
-
     using namespace mfk::i18n::literals;
 
     files_menu::files_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, std::filesystem::path path, dreamrender::resource_loader& loader)
@@ -159,9 +152,10 @@ namespace menu {
         std::ranges::sort(indices, [this](unsigned int a, unsigned int b) {
             const auto& a_entry = *extra_data_entries[a].info.get();
             const auto& b_entry = *extra_data_entries[b].info.get();
-            return sort(a_entry, b_entry) ^ sort_descending;
+            return sort(a_entry, b_entry) ^ sort_descending; // Cursed XOR usage
         });
 
+        // This is not very efficient, but who cares.
         decltype(entries) old_entries = std::move(entries);
         decltype(extra_data_entries) old_extra_data_entries = std::move(extra_data_entries);
         entries.clear();
@@ -245,6 +239,7 @@ namespace menu {
                 }
             };
 
+            // If anyone messes up the order, we might rm -rf the user's home... oh well.
             std::vector<std::function<void()>> actions = {
                 action_open, action_open_external, action_view_information, action_copy, action_cut, action_delete, action_refresh
             };
