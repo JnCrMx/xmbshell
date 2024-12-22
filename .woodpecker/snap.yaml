@@ -31,7 +31,7 @@ steps:
         https://woodpecker.web.garage.jcm.re/artifacts/$CI_REPO/$CI_PIPELINE_NUMBER/public/xmbshell-$BUILD_VERSION-noble.tar.gz
       - cat snapcraft.yaml
       # Build the Snap
-      - snapcraft --destructive-mode --target-arch=amd64 --build-for=amd64
+      - snapcraft --destructive-mode --build-for=amd64
       # Prepare beta version
       - mkdir -p upload/beta upload/build
       - cp xmbshell_*.snap upload/beta/xmbshell_beta_amd64.snap
