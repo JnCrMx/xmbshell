@@ -1,0 +1,75 @@
+variables:
+  - &minio-settings
+    access_key:
+      from_secret: minio_access_key
+    secret_key:
+      from_secret: minio_secret_key
+    endpoint:
+      from_secret: minio_endpoint
+    path_style: true
+    region: eu-central-jcm
+
+clone:
+  git:
+    image: docker.io/woodpeckerci/plugin-git:2.4.0
+    settings:
+      tags: true
+steps:
+  snapcraft:
+    image: git.jcm.re/jcm/snapcraft:core24-jammy-stable
+    commands:
+      - apt-get update
+      - apt-get install -y python3 python3-yaml git gettext-base
+      - export BUILD_VERSION=$(git describe --tags --always)
+      - cd .woodpecker/snap
+      # Generate the Snapcraft file
+      - >-
+        python3 generate.py
+        ../../snap/snapcraft.yaml
+        snapcraft.yaml
+        $BUILD_VERSION
+        https://woodpecker.web.garage.jcm.re/artifacts/$CI_REPO/$CI_PIPELINE_NUMBER/public/xmbshell-$BUILD_VERSION-noble.tar.gz
+      - cat snapcraft.yaml
+      # Build the Snap
+      - snapcraft --destructive-mode --target-arch=amd64 --build-for=amd64
+      # Prepare beta version
+      - mkdir -p upload/beta upload/build
+      - cp xmbshell_*.snap upload/beta/xmbshell_beta_amd64.snap
+      - cp xmbshell_*.snap upload/build/
+      # Copy the logs
+      - mkdir -p logs/
+      - cp /root/.local/state/snapcraft/log/snapcraft-*.log logs/
+  upload-logs:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: .woodpecker/snap/logs/snapcraft-*.log
+      strip_prefix: .woodpecker/snap/logs/
+      target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+    when:
+      - status: [ success, failure ]
+  upload-build:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: .woodpecker/snap/upload/build/*
+      strip_prefix: .woodpecker/snap/upload/build/
+      target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+  upload-beta:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: .woodpecker/snap/upload/beta/*
+      strip_prefix: .woodpecker/snap/upload/beta/
+      target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
+  upload-snapcraft:
+    image: git.jcm.re/jcm/snapcraft:core24-jammy-stable
+    secrets: [ snapcraft_store_credentials ]
+    commands:
+      - snapcraft upload .woodpecker/snap/xmbshell_*.snap --release latest/edge/${CI_COMMIT_BRANCH}
+depends_on:
+  - build
+runs_on: [ success, failure ]

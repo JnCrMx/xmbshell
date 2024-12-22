@@ -48,6 +48,10 @@ steps:
       - mkdir -p upload/build upload/beta
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb
+      # install it (so we can build a Snap later on)
+      - DESTDIR=install cmake --install . --prefix /usr
+      - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.tar.gz -C install .
+      - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}.tar.gz
       # Build AppImage (only on noble)
       - if [ "$UBUNTU_VERSION" != "noble" ]; then exit $?; fi
       - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
