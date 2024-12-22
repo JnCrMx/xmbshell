@@ -34,12 +34,12 @@ with open(input_file, 'r') as f:
             'url': UBUNTU_URL,
         }
     ]
-    data['architectures'] = [
-        {
+    data['platforms'] = {
+        'amd64-on-arm64':{
             'build-on': ['arm64'],
             'build-for': ['amd64']
         }
-    ]
+    }
     data['lint'] = {'ignore': ['classic', 'library']}
     data['version'] = BUILD_VERSION
     data['icon'] = os.path.relpath(root_dir+'/'+data['icon'], os.path.dirname(output_file))
