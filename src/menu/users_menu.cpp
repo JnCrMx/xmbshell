@@ -29,7 +29,7 @@ namespace menu {
         try {
             login1 = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager");
             accounts = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.Accounts", "/org/freedesktop/Accounts", "org.freedesktop.Accounts");
-        } catch (const Gio::Error& e) {
+        } catch (const Glib::Exception& e) {
             spdlog::error("Failed to create DBus proxies: {}", static_cast<std::string>(e.what()));
         }
 
@@ -57,7 +57,7 @@ namespace menu {
                     entries.push_back(std::move(entry));
                 }
             }
-        } catch (const Gio::Error& e) {
+        } catch (const Glib::Exception& e) {
             spdlog::error("Failed to get user list: {}", static_cast<std::string>(e.what()));
         }
 
@@ -115,7 +115,7 @@ namespace menu {
                     return result::success;
                 }));
             }
-        } catch (const Gio::Error& e) {
+        } catch (const Glib::Exception& e) {
             spdlog::error("Failed to get power management information: {}", static_cast<std::string>(e.what()));
         }
     }

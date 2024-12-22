@@ -5,6 +5,8 @@ module;
 export module glibmm;
 
 export namespace Glib {
+    using Glib::Exception;
+    using Glib::Error;
     using Glib::ustring;
     using Glib::RefPtr;
     using Glib::get_user_name;

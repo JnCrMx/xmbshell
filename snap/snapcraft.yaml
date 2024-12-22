@@ -1,0 +1,78 @@
+name: xmbshell
+version: "1.0"
+title: xmbshell
+summary: A desktop shell mimicing the look and functionality of the XrossMediaBar.
+icon: icons/xmbshell.png
+contact: jcm@jcm.re
+source-code: https://github.com/JnCrMx/xmbshell
+website: https://github.com/JnCrMx/xmbshell
+description: |
+  A desktop shell mimicing the look and functionality of the XrossMediaBar.
+
+package-repositories:
+- architectures:
+  - amd64
+  components:
+  - main
+  formats:
+  - deb
+  key-id: 6084F3CF814B57C1CF12EFD515CF4D18AF4F7421
+  suites:
+  - llvm-toolchain-noble-19
+  type: apt
+  url: http://apt.llvm.org/noble/
+
+base: core24
+confinement: strict
+parts:
+  xmbshell:
+    plugin: cmake
+    source-type: local
+    source: .
+    build-packages:
+      - git
+      - clang-19
+      - clang-tools-19
+      - ninja-build
+      - glslang-tools
+      - libvulkan-dev
+      - libglm-dev
+      - libspdlog-dev
+      - libfreetype-dev
+      - libglibmm-2.4-dev
+      - libsdl2-dev
+      - libsdl2-image-dev
+      - libsdl2-mixer-dev
+      - libpulse-dev
+    stage-packages:
+      - libfreetype6
+      - libsdl2-2.0-0
+      - libsdl2-image-2.0-0
+      - libsdl2-mixer-2.0-0
+      - libspdlog1.12-fmt9
+      - libglibmm-2.4-1t64
+      - libpulse0
+    cmake-parameters:
+      - "-DCMAKE_INSTALL_PREFIX=/usr"
+      - "-DCMAKE_BUILD_TYPE=Release"
+      - "-DCMAKE_CXX_COMPILER=/usr/bin/clang++-19"
+      - "-DCMAKE_C_COMPILER=/usr/bin/clang-19"
+      - "-GNinja"
+slots:
+  dbus-svc:
+    interface: dbus
+    bus: session
+    name: re.jcm.xmbos.xmbshell
+apps:
+  xmbshell:
+    command: usr/bin/xmbshell
+    desktop: usr/share/applications/xmbshell.desktop
+    slots:
+      - dbus-svc
+    extensions:
+      - gnome
+    plugs:
+      - network
+      - home
+      - gsettings
+      - audio-playback
