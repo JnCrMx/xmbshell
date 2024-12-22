@@ -52,6 +52,7 @@ parts:
       - libspdlog1.12-fmt9
       - libglibmm-2.4-1t64
       - libpulse0
+      - fonts-ubuntu
     cmake-parameters:
       - "-DCMAKE_INSTALL_PREFIX=/usr"
       - "-DCMAKE_BUILD_TYPE=Release"
