@@ -16,7 +16,7 @@ clone:
       tags: true
 steps:
   snapcraft:
-    image: git.jcm.re/jcm/snapcraft:core24-jammy-stable
+    image: git.jcm.re/jcm/snapcraft:core24-noble-stable
     commands:
       - apt-get update
       - apt-get install -y python3 python3-yaml git gettext-base
@@ -66,7 +66,7 @@ steps:
       strip_prefix: .woodpecker/snap/upload/beta/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
   upload-snapcraft:
-    image: git.jcm.re/jcm/snapcraft:core24-jammy-stable
+    image: git.jcm.re/jcm/snapcraft:core24-noble-stable
     secrets: [ snapcraft_store_credentials ]
     commands:
       - snapcraft upload .woodpecker/snap/xmbshell_*.snap --release latest/edge/${CI_COMMIT_BRANCH}
