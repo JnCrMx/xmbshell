@@ -83,6 +83,8 @@ namespace menu {
                 "icons"/("icon_files_type_"+content_type_key+".png");
             if(thumbnail_is_valid) {
                 icon_file_path = thumbnail_path;
+            } else if(content_type.starts_with("image/")) {
+                icon_file_path = entry.path(); // This might be incredibly inefficient, but it will work for now
             } else if(auto r = utils::resolve_icon(info->get_symbolic_icon().get())) {
                 icon_file_path = *r;
             } else if(auto r = utils::resolve_icon(info->get_icon().get())) {
