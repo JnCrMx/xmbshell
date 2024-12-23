@@ -59,6 +59,9 @@ parts:
       - "-DCMAKE_CXX_COMPILER=/usr/bin/clang++-19"
       - "-DCMAKE_C_COMPILER=/usr/bin/clang-19"
       - "-GNinja"
+layout:
+  /usr/share/xmbshell/Ubuntu-R.ttf:
+    symlink: $SNAP/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf
 slots:
   dbus-svc:
     interface: dbus
