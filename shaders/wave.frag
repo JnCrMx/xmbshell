@@ -8,6 +8,7 @@ layout(push_constant) uniform UBO
 layout(location = 0) in vec3 vEC;
 layout(location = 0) out vec4 FragColor;
 
+// Taken from https://github.com/libretro/RetroArch/blob/master/gfx/drivers/vulkan_shaders/pipeline_ribbon.frag
 void main()
 {
     vec3 x = dFdx(vEC);

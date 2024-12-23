@@ -8,6 +8,7 @@ layout(push_constant) uniform UBO
 layout(location = 0) in vec3 VertexCoord;
 layout(location = 0) out vec3 vEC;
 
+// Taken from https://github.com/libretro/RetroArch/blob/master/gfx/drivers/vulkan_shaders/pipeline_ribbon.vert
 float xmb_noise2(vec3 x)
 {
     return cos(x.z * 4.0) * cos((x.z + (constants.time / 10.0)) + x.x);
