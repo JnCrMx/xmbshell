@@ -66,6 +66,7 @@ steps:
       source: .woodpecker/snap/upload/beta/*
       strip_prefix: .woodpecker/snap/upload/beta/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
+      overwrite: true
   upload-snapcraft:
     image: git.jcm.re/jcm/snapcraft:core24-noble-stable
     pull: true
