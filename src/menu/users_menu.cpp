@@ -46,7 +46,8 @@ namespace menu {
                 user->get_cached_property(uid, "Uid");
 
                 std::filesystem::path icon_file_path = static_cast<std::string>(icon_file.get());
-                if(!std::filesystem::exists(icon_file_path)) {
+                std::error_code ec;
+                if(!std::filesystem::exists(icon_file_path, ec) || ec) {
                     icon_file_path = config::CONFIG.asset_directory/"icons/icon_user.png";
                 }
                 auto entry = make_simple<simple_menu_entry>(real_name.get(), icon_file_path, loader);
