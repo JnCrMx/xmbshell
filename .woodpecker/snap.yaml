@@ -72,9 +72,9 @@ steps:
     pull: true
     secrets: [ snapcraft_store_credentials ]
     commands:
-      - RELEASE="latest/edge/${CI_COMMIT_BRANCH}""
+      - RELEASE="latest/edge/${CI_COMMIT_BRANCH}"
       - if [ "${CI_COMMIT_BRANCH}" = "main" ]; then RELEASE="latest/edge"; fi
-      - snapcraft upload .woodpecker/snap/xmbshell_*.snap --release $RELEASE
+      - snapcraft upload .woodpecker/snap/xmbshell_*.snap --release "$RELEASE"
 depends_on:
   - build
 runs_on: [ success, failure ]
