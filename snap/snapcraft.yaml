@@ -62,17 +62,17 @@ parts:
 layout:
   /usr/share/xmbshell/Ubuntu-R.ttf:
     symlink: $SNAP/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf
-slots:
-  dbus-svc:
-    interface: dbus
-    bus: session
-    name: re.jcm.xmbos.xmbshell
+# slots:
+#   dbus-svc:
+#     interface: dbus
+#     bus: session
+#     name: re.jcm.xmbos.xmbshell
 apps:
   xmbshell:
     command: usr/bin/xmbshell
     desktop: usr/share/applications/xmbshell.desktop
-    slots:
-      - dbus-svc
+    # slots:
+    #   - dbus-svc
     extensions:
       - gnome
     plugs:
