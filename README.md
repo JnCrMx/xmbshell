@@ -8,3 +8,8 @@ A desktop shell mimicing the look and functionality of the XrossMediaBar.
 [![deb for Ubuntu 24.04 - download](https://img.shields.io/badge/deb_for_Ubuntu_24.04-download-orange?style=for-the-badge&logo=ubuntu)](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-noble.deb)
 
 ![Preview](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.webp)
+
+## Features
+- Awesome XMB background wave
+- Basic file management
+- Launch other apps

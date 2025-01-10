@@ -9,6 +9,11 @@ website: https://github.com/JnCrMx/xmbshell
 description: |
   A desktop shell mimicing the look and functionality of the XrossMediaBar.
 
+  Features:
+  - Awesome XMB background wave
+  - Basic file management
+  - Launch other apps
+
 package-repositories:
 - architectures:
   - amd64
