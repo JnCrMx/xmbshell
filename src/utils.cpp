@@ -25,16 +25,20 @@ namespace utils {
     static void initialize_themed_icons(){
         std::unordered_map<std::string, std::filesystem::path> paths;
         auto process = [&paths](const std::string& dir) {
-            auto path = std::filesystem::path(dir) / "icons" / "hicolor";
-            if(!std::filesystem::exists(path)) {
-                return;
-            }
-            for(const auto& icon : std::filesystem::recursive_directory_iterator(path)) {
-                if(icon.is_regular_file()) {
-                    auto iconName = icon.path().stem().string();
-                    auto iconPath = icon.path();
-                    paths[iconName] = iconPath;
+            try {
+                auto path = std::filesystem::path(dir) / "icons" / "hicolor";
+                if(!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
+                    return;
                 }
+                for(const auto& icon : std::filesystem::recursive_directory_iterator(path)) {
+                    if(icon.is_regular_file()) {
+                        auto iconName = icon.path().stem().string();
+                        auto iconPath = icon.path();
+                        paths[iconName] = iconPath;
+                    }
+                }
+            } catch(const std::exception& e) {
+                spdlog::error("Error while processing themed icons in path: {}", e.what());
             }
         };
         process("/usr/share");
