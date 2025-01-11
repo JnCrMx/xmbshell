@@ -334,6 +334,9 @@ namespace app
             commandBuffer.pushConstants(blurPipelineLayout.get(), vk::ShaderStageFlagBits::eCompute, 0, sizeof(BlurConstants), &constants);
             commandBuffer.dispatch(groupCountX, groupCountY, 1);
 
+            // TODO: THIS IS WRONG! We need to copy dst -> src with appropriate barriers (see blur_layer)
+            // But it kinda work, so I'll leave it for now
+
             constants.axis = 1;
             commandBuffer.pushConstants(blurPipelineLayout.get(), vk::ShaderStageFlagBits::eCompute, 0, sizeof(BlurConstants), &constants);
             commandBuffer.dispatch(groupCountX, groupCountY, 1);

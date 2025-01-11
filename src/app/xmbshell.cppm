@@ -147,6 +147,8 @@ namespace app
             }
             const std::optional<clipboard>& get_clipboard() const { return clipboard; }
         private:
+            friend class blur_layer;
+
             using time_point = std::chrono::time_point<std::chrono::system_clock>;
 
             std::unique_ptr<font_renderer> font_render;

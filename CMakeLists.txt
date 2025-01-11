@@ -119,6 +119,7 @@ set(XMBSHELL_SOURCES
   src/app/components/message_overlay.cpp
   src/app/components/news_display.cpp
   src/app/components/progress_overlay.cpp
+  src/app/layers/blur_layer.cpp
   src/menu/applications_menu.cpp
   src/menu/files_menu.cpp
   src/menu/settings_menu.cpp
@@ -138,6 +139,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/app/components/message_overlay.cppm
   src/app/components/news_display.cppm
   src/app/components/progress_overlay.cppm
+  src/app/layers/blur_layer.cppm
   src/config.cppm
   src/constants.cppm
   src/dbus.cppm
