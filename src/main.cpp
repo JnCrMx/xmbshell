@@ -71,7 +71,9 @@ int main(int argc, char *argv[])
     window_config.preferredPresentMode = config::CONFIG.preferredPresentMode;
     window_config.sampleCount = config::CONFIG.sampleCount;
     window_config.fpsLimit = config::CONFIG.maxFPS;
-    window_config.sdl_hints[sdl::hints::video_x11_window_visualid] = find_visualid();
+    if(std::getenv("DISPLAY")) {
+        window_config.sdl_hints[sdl::hints::video_x11_window_visualid] = find_visualid();
+    }
     dreamrender::window window{window_config};
     window.init();
 
