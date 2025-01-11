@@ -36,10 +36,6 @@ export class image_viewer : public component, public action_receiver, public joy
         }
 
         void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override {
-            if(load_future.valid()) {
-                load_future.get();
-            }
-
             constexpr float size = 0.9;
 
             float bw = size*renderer.aspect_ratio;
@@ -103,7 +99,9 @@ export class image_viewer : public component, public action_receiver, public joy
         }
 
         [[nodiscard]] bool is_opaque() const override {
-            return true;
+            // This is probably undefined behavior/a race condition, but it works well enough.
+            // Maybe one day the entire program will explode due to this, oh well!
+            return texture->loaded;
         }
     private:
         std::filesystem::path path;
