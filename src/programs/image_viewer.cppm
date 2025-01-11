@@ -69,12 +69,10 @@ export class image_viewer : public component, public action_receiver, public joy
             }
             else if(action == action::up) {
                 zoom *= 1.1f;
-                spdlog::info("Zoom: {}", zoom);
                 return result::success;
             }
             else if(action == action::down) {
                 zoom /= 1.1f;
-                spdlog::info("Zoom: {}", zoom);
                 return result::success;
             }
             else if(action == action::extra) {
