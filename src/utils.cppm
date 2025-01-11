@@ -46,7 +46,26 @@ export enum class action {
 export class action_receiver {
     public:
         virtual ~action_receiver() = default;
-        virtual result on_action(action action) = 0;
+        virtual result on_action(action action) {
+            return result::unsupported;
+        }
+};
+export class joystick_receiver {
+    public:
+        virtual ~joystick_receiver() = default;
+        virtual result on_joystick(unsigned int index, float x, float y) {
+            return result::unsupported;
+        }
+};
+export class mouse_receiver {
+    public:
+        virtual ~mouse_receiver() = default;
+        virtual result on_mouse_move(float x, float y) {
+            return result::unsupported;
+        }
+        virtual result on_mouse_scroll(float x) {
+            return result::unsupported;
+        }
 };
 
 export namespace utils

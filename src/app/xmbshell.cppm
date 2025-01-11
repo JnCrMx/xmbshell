@@ -182,6 +182,7 @@ namespace app
 
             // input handling
             constexpr static int controller_axis_input_threshold = 10000;
+            std::array<glm::vec2, 2> controller_axis_position;
             std::array<time_point, 2> last_controller_axis_input_time;
             std::array<std::optional<std::tuple<sdl::GameController*, action>>, 2> last_controller_axis_input;
             constexpr static auto controller_axis_input_duration = std::chrono::milliseconds(200);

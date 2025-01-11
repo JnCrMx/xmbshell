@@ -711,12 +711,52 @@ namespace app
     void xmbshell::axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value)
     {
         spdlog::trace("Axis motion: {} {}", fmt::underlying(axis), value);
+
+        unsigned int stick_index = 0;
+        float v = static_cast<float>(value) / std::numeric_limits<int16_t>::max();
+        switch(axis) {
+            case sdl::GameControllerAxisValues::LEFTX:
+                stick_index = 0;
+                controller_axis_position[0].x = v;
+                break;
+            case sdl::GameControllerAxisValues::LEFTY:
+                stick_index = 0;
+                controller_axis_position[0].y = v;
+                break;
+            case sdl::GameControllerAxisValues::RIGHTX:
+                stick_index = 1;
+                controller_axis_position[1].x = v;
+                break;
+            case sdl::GameControllerAxisValues::RIGHTY:
+                stick_index = 1;
+                controller_axis_position[1].y = v;
+                break;
+            default:
+                break;
+        }
+        for(int i=static_cast<int>(overlays.size())-1; i >= 0; i--) {
+            auto& e = overlays[i];
+            if(auto* recv = dynamic_cast<joystick_receiver*>(e.get())) {
+                result res = recv->on_joystick(stick_index,
+                    controller_axis_position[stick_index].x,
+                    controller_axis_position[stick_index].y);
+                if(res & result::close) {
+                    remove_overlay(i);
+                    i--;
+                }
+                handle(res);
+                if(res != result::unsupported) {
+                    return;
+                }
+            }
+        }
+
         if(!config::CONFIG.controllerAnalogStick) {
             return;
         }
 
         if(axis == sdl::GameControllerAxisValues::LEFTX || axis == sdl::GameControllerAxisValues::LEFTY) {
-            unsigned int index = axis == sdl::GameControllerAxisValues::LEFTX  ? 0 : 1;
+            unsigned int index = axis == sdl::GameControllerAxisValues::LEFTX ? 0 : 1;
             if(std::abs(value) < controller_axis_input_threshold) {
                 last_controller_axis_input[index] = std::nullopt;
                 last_controller_axis_input_time[index] = std::chrono::system_clock::now();
