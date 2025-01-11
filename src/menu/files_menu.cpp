@@ -18,6 +18,8 @@ import :menu_utils;
 import :message_overlay;
 import :choice_overlay;
 
+import :image_viewer;
+
 import xmbshell.config;
 import xmbshell.utils;
 import dreamrender;
@@ -204,8 +206,17 @@ namespace menu {
         }
         auto& [path, file, info] = extra_data_entries.at(selected_submenu);
 
-        if(action == action::options) {
-            auto action_open = [](){};
+        auto action_open = [this, path](){
+            xmb->emplace_overlay<programs::image_viewer>(path, loader);
+        };
+        if(action == action::ok) {
+            if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
+                return result::unsupported;
+            }
+            action_open();
+            return result::success;
+        }
+        else if(action == action::options) {
             auto action_open_external = [](){};
             auto action_view_information = [](){};
             auto action_copy = [this, path](){

@@ -75,22 +75,6 @@ namespace app
             debugName(device, backgroundRenderPass.get(), "Background Render Pass");
         }
         {
-            std::array<vk::AttachmentDescription, 1> attachments = {
-                vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
-                    vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
-                    vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal)
-            };
-            vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
-            vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, ref);
-            vk::SubpassDependency dep(0, vk::SubpassExternal,
-                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
-                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead);
-            vk::RenderPassCreateInfo renderpass_info({}, attachments, subpass, dep);
-            blurRenderPass = device.createRenderPassUnique(renderpass_info);
-            debugName(device, blurRenderPass.get(), "Blur Render Pass");
-        }
-        {
             std::array<vk::AttachmentDescription, 2> attachments = {
                 vk::AttachmentDescription({}, win->swapchainFormat.format, win->config.sampleCount,
                     vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
@@ -99,7 +83,7 @@ namespace app
                 vk::AttachmentDescription({}, win->swapchainFormat.format, vk::SampleCountFlagBits::e1,
                     vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
                     vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR)
+                    vk::ImageLayout::eUndefined, win->swapchainFinalLayout)
             };
             vk::AttachmentReference ref(0, vk::ImageLayout::eColorAttachmentOptimal);
             vk::AttachmentReference rref(1, vk::ImageLayout::eColorAttachmentOptimal);
@@ -136,12 +120,17 @@ namespace app
             renderImage = std::make_unique<texture>(device, allocator,
                 win->swapchainExtent, vk::ImageUsageFlagBits::eColorAttachment,
                 win->swapchainFormat.format, win->config.sampleCount, false, vk::ImageAspectFlagBits::eColor);
+            debugName(device, renderImage->image, "Shell Render Image");
+
             blurImageSrc = std::make_unique<texture>(device, allocator,
                 win->swapchainExtent, vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
                 vk::Format::eR16G16B16A16Unorm, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
+            debugName(device, blurImageSrc->image, "Blur Image Source");
+
             blurImageDst = std::make_unique<texture>(device, allocator,
                 win->swapchainExtent, vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
                 vk::Format::eR16G16B16A16Unorm, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
+            debugName(device, blurImageDst->image, "Blur Image Destination");
         }
 
         font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
@@ -210,6 +199,7 @@ namespace app
         backgroundFramebuffers.clear();
         for(int i=0; i<imageCount; i++)
         {
+            debugName(device, swapchainImages[i], "Swapchain Image #"+std::to_string(i));
             {
                 std::array<vk::ImageView, 2> attachments = {renderImage->imageView.get(), swapchainViews[i]};
                 vk::FramebufferCreateInfo framebuffer_info({}, shellRenderPass.get(), attachments,

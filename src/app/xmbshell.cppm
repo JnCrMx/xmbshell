@@ -109,6 +109,8 @@ namespace app
                 if(ptr->do_fade_in()) {
                     overlay_fade_direction = transition_direction::in;
                     overlay_fade_time = std::chrono::system_clock::now();
+                } else {
+                    overlay_fade_time = std::chrono::system_clock::now() - overlay_transition_duration;
                 }
 
                 return ptr;
@@ -122,16 +124,20 @@ namespace app
                 if(ptr->do_fade_in()) {
                     overlay_fade_direction = transition_direction::in;
                     overlay_fade_time = std::chrono::system_clock::now();
+                } else {
+                    overlay_fade_time = std::chrono::system_clock::now() - overlay_transition_duration;
                 }
 
                 return ptr;
             }
             void remove_overlay(unsigned int index) {
                 if(index >= overlays.size()) return;
-                if(overlays[index]->do_fade_out()) {
+                if(index == overlays.size()-1 && overlays[index]->do_fade_out()) {
                     overlay_fade_direction = transition_direction::out;
                     overlay_fade_time = std::chrono::system_clock::now();
                     old_overlay = std::move(overlays[index]);
+                } else {
+                    overlay_fade_time = std::chrono::system_clock::now() - overlay_transition_duration;
                 }
                 overlays.erase(overlays.begin()+index);
             }
@@ -148,7 +154,7 @@ namespace app
             std::unique_ptr<simple_renderer> simple_render;
             std::unique_ptr<render::wave_renderer> wave_render;
 
-            vk::UniqueRenderPass backgroundRenderPass, blurRenderPass, shellRenderPass;
+            vk::UniqueRenderPass backgroundRenderPass, shellRenderPass;
 
             std::vector<vk::UniqueFramebuffer> backgroundFramebuffers;
 
