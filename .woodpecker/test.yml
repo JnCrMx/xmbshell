@@ -32,6 +32,7 @@ steps:
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas
       # Install it (and upload it for debugging)
+      - cd build/
       - mkdir -p upload/build upload/beta
       - DESTDIR=install cmake --install . --prefix /usr
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-$(arch).tar.gz -C install .
