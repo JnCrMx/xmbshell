@@ -43,9 +43,9 @@ namespace app
     {
         phase::preload();
 
-        font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent);
-        image_render = std::make_unique<image_renderer>(device, win->swapchainExtent);
-        simple_render = std::make_unique<simple_renderer>(device, allocator, win->swapchainExtent);
+        font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent, win->gpuFeatures);
+        image_render = std::make_unique<image_renderer>(device, win->swapchainExtent, win->gpuFeatures);
+        simple_render = std::make_unique<simple_renderer>(device, allocator, win->swapchainExtent, win->gpuFeatures);
         wave_render = std::make_unique<render::wave_renderer>(device, allocator, win->swapchainExtent);
 
         {
