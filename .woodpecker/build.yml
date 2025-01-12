@@ -72,6 +72,8 @@ steps:
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage
       - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-x86_64.AppImage
       - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-x86_64.AppImage.zsync
+      # Sleep for robustness
+      - sleep 60
   upload-logs:
     image: woodpeckerci/plugin-s3
     settings:

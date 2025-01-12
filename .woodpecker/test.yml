@@ -39,6 +39,8 @@ steps:
       - DESTDIR=install cmake --install . --prefix /usr
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz -C install .
       - cp upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz upload/beta/xmbshell-beta-$UBUNTU_VERSION-$(arch).tar.gz
+      # Sleep for robustness
+      - sleep 60
   build-upload-build:
     image: woodpeckerci/plugin-s3
     settings:
