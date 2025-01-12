@@ -31,6 +31,28 @@ steps:
         -DCMAKE_BUILD_TYPE=Debug
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas
+      # Install it (and upload it for debugging)
+      - mkdir -p upload/build upload/beta
+      - DESTDIR=install cmake --install . --prefix /usr
+      - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-$(arch).tar.gz -C install .
+      - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-$(arch).tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}-$(arch).tar.gz
+  build-upload-build:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/upload/build/*
+      strip_prefix: build/upload/build/
+      target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+  build-upload-branch:
+    image: woodpeckerci/plugin-s3
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker
+      source: build/upload/beta/*
+      strip_prefix: build/upload/beta/
+      target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
+      overwrite: true
   test:
     image: ubuntu:noble
     commands:
@@ -44,7 +66,7 @@ steps:
     volumes:
       - /dev/dri/renderD128:/dev/dri/renderD128
     privileged: true
-  upload:
+  test-upload:
     image: woodpeckerci/plugin-s3
     settings:
       <<: *minio-settings
@@ -54,7 +76,7 @@ steps:
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
     when:
       - status: [ success, failure ]
-  upload-branch:
+  test-upload-branch:
     image: woodpeckerci/plugin-s3
     settings:
       <<: *minio-settings
