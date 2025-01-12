@@ -13,6 +13,7 @@ steps:
   build:
     image: ubuntu:noble
     commands:
+      - UBUNTU_VERSION=noble
       - apt-get update
       - DEBIAN_FRONTEND=noninteractive apt-get install -y curl
       - mkdir -p /etc/apt/keyrings
@@ -25,18 +26,19 @@ steps:
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.4-dev libsdbus-c++-dev libboost-dev
       - .woodpecker/download_unlicensed.sh
+      - BUILD_VERSION=$(git describe --tags --always)
       - >-
         cmake -B build -G Ninja
         -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19
-        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_BUILD_TYPE=Debug -DBUILD_VERSION=$BUILD_VERSION
       - cmake --build build --parallel 2
       - glib-compile-schemas schemas
       # Install it (and upload it for debugging)
       - cd build/
       - mkdir -p upload/build upload/beta
       - DESTDIR=install cmake --install . --prefix /usr
-      - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-$(arch).tar.gz -C install .
-      - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-$(arch).tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}-$(arch).tar.gz
+      - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz -C install .
+      - cp upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz upload/beta/xmbshell-beta-$UBUNTU_VERSION-$(arch).tar.gz
   build-upload-build:
     image: woodpeckerci/plugin-s3
     settings:
