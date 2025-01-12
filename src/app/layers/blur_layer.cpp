@@ -22,10 +22,10 @@ struct BlurConstants {
 blur_layer::blur_layer(xmbshell* xmb) :
     srcTexture(xmb->device, xmb->allocator, xmb->win->swapchainExtent,
         vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst,
-        vk::Format::eR16G16B16A16Unorm, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor),
+        vk::Format::eR16G16B16A16Sfloat, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor),
     dstTexture(xmb->device, xmb->allocator, xmb->win->swapchainExtent,
         vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
-        vk::Format::eR16G16B16A16Unorm, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor)
+        vk::Format::eR16G16B16A16Sfloat, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor)
 {
     auto device = xmb->device;
     {

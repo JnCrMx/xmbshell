@@ -124,12 +124,12 @@ namespace app
 
             blurImageSrc = std::make_unique<texture>(device, allocator,
                 win->swapchainExtent, vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-                vk::Format::eR16G16B16A16Unorm, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
+                vk::Format::eR16G16B16A16Sfloat, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
             debugName(device, blurImageSrc->image, "Blur Image Source");
 
             blurImageDst = std::make_unique<texture>(device, allocator,
                 win->swapchainExtent, vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-                vk::Format::eR16G16B16A16Unorm, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
+                vk::Format::eR16G16B16A16Sfloat, vk::SampleCountFlagBits::e1, false, vk::ImageAspectFlagBits::eColor);
             debugName(device, blurImageDst->image, "Blur Image Destination");
         }
 
