@@ -24,7 +24,8 @@ echo "Framerate: $framerate"
 
 ffmpeg -framerate $framerate \
     -i "$DREAMRENDER_HEADLESS_OUTPUT_DIR"/"%$format_spec.jpg" \
-    build/test-output.mkv build/test-output.webm \
+    build/test-output.mp4 \
+    build/test-output.webm \
     -loop 65535 build/test-output.webp
 
 rm -r "$DREAMRENDER_HEADLESS_OUTPUT_DIR"
