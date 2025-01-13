@@ -54,8 +54,7 @@ if(NOT i18n++_FOUND)
   set(BUILD_PLUGIN ${GENERATE_POT} CACHE BOOL "" FORCE)
   set(BUILD_MERGE ${GENERATE_POT} CACHE BOOL "" FORCE)
 
-  FetchContent_Declare(
-    i18n++
+  FetchContent_Declare(i18n++
     GIT_REPOSITORY https://github.com/JnCrMx/i18n-cpp.git
     GIT_TAG        trunk
     GIT_SUBMODULES_RECURSE FALSE
@@ -73,8 +72,7 @@ add_library(SDL2::SDL2 ALIAS PkgConfig::sdl2)
 add_library(SDL2_image::SDL2_image ALIAS PkgConfig::sdl2_image)
 add_library(SDL2_mixer::SDL2_mixer ALIAS PkgConfig::sdl2_mixer)
 
-FetchContent_Declare(
-  sdbus-cpp
+FetchContent_Declare(sdbus-cpp
   GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
   GIT_TAG        v1.2.0
   EXCLUDE_FROM_ALL
@@ -83,8 +81,7 @@ set(BUILD_DOC OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable_ExcludeFromAll(sdbus-cpp)
 add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
 
-FetchContent_Declare(
-  dreamrender
+FetchContent_Declare(dreamrender
   GIT_REPOSITORY https://git.jcm.re/jcm/dreamrender.git
   GIT_TAG        main
   EXCLUDE_FROM_ALL
@@ -93,6 +90,13 @@ set(DREAMS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(DREAMS_BUILD_WITH_POSIX_THREADS ON CACHE BOOL "" FORCE)
 set(DREAMS_FIND_PACKAGES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable_ExcludeFromAll(dreamrender)
+
+FetchContent_Declare(argparse
+  GIT_REPOSITORY https://github.com/p-ranav/argparse.git
+  GIT_TAG        v3.1
+  EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable_ExcludeFromAll(argparse)
 
 add_library(glibmmModule STATIC)
 target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES third_party/glibmm.cppm)
@@ -111,6 +115,12 @@ target_sources(i18nModule PUBLIC FILE_SET CXX_MODULES FILES third_party/i18n.cpp
 target_compile_features(i18nModule PUBLIC cxx_std_20)
 target_link_libraries(i18nModule PUBLIC i18n::i18n-lib)
 target_compile_options(i18nModule PRIVATE -pthread)
+
+add_library(argparseModule STATIC)
+target_sources(argparseModule PUBLIC FILE_SET CXX_MODULES FILES ${argparse_SOURCE_DIR}/module/argparse.cppm)
+target_compile_features(argparseModule PUBLIC cxx_std_23)
+target_link_libraries(argparseModule PUBLIC argparse::argparse)
+target_compile_options(argparseModule PRIVATE -pthread)
 
 set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
@@ -185,6 +195,7 @@ target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE glibmmModule)
 target_link_libraries(xmbshell PRIVATE giommModule)
 target_link_libraries(xmbshell PRIVATE i18nModule)
+target_link_libraries(xmbshell PRIVATE argparseModule)
 target_link_libraries(xmbshell PRIVATE X11)
 
 if(GENERATE_POT)

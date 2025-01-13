@@ -1,5 +1,7 @@
-#include <libintl.h>
+#include <iostream>
 #include <thread>
+
+#include <libintl.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
@@ -8,6 +10,7 @@ import spdlog;
 import glibmm;
 import giomm;
 import dreamrender;
+import argparse;
 import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
@@ -30,6 +33,41 @@ int main(int argc, char *argv[])
     spdlog::set_level(spdlog::level::debug);
 #endif
     spdlog::cfg::load_env_levels();
+
+    argparse::ArgumentParser program("XMB Shell");
+    program.add_argument("--width")
+        .help("Width of the window")
+        .metavar("WIDTH")
+        .scan<'i', int>()
+        .default_value(-1);
+    program.add_argument("--height")
+        .help("Height of the window")
+        .metavar("HEIGHT")
+        .scan<'i', int>()
+        .default_value(-1);
+    program.add_argument("--no-fullscreen").flag()
+        .help("Do not start in fullscreen mode");
+    program.add_argument("--headless").flag()
+        .help("Run in headless mode (requires --width and --height)");
+    program.add_argument("--headless-output-dir")
+        .help("Output directory for headless mode")
+        .metavar("DIRECTORY")
+        .default_value("./output");
+    program.add_argument("--headless-output-pattern")
+        .help("Output pattern for headless mode")
+        .metavar("PATTERN")
+        .default_value("frame_{:06d}.png");
+    program.add_argument("--terminal").flag()
+        .help("Run in terminal mode (requires --width and --height)");
+
+    try {
+        program.parse_args(argc, argv);
+    }
+    catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
 
     spdlog::info("Welcome to your XMB!");
     std::set_terminate([]() {
@@ -74,6 +112,23 @@ int main(int argc, char *argv[])
     if(std::getenv("DISPLAY")) {
         window_config.sdl_hints[sdl::hints::video_x11_window_visualid] = find_visualid();
     }
+    window_config.width = program.get<int>("--width");
+    window_config.height = program.get<int>("--height");
+    window_config.fullscreen = !program.get<bool>("--no-fullscreen");
+    window_config.headless = program.get<bool>("--headless") || program.get<bool>("--terminal");
+    window_config.headless_terminal = program.get<bool>("--terminal");
+    if(window_config.headless && (window_config.width == -1 || window_config.height == -1)) {
+        spdlog::error("Headless mode requires --width and --height");
+        std::exit(1);
+    }
+    // This purposefully excludes the case, in which just "--terminal" is used
+    if(program.is_used("--headless") || program.is_used("--headless-output-dir") || program.is_used("--headless-output-pattern")) {
+        window_config.headless_output_dir = program.get<std::string>("--headless-output-dir");
+        window_config.headless_output_format = program.get<std::string>("--headless-output-pattern");
+    } else {
+        window_config.headless_output_dir.clear();
+    }
+
     dreamrender::window window{window_config};
     window.init();
 
