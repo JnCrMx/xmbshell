@@ -95,6 +95,14 @@ namespace app
             void set_ingame_mode(bool ingame_mode) { this->ingame_mode = ingame_mode; }
             bool get_ingame_mode() const { return ingame_mode; }
 
+            void set_background_only(bool background_only) {
+                this->background_only = background_only;
+                if(!this->background_only && !fixed_components_loaded) {
+                    preload_fixed_components();
+                }
+            }
+            bool get_background_only() const { return background_only; }
+
             void set_blur_background(bool blur) {
                 if (blur == blur_background) return;
                 blur_background = blur;
@@ -180,6 +188,9 @@ namespace app
 
             sdl::mix::unique_chunk ok_sound;
 
+            bool fixed_components_loaded = false;
+            void preload_fixed_components();
+
             void render_gui(gui_renderer& renderer);
 
             // input handling
@@ -194,6 +205,7 @@ namespace app
             constexpr static auto controller_button_input_duration = std::chrono::milliseconds(200);
 
             // state
+            bool background_only = false;
             bool ingame_mode = false;
 
             bool blur_background = false;

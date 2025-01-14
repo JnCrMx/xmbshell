@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
         .default_value(-1);
     program.add_argument("--no-fullscreen").flag()
         .help("Do not start in fullscreen mode");
+    program.add_argument("--background-only").flag()
+        .help("Only render the background");
     program.add_argument("--headless").flag()
         .help("Run in headless mode (requires --width and --height)");
     program.add_argument("--headless-output-dir")
@@ -133,6 +135,9 @@ int main(int argc, char *argv[])
     window.init();
 
     app::xmbshell* shell = new app::xmbshell(&window);
+    if(program.get<bool>("--background-only")) {
+        shell->set_background_only(true);
+    }
     window.set_phase(shell, shell, shell);
 
     std::unique_ptr<dbus::dbus_server> server;

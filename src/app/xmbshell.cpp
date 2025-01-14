@@ -138,14 +138,6 @@ namespace app
         simple_render->preload({shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
         wave_render->preload({backgroundRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
 
-        menu.preload(device, allocator, *loader);
-        news.preload(device, allocator, *loader);
-
-        ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str())};
-        if(!ok_sound) {
-            spdlog::error("sdl::mix::LoadWAV: {}", sdl::mix::GetError());
-        }
-
         if(config::CONFIG.backgroundType == config::config::background_type::image) {
             backgroundTexture = std::make_unique<texture>(device, allocator);
             loader->loadTexture(backgroundTexture.get(), config::CONFIG.backgroundImage);
@@ -172,6 +164,25 @@ namespace app
             win->config.preferredPresentMode = config::CONFIG.preferredPresentMode;
             win->recreateSwapchain();
         });
+
+        if(!background_only) {
+            preload_fixed_components();
+        }
+    }
+
+    void xmbshell::preload_fixed_components()
+    {
+        if(fixed_components_loaded) {
+            return;
+        }
+
+        menu.preload(device, allocator, *loader);
+        news.preload(device, allocator, *loader);
+
+        ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str())};
+        if(!ok_sound) {
+            spdlog::error("sdl::mix::LoadWAV: {}", sdl::mix::GetError());
+        }
 
         reload_button_icons();
     }
@@ -419,7 +430,9 @@ namespace app
                 0.0f, 0.0f, static_cast<int>(win->swapchainExtent.width), static_cast<int>(win->swapchainExtent.height));
 
             gui_renderer ctx(commandBuffer, frame, shellRenderPass.get(), win->swapchainExtent, font_render.get(), image_render.get(), simple_render.get());
-            render_gui(ctx);
+            if(!background_only) {
+                render_gui(ctx);
+            }
 
             commandBuffer.endRenderPass();
         }
@@ -574,6 +587,10 @@ namespace app
     }
 
     void xmbshell::tick() {
+        if(background_only) {
+            return;
+        }
+
         for(unsigned int i=0; i<2; i++) {
             if(last_controller_axis_input[i]) {
                 auto time_since_input = std::chrono::duration<double>(std::chrono::system_clock::now() - last_controller_axis_input_time[i]);
@@ -603,6 +620,10 @@ namespace app
     }
 
     void xmbshell::dispatch(action action) {
+        if(background_only) {
+            return;
+        }
+
         for(int i=static_cast<int>(overlays.size())-1; i >= 0; i--) {
             auto& e = overlays[i];
             if(auto* recv = dynamic_cast<action_receiver*>(e.get())) {
