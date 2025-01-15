@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+cmake_policy(SET CMP0097 NEW)
 
 set(CMAKE_CXX_FLAGS_DEBUGASAN "-g -fsanitize=address -fno-omit-frame-pointer -g" CACHE STRING "Flags used by the C++ compiler during AddressSanitizer builds." FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_DEBUGASAN "-fsanitize=address" CACHE STRING "Flags used for linking binaries during AddressSanitizer builds." FORCE)
@@ -98,6 +99,17 @@ FetchContent_Declare(argparse
 )
 FetchContent_MakeAvailable_ExcludeFromAll(argparse)
 
+FetchContent_Declare(avcpp
+  GIT_REPOSITORY https://github.com/h4tr3d/avcpp.git
+  GIT_TAG        v2.4.0
+  GIT_SUBMODULES ""
+  EXCLUDE_FROM_ALL
+)
+set(AV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(AV_ENABLE_STATIC ON CACHE BOOL "" FORCE)
+set(AV_ENABLE_SHARED OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable_ExcludeFromAll(avcpp)
+
 add_library(glibmmModule STATIC)
 target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES third_party/glibmm.cppm)
 target_compile_features(glibmmModule PUBLIC cxx_std_20)
@@ -117,10 +129,16 @@ target_link_libraries(i18nModule PUBLIC i18n::i18n-lib)
 target_compile_options(i18nModule PRIVATE -pthread)
 
 add_library(argparseModule STATIC)
-target_sources(argparseModule PUBLIC FILE_SET CXX_MODULES FILES ${argparse_SOURCE_DIR}/module/argparse.cppm)
+target_sources(argparseModule PUBLIC FILE_SET CXX_MODULES BASE_DIRS ${argparse_SOURCE_DIR}/module FILES ${argparse_SOURCE_DIR}/module/argparse.cppm)
 target_compile_features(argparseModule PUBLIC cxx_std_23)
 target_link_libraries(argparseModule PUBLIC argparse::argparse)
 target_compile_options(argparseModule PRIVATE -pthread)
+
+add_library(avcppModule STATIC)
+target_sources(avcppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/avcpp.cppm)
+target_compile_features(avcppModule PUBLIC cxx_std_23)
+target_link_libraries(avcppModule PUBLIC avcpp::avcpp)
+target_compile_options(avcppModule PRIVATE -pthread)
 
 set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
@@ -196,6 +214,7 @@ target_link_libraries(xmbshell PRIVATE glibmmModule)
 target_link_libraries(xmbshell PRIVATE giommModule)
 target_link_libraries(xmbshell PRIVATE i18nModule)
 target_link_libraries(xmbshell PRIVATE argparseModule)
+target_link_libraries(xmbshell PRIVATE avcppModule)
 target_link_libraries(xmbshell PRIVATE X11)
 
 if(GENERATE_POT)

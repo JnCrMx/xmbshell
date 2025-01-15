@@ -11,6 +11,7 @@ import glibmm;
 import giomm;
 import dreamrender;
 import argparse;
+import avcpp;
 import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
@@ -88,10 +89,10 @@ int main(int argc, char *argv[])
         std::abort();
     });
 
+    // Initialize Glib and Gio
     Gio::init();
     setlocale(LC_ALL, "");
     textdomain("xmbshell");
-
     Glib::RefPtr<Glib::MainLoop> loop;
 #if __cpp_lib_jthread >= 201911L
     std::jthread main_loop_thread([&loop]() {
@@ -101,6 +102,9 @@ int main(int argc, char *argv[])
         loop = Glib::MainLoop::create();
         loop->run();
     });
+
+    // Initialize avcpp
+    av::init();
 
     config::CONFIG.load();
     spdlog::debug("Config loaded");

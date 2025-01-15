@@ -34,6 +34,9 @@ parts:
     plugin: cmake
     source-type: local
     source: .
+    build-snaps:
+      - ffmpeg-2404-sdk
+      - mesa-2404
     build-packages:
       - git
       - clang-19
@@ -64,6 +67,17 @@ parts:
       - "-DCMAKE_CXX_COMPILER=/usr/bin/clang++-19"
       - "-DCMAKE_C_COMPILER=/usr/bin/clang-19"
       - "-GNinja"
+    build-environment:
+      - CMAKE_PREFIX_PATH: ${CRAFT_STAGE}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/cmake${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}
+  gpu-2404:
+    after: [xmbshell]
+    source: https://github.com/canonical/gpu-snap.git
+    plugin: dump
+    override-prime: |
+      craftctl default
+      ${CRAFT_PART_SRC}/bin/gpu-2404-cleanup mesa-2404
+    prime:
+      - bin/gpu-2404-wrapper
 layout:
   $SNAP/usr/share/xmbshell/Ubuntu-R.ttf:
     symlink: $SNAP/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf
@@ -72,9 +86,20 @@ layout:
 #     interface: dbus
 #     bus: session
 #     name: re.jcm.xmbos.xmbshell
+plugs:
+  gpu-2404:
+    interface: content
+    target: $SNAP/gpu-2404
+    default-provider: mesa-2404
+  ffmpeg-2404:
+    interface: content
+    target: ffmpeg-platform
+    default-provider: ffmpeg-2404
 apps:
   xmbshell:
     command: usr/bin/xmbshell
+    command-chain:
+      - bin/gpu-2404-wrapper
     desktop: usr/share/applications/xmbshell.desktop
     # slots:
     #   - dbus-svc
