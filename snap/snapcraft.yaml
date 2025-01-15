@@ -69,6 +69,9 @@ parts:
       - "-GNinja"
     build-environment:
       - CMAKE_PREFIX_PATH: ${CRAFT_STAGE}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/cmake${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}
+      - PKG_CONFIG_PATH: /snap/ffmpeg-2404-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}
+      - LD_LIBRARY_PATH: /snap/ffmpeg-2404-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+      - PATH: /snap/ffmpeg-2404-sdk/current/usr/bin${PATH:+:$PATH}
   gpu-2404:
     after: [xmbshell]
     source: https://github.com/canonical/gpu-snap.git
@@ -101,6 +104,9 @@ apps:
     command-chain:
       - bin/gpu-2404-wrapper
     desktop: usr/share/applications/xmbshell.desktop
+    environment:
+      LD_LIBRARY_PATH: $SNAP/ffmpeg-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$LD_LIBRARY_PATH
+      PATH: $SNAP/ffmpeg-platform/usr/bin:$PATH
     # slots:
     #   - dbus-svc
     extensions:
