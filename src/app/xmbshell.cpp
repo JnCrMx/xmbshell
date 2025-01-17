@@ -5,9 +5,10 @@ module;
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <ranges>
+#include <utility>
 #include <vector>
 #include <version>
-#include <utility>
 
 module xmbshell.app;
 
@@ -246,6 +247,9 @@ namespace app
         auto now = std::chrono::system_clock::now();
 
         commandBuffer.begin(vk::CommandBufferBeginInfo());
+        for(auto& overlay : std::views::reverse(overlays)) {
+            overlay->prerender(commandBuffer, frame, this);
+        }
         {
             vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
             if(config::CONFIG.backgroundType == config::config::background_type::color) {

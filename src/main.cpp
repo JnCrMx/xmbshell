@@ -105,6 +105,9 @@ int main(int argc, char *argv[])
 
     // Initialize avcpp
     av::init();
+#ifndef NDEBUG
+    av::set_logging_level("debug");
+#endif
 
     config::CONFIG.load();
     spdlog::debug("Config loaded");

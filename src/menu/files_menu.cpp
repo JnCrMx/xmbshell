@@ -17,8 +17,7 @@ import :menu_base;
 import :menu_utils;
 import :message_overlay;
 import :choice_overlay;
-
-import :image_viewer;
+import :programs;
 
 import xmbshell.config;
 import xmbshell.utils;
@@ -206,8 +205,19 @@ namespace menu {
         }
         auto& [path, file, info] = extra_data_entries.at(selected_submenu);
 
-        auto action_open = [this, path](){
-            xmb->emplace_overlay<programs::image_viewer>(path, loader);
+        auto action_open = [this, path, info](){
+            auto open_infos = programs::get_open_infos(path, *info.get());
+            if(open_infos.empty()) {
+                std::string p = path.string();
+                std::string mime_type = info->get_attribute_string("standard::fast-content-type");
+                spdlog::error("No program found for file of type \"{}\": {}", mime_type, p);
+                xmb->emplace_overlay<app::message_overlay>("No program found"_(),
+                    "No program found for file of type \"{}\": {}"_(mime_type, p),
+                    std::vector<std::string>{"OK"_()});
+                return;
+            }
+            programs::open_info open_info = open_infos.front();
+            xmb->push_overlay(open_info.create(path, loader));
         };
         if(action == action::ok) {
             if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {

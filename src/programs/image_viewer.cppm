@@ -11,6 +11,7 @@ import glm;
 import spdlog;
 import xmbshell.utils;
 import :component;
+import :programs;
 
 namespace programs {
 
@@ -113,5 +114,18 @@ export class image_viewer : public component, public action_receiver, public joy
         float zoom = 1.0f;
         glm::vec2 offset = {0.0f, 0.0f};
 };
+
+namespace {
+const inline register_program<image_viewer> image_viewer_program{
+    "image_viewer",
+    {
+        "image/bmp", "image/gif", "image/jpeg", "image/vnd.zbrush.pcx",
+        "image/png", "image/x-portable-bitmap", "image/x-portable-graymap",
+        "image/x-portable-pixmap", "image/x-portable-anymap", "image/svg+xml",
+        "image/x-targa", "image/x-tga", "image/tiff", "image/webp", "image/x-xcf",
+        "image/x-xpixmap",
+    }
+};
+}
 
 }

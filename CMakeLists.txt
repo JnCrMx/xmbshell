@@ -177,7 +177,9 @@ set(XMBSHELL_MODULE_SOURCES
   src/menu/settings_menu.cppm
   src/menu/users_menu.cppm
   src/menu/utils.cppm
+  src/programs.cppm
   src/programs/image_viewer.cppm
+  src/programs/video_player.cppm
   src/render/module.cppm
   src/render/shaders.cppm
   src/render/components/wave_renderer.cppm

@@ -92,6 +92,8 @@ namespace app
                 }
             }
 
+            dreamrender::window* get_window() const { return this->win; }
+
             void set_ingame_mode(bool ingame_mode) { this->ingame_mode = ingame_mode; }
             bool get_ingame_mode() const { return ingame_mode; }
 
