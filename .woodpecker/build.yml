@@ -25,8 +25,7 @@ steps:
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
       # Install ffmpeg from Snap, so the version will match later on (THIS BREAKS THE DEBIAN PACKAGE!!!)
-      - >-
-        curl -L $(curl -H 'X-Ubuntu-Series: 16' -H "X-Ubuntu-Architecture: $ARCH" 'https://api.snapcraft.io/api/v1/snaps/details/ffmpeg-2404-sdk' | jq '.download_url' -r) --output ffmpeg-2404-sdk.snap
+      - curl -L $(curl -H 'X-Ubuntu-Series: 16' -H "X-Ubuntu-Architecture: $ARCH" 'https://api.snapcraft.io/api/v1/snaps/details/ffmpeg-2404-sdk' | jq '.download_url' -r) --output ffmpeg-2404-sdk.snap
       - mkdir -p /snap/ffmpeg-2404-sdk
       - unsquashfs -d /snap/ffmpeg-2404-sdk/current ffmpeg-2404-sdk.snap
       - CRAFT_ARCH_TRIPLET_BUILD_FOR=x86_64-linux-gnu
