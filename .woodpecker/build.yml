@@ -24,15 +24,8 @@ steps:
         clang-tools-19 glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
-      # Install ffmpeg from Snap, so the version will match later on (THIS BREAKS THE DEBIAN PACKAGE!!!)
-      - curl -L $(curl -H 'X-Ubuntu-Series: 16' -H "X-Ubuntu-Architecture: $ARCH" 'https://api.snapcraft.io/api/v1/snaps/details/ffmpeg-2404-sdk' | jq '.download_url' -r) --output ffmpeg-2404-sdk.snap
-      - mkdir -p /snap/ffmpeg-2404-sdk
-      - unsquashfs -d /snap/ffmpeg-2404-sdk/current ffmpeg-2404-sdk.snap
-      - CRAFT_ARCH_TRIPLET_BUILD_FOR=x86_64-linux-gnu
-      - export PKG_CONFIG_PATH="/snap/ffmpeg-2404-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pkgconfig:$PKG_CONFIG_PATH"
-      - export LD_LIBRARY_PATH="/snap/ffmpeg-2404-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$LD_LIBRARY_PATH"
-      - export PATH="/snap/ffmpeg-2404-sdk/current/usr/bin:$PATH"
-      # Install newer software on Ubuntu Jammy (not in use anymore)
+        libavformat-dev:amd64 libavcodec-dev:amd64 libavutil-dev:amd64 libavfilter-dev:amd64
+        libswscale-dev:amd64 libswresample-dev:amd64 libpostproc-dev:amd64 libavdevice-dev:amd64
       - >-
         [ "$UBUNTU_VERSION" = "jammy" ] &&
           curl -L https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-aarch64.tar.gz | tar -xz --directory=/usr --strip-components=1 &&
@@ -50,7 +43,6 @@ steps:
         -DBUILD_VERSION=$BUILD_VERSION
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=amd64
         -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}
-        -DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}.log
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}.log
       - cd build
