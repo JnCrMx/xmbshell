@@ -127,6 +127,11 @@ class simple_menu_generic : public Base {
                 this->entries.push_back(std::move(entry));
             }
         }
+        simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::ranges::range auto&& entries) : Base(name, std::move(icon)) {
+            for(auto& entry : std::move(entries)) {
+                this->entries.push_back(std::move(entry));
+            }
+        }
         ~simple_menu_generic() override = default;
 
         unsigned int get_submenus_count() const override {
