@@ -1,6 +1,6 @@
 # xmbshell
 
-A desktop shell mimicing the look and functionality of the XrossMediaBar.
+A desktop shell mimicking the look and functionality of the XrossMediaBar dedicated to my cute girlfriend Laura!
 
 [![Get it from the Snap Store](https://snapcraft.io/en/dark/install.svg)](https://snapcraft.io/xmbshell)&nbsp;
 [![AppImage - download](https://img.shields.io/badge/AppImage-download-orange?style=for-the-badge&logo=linux)](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-x86_64.AppImage)&nbsp;
@@ -13,3 +13,7 @@ A desktop shell mimicing the look and functionality of the XrossMediaBar.
 - Awesome XMB background wave
 - Basic file management
 - Launch other apps
+- Basic image viewer
+- WIP video player
+
+**Some of the icons made by Laura herself!**
