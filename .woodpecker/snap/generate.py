@@ -13,8 +13,8 @@ def merge(a: dict, b: dict, path=[]):
                 a[key] += b[key]
             elif b[key] is None:
                 del a[key]
-            elif a[key] != b[key]:
-                raise Exception('Conflict at ' + '.'.join(path + [str(key)]))
+            else:
+                a[key] = b[key]
         else:
             a[key] = b[key]
     return a
