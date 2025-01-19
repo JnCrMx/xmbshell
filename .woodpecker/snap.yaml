@@ -28,8 +28,10 @@ steps:
         python3 generate.py
         ../../snap/snapcraft.yaml
         snapcraft.yaml
+        xmbshell
         $BUILD_VERSION
         https://woodpecker.web.garage.jcm.re/artifacts/$CI_REPO/$CI_PIPELINE_NUMBER/public/xmbshell-$BUILD_VERSION-noble.tar.gz
+        fix-ffmpeg.yaml
       - cat snapcraft.yaml
       # Build the Snap
       - snapcraft --destructive-mode --platform=amd64-on-arm64

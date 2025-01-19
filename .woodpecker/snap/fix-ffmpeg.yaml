@@ -1,0 +1,17 @@
+pre:
+  parts:
+    xmbshell:
+      stage-packages:
+      - libavformat60
+      - libavcodec60
+      - libavutil58
+      - libavfilter9
+      - libswscale7
+      - libswresample4
+      - libpostproc57
+      - libavdevice60
+  plugs:
+    ffmpeg-2404: null
+  apps:
+    xmbshell:
+      environment: null
