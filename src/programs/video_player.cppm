@@ -20,6 +20,7 @@ import :component;
 import :programs;
 import :message_overlay;
 import xmbshell.app;
+import xmbshell.render;
 
 namespace programs {
 
@@ -91,18 +92,39 @@ export class video_player : public component, public action_receiver, public joy
                         std::vector<std::string>{"OK"_()});
                     return result::close;
                 }
+                decoded_width = ctx->vdec.width();
+                decoded_height = ctx->vdec.height();
                 spdlog::info("Video of size {}x{} loaded in pixel format {}",
-                    ctx->vdec.width(), ctx->vdec.height(), ctx->vdec.pixelFormat().name());
-                if(ctx->vdec.pixelFormat() != preferred_format) {
+                    decoded_width, decoded_height, ctx->vdec.pixelFormat().name());
+                yuv_conversion = ctx->vdec.pixelFormat() == AV_PIX_FMT_YUV420P;
+                if(yuv_conversion) {
+                    spdlog::info("Video is in YUV420P format, converting it to RGBA on GPU");
+                } else if(ctx->vdec.pixelFormat() != preferred_format) {
                     spdlog::warn("Video is not in preferred format, converting it to {}",
                         av::PixelFormat{preferred_format}.name());
                 }
 
-                texture = std::make_unique<dreamrender::texture>(device, allocator, ctx->vdec.width(), ctx->vdec.height());
+                {
+                    vk::ImageCreateInfo image_info(vk::ImageCreateFlagBits::eMutableFormat | vk::ImageCreateFlagBits::eExtendedUsage,
+                        vk::ImageType::e2D, vk::Format::eR8G8B8A8Srgb,
+                        vk::Extent3D(decoded_width, decoded_height, 1), 1, 1, vk::SampleCountFlagBits::e1,
+                        vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst,
+                        vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
+                    vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
+                    std::tie(decoded_image, decoded_allocation) = allocator.createImageUnique(image_info, alloc_info);
+                }
+                {
+                    vk::ImageViewUsageCreateInfo view_usage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst);
+                    vk::ImageViewCreateInfo view_info({}, decoded_image.get(), vk::ImageViewType::e2D, vk::Format::eR8G8B8A8Srgb,
+                        vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+                    vk::StructureChain view_chain{view_info, view_usage};
+                    decoded_view = device.createImageViewUnique(view_chain.get<vk::ImageViewCreateInfo>());
+                }
+
                 unsigned int staging_count = xmb->get_window()->swapchainImageCount;
                 staging_buffers.resize(staging_count);
                 staging_buffer_allocations.resize(staging_count);
-                vk::DeviceSize staging_size = ctx->vdec.width() * ctx->vdec.height() * 4;
+                vk::DeviceSize staging_size = decoded_width * decoded_height * 4;
                 spdlog::debug("Allocating {} staging buffers of size {}", staging_count, staging_size);
 
                 vk::BufferCreateInfo buffer_info({}, staging_size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive);
@@ -110,10 +132,53 @@ export class video_player : public component, public action_receiver, public joy
                 for(unsigned int i = 0; i < staging_count; ++i) {
                     std::tie(staging_buffers[i], staging_buffer_allocations[i]) = allocator.createBufferUnique(buffer_info, alloc_info);
                 }
+
+                if(yuv_conversion) {
+                    unormView = device.createImageViewUnique(vk::ImageViewCreateInfo({}, decoded_image.get(), vk::ImageViewType::e2D, vk::Format::eR8G8B8A8Unorm,
+                        vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)));
+
+                    std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {
+			            vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute),
+		            	vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute),
+		            	vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute),
+		            	vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute)
+		            };
+		            descriptorSetLayout = device.createDescriptorSetLayoutUnique(vk::DescriptorSetLayoutCreateInfo({}, bindings));
+
+                    vk::DescriptorPoolSize pool_size(vk::DescriptorType::eStorageImage, 4);
+                    descriptorPool = device.createDescriptorPoolUnique(vk::DescriptorPoolCreateInfo({}, 1, pool_size));
+                    descriptorSet = device.allocateDescriptorSets(vk::DescriptorSetAllocateInfo(descriptorPool.get(), descriptorSetLayout.get())).front();
+
+                    pipelineLayout = device.createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo({}, descriptorSetLayout.get()));
+                    vk::UniqueShaderModule shaderModule = render::shaders::yuv420p::decode_comp(device);
+                    vk::PipelineShaderStageCreateInfo shaderInfo({}, vk::ShaderStageFlagBits::eCompute, shaderModule.get(), "main");
+                    vk::Result r{};
+                    std::tie(r, pipeline) = device.createComputePipelineUnique({}, vk::ComputePipelineCreateInfo({}, shaderInfo, pipelineLayout.get())).asTuple();
+                    if(r != vk::Result::eSuccess) {
+                        throw std::runtime_error("Failed to create compute pipeline");
+                    }
+
+                    plane_textures[0] = std::make_unique<dreamrender::texture>(device, allocator, decoded_width, decoded_height, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
+                    plane_textures[1] = std::make_unique<dreamrender::texture>(device, allocator, decoded_width/2, decoded_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
+                    plane_textures[2] = std::make_unique<dreamrender::texture>(device, allocator, decoded_width/2, decoded_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
+
+                    vk::DescriptorImageInfo output_info({}, unormView.get(), vk::ImageLayout::eGeneral);
+                    vk::DescriptorImageInfo input_y_info({}, plane_textures[0]->imageView.get(), vk::ImageLayout::eGeneral);
+                    vk::DescriptorImageInfo input_cb_info({}, plane_textures[1]->imageView.get(), vk::ImageLayout::eGeneral);
+                    vk::DescriptorImageInfo input_cr_info({}, plane_textures[2]->imageView.get(), vk::ImageLayout::eGeneral);
+                    std::array<vk::WriteDescriptorSet, 4> writes = {
+                        vk::WriteDescriptorSet(descriptorSet, 0, 0, 1, vk::DescriptorType::eStorageImage, &output_info),
+                        vk::WriteDescriptorSet(descriptorSet, 1, 0, 1, vk::DescriptorType::eStorageImage, &input_y_info),
+                        vk::WriteDescriptorSet(descriptorSet, 2, 0, 1, vk::DescriptorType::eStorageImage, &input_cb_info),
+                        vk::WriteDescriptorSet(descriptorSet, 3, 0, 1, vk::DescriptorType::eStorageImage, &input_cr_info)
+                    };
+                    device.updateDescriptorSets(writes, {});
+                }
+
                 loaded = true;
             }
 
-            float pic_aspect = texture->width / (float)texture->height;
+            float pic_aspect = decoded_width / (float)decoded_height;
             glm::vec2 limit(pic_aspect, 1.0f);
             limit *= zoom;
             limit /= 2.0f;
@@ -139,40 +204,128 @@ export class video_player : public component, public action_receiver, public joy
                 if(!videoFrame) {
                     continue;
                 }
-                spdlog::trace("Decoded frame @ {}s: {}x{} format={}", videoFrame.pts().seconds(),
-                    videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name());
-                if(videoFrame.pixelFormat() != preferred_format) {
-                    videoFrame.setStreamIndex(0);
-                    videoFrame.setPictureType();
-                    videoFrame = ctx->rescaler.rescale(videoFrame);
-                    spdlog::trace("Rescaled frame @ {}s: {}x{} format={}", videoFrame.pts().seconds(),
-                        videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name());
+                spdlog::trace("Decoded frame @ {}s: {}x{} format={}, size={}", videoFrame.pts().seconds(),
+                    videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name(),
+                    videoFrame.size());
+                if(yuv_conversion) {
+                    unsigned int offset = 0;
+                    allocator.copyMemoryToAllocation(videoFrame.data(0), staging_buffer_allocations[frame].get(), offset, videoFrame.size(0));
+                    offset += videoFrame.size(0);
+                    allocator.copyMemoryToAllocation(videoFrame.data(1), staging_buffer_allocations[frame].get(), offset, videoFrame.size(1));
+                    offset += videoFrame.size(1);
+                    allocator.copyMemoryToAllocation(videoFrame.data(2), staging_buffer_allocations[frame].get(), offset, videoFrame.size(2));
+
+                    cmd.pipelineBarrier(
+                        vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer,
+                        {}, {}, {}, {
+                            vk::ImageMemoryBarrier(
+                                {}, vk::AccessFlagBits::eTransferWrite,
+                                vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                plane_textures[0]->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            ),
+                            vk::ImageMemoryBarrier(
+                                {}, vk::AccessFlagBits::eTransferWrite,
+                                vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                plane_textures[1]->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            ),
+                            vk::ImageMemoryBarrier(
+                                {}, vk::AccessFlagBits::eTransferWrite,
+                                vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                plane_textures[2]->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            ),
+                        }
+                    );
+                    std::array<vk::BufferImageCopy, 3> copies = {
+                        vk::BufferImageCopy(0, videoFrame.raw()->linesize[0], 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+                            vk::Offset3D(0, 0, 0), vk::Extent3D(videoFrame.width(), videoFrame.height(), 1)),
+                        vk::BufferImageCopy(videoFrame.size(0), videoFrame.raw()->linesize[1], 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+                            vk::Offset3D(0, 0, 0), vk::Extent3D(videoFrame.width()/2, videoFrame.height()/2, 1)),
+                        vk::BufferImageCopy(videoFrame.size(0)+videoFrame.size(1), videoFrame.raw()->linesize[2], 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+                            vk::Offset3D(0, 0, 0), vk::Extent3D(videoFrame.width()/2, videoFrame.height()/2, 1))
+                    };
+                    cmd.copyBufferToImage(staging_buffers[frame].get(), plane_textures[0]->image, vk::ImageLayout::eTransferDstOptimal, copies[0]);
+                    cmd.copyBufferToImage(staging_buffers[frame].get(), plane_textures[1]->image, vk::ImageLayout::eTransferDstOptimal, copies[1]);
+                    cmd.copyBufferToImage(staging_buffers[frame].get(), plane_textures[2]->image, vk::ImageLayout::eTransferDstOptimal, copies[2]);
+
+                    cmd.pipelineBarrier(
+                        vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eFragmentShader, vk::PipelineStageFlagBits::eComputeShader,
+                        {}, {}, {}, {
+                            vk::ImageMemoryBarrier(
+                                vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+                                vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                plane_textures[0]->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            ),
+                            vk::ImageMemoryBarrier(
+                                vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+                                vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                plane_textures[1]->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            ),
+                            vk::ImageMemoryBarrier(
+                                vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+                                vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                plane_textures[2]->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            ),
+                            vk::ImageMemoryBarrier(
+                                vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eShaderWrite,
+                                vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+                                vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                                decoded_image.get(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                            )
+                        }
+                    );
+                    cmd.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline.get());
+                    cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, pipelineLayout.get(), 0, descriptorSet, {});
+                    cmd.dispatch((decoded_width+31)/16/2, (decoded_height+31)/16/2, 1);
+                    cmd.pipelineBarrier(
+                        vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eFragmentShader,
+                        {}, {}, {},
+                        vk::ImageMemoryBarrier(
+                            vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eShaderRead,
+                            vk::ImageLayout::eGeneral, vk::ImageLayout::eShaderReadOnlyOptimal,
+                            vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                            decoded_image.get(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                        )
+                    );
+                } else {
+                    if(videoFrame.pixelFormat() != preferred_format) {
+                        videoFrame.setStreamIndex(0);
+                        videoFrame.setPictureType();
+                        videoFrame = ctx->rescaler.rescale(videoFrame);
+                        spdlog::trace("Rescaled frame @ {}s: {}x{} format={}", videoFrame.pts().seconds(),
+                            videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name());
+                    }
+                    allocator.copyMemoryToAllocation(videoFrame.data(), staging_buffer_allocations[frame].get(), 0,
+                        std::min(videoFrame.size(), static_cast<size_t>(decoded_width*decoded_height*4)) /* videoFrame.size() is too big sometimes */);
+                    cmd.pipelineBarrier(
+                        vk::PipelineStageFlagBits::eFragmentShader, vk::PipelineStageFlagBits::eTransfer,
+                        {}, {}, {},
+                        vk::ImageMemoryBarrier(
+                            {}, vk::AccessFlagBits::eTransferWrite,
+                            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+                            vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                            decoded_image.get(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                        )
+                    );
+                    cmd.copyBufferToImage(staging_buffers[frame].get(), decoded_image.get(), vk::ImageLayout::eTransferDstOptimal,
+                        vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+                            vk::Offset3D(0, 0, 0), vk::Extent3D(decoded_width, decoded_height, 1)));
+                    cmd.pipelineBarrier(
+                        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
+                        {}, {}, {},
+                        vk::ImageMemoryBarrier(
+                            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+                            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+                            vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
+                            decoded_image.get(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+                        )
+                    );
                 }
-                allocator.copyMemoryToAllocation(videoFrame.data(), staging_buffer_allocations[frame].get(), 0,
-                    std::min(videoFrame.size(), static_cast<size_t>(texture->width*texture->height*4)) /* videoFrame.size() is too big sometimes */);
-                cmd.pipelineBarrier(
-                    vk::PipelineStageFlagBits::eFragmentShader, vk::PipelineStageFlagBits::eTransfer,
-                    {}, {}, {},
-                    vk::ImageMemoryBarrier(
-                        {}, vk::AccessFlagBits::eTransferWrite,
-                        vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-                        vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
-                        texture->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
-                    )
-                );
-                cmd.copyBufferToImage(staging_buffers[frame].get(), texture->image, vk::ImageLayout::eTransferDstOptimal,
-                    vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
-                        vk::Offset3D(0, 0, 0), vk::Extent3D(texture->width, texture->height, 1)));
-                cmd.pipelineBarrier(
-                    vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
-                    {}, {}, {},
-                    vk::ImageMemoryBarrier(
-                        vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
-                        vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-                        vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
-                        texture->image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
-                    )
-                );
                 break;
             }
         }
@@ -187,7 +340,7 @@ export class video_player : public component, public action_receiver, public joy
             float bw = size*renderer.aspect_ratio;
             float bh = size;
 
-            float pic_aspect = texture->width / (float)texture->height;
+            float pic_aspect = decoded_width / (float)decoded_height;
             float w{}, h{};
             if(pic_aspect > renderer.aspect_ratio) {
                 w = bw;
@@ -202,7 +355,7 @@ export class video_player : public component, public action_receiver, public joy
             offset += this->offset / glm::vec2(renderer.aspect_ratio, 1.0f);
 
             renderer.set_clip((1.0f-size)/2, (1.0f-size)/2, size, size);
-            renderer.draw_image(texture->imageView.get(), offset.x, offset.y, zoom*w, zoom*h);
+            renderer.draw_image(decoded_view.get(), offset.x, offset.y, zoom*w, zoom*h);
             renderer.reset_clip();
         }
         result on_action(action action) override {
@@ -263,7 +416,20 @@ export class video_player : public component, public action_receiver, public joy
             std::string error_message;
         };
         std::unique_ptr<video_decoding_context> ctx;
-        std::unique_ptr<dreamrender::texture> texture;
+        vma::UniqueImage decoded_image;
+        vma::UniqueAllocation decoded_allocation;
+        vk::UniqueImageView decoded_view;
+        unsigned int decoded_width, decoded_height;
+
+        bool yuv_conversion = false;
+        std::array<std::unique_ptr<dreamrender::texture>, 3> plane_textures;
+        vk::UniquePipelineLayout pipelineLayout;
+        vk::UniquePipeline pipeline;
+        vk::UniqueDescriptorSetLayout descriptorSetLayout;
+        vk::UniqueDescriptorPool descriptorPool;
+        vk::DescriptorSet descriptorSet;
+        vk::UniqueImageView unormView;
+
         std::future<std::unique_ptr<video_decoding_context>> load_future;
 
         std::vector<vma::UniqueBuffer> staging_buffers;

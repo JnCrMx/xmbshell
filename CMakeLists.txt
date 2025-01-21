@@ -189,6 +189,7 @@ set(XMBSHELL_SHADERS
   shaders/blur.comp
   shaders/wave.vert
   shaders/wave.frag
+  shaders/yuv420p_decode.comp
 )
 
 add_executable(xmbshell ${XMBSHELL_SOURCES})

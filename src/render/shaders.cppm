@@ -15,4 +15,8 @@ namespace wave_renderer {
     vk::UniqueShaderModule frag(vk::Device device);
 }
 
+namespace yuv420p {
+    vk::UniqueShaderModule decode_comp(vk::Device device);
+}
+
 }

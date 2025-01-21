@@ -47,4 +47,19 @@ namespace wave_renderer {
     }
 }
 
+namespace yuv420p {
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc23-extensions"
+    constexpr char decode_comp_array[] = {
+    #embed "shaders/yuv420p_decode.comp.spv"
+    };
+    #pragma clang diagnostic pop
+
+    constexpr std::array decode_comp_shader = dreamrender::convert<std::to_array(decode_comp_array), uint32_t>();
+
+    vk::UniqueShaderModule decode_comp(vk::Device device) {
+        return dreamrender::createShader(device, decode_comp_shader);
+    }
+}
+
 }
