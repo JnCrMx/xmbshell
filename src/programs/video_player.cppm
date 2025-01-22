@@ -19,6 +19,7 @@ import xmbshell.utils;
 import :component;
 import :programs;
 import :message_overlay;
+import :base_viewer;
 import xmbshell.app;
 import xmbshell.render;
 
@@ -27,7 +28,7 @@ namespace programs {
 using namespace app;
 using namespace mfk::i18n::literals;
 
-export class video_player : public component, public action_receiver, public joystick_receiver, public mouse_receiver {
+export class video_player : private base_viewer, public component, public action_receiver, public joystick_receiver, public mouse_receiver {
     constexpr static auto preferred_format = AV_PIX_FMT_RGBA;
     public:
         video_player(std::filesystem::path path, dreamrender::resource_loader& loader) :
@@ -92,10 +93,10 @@ export class video_player : public component, public action_receiver, public joy
                         std::vector<std::string>{"OK"_()});
                     return result::close;
                 }
-                decoded_width = ctx->vdec.width();
-                decoded_height = ctx->vdec.height();
+                image_width = ctx->vdec.width();
+                image_height = ctx->vdec.height();
                 spdlog::info("Video of size {}x{} loaded in pixel format {}",
-                    decoded_width, decoded_height, ctx->vdec.pixelFormat().name());
+                    image_width, image_height, ctx->vdec.pixelFormat().name());
                 yuv_conversion = ctx->vdec.pixelFormat() == AV_PIX_FMT_YUV420P;
                 if(yuv_conversion) {
                     spdlog::info("Video is in YUV420P format, converting it to RGBA on GPU");
@@ -107,7 +108,7 @@ export class video_player : public component, public action_receiver, public joy
                 {
                     vk::ImageCreateInfo image_info(vk::ImageCreateFlagBits::eMutableFormat | vk::ImageCreateFlagBits::eExtendedUsage,
                         vk::ImageType::e2D, vk::Format::eR8G8B8A8Srgb,
-                        vk::Extent3D(decoded_width, decoded_height, 1), 1, 1, vk::SampleCountFlagBits::e1,
+                        vk::Extent3D(image_width, image_height, 1), 1, 1, vk::SampleCountFlagBits::e1,
                         vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferDst,
                         vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
                     vma::AllocationCreateInfo alloc_info({}, vma::MemoryUsage::eGpuOnly);
@@ -124,7 +125,7 @@ export class video_player : public component, public action_receiver, public joy
                 unsigned int staging_count = xmb->get_window()->swapchainImageCount;
                 staging_buffers.resize(staging_count);
                 staging_buffer_allocations.resize(staging_count);
-                vk::DeviceSize staging_size = decoded_width * decoded_height * 4;
+                vk::DeviceSize staging_size = image_width * image_height * 4;
                 spdlog::debug("Allocating {} staging buffers of size {}", staging_count, staging_size);
 
                 vk::BufferCreateInfo buffer_info({}, staging_size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive);
@@ -158,9 +159,9 @@ export class video_player : public component, public action_receiver, public joy
                         throw std::runtime_error("Failed to create compute pipeline");
                     }
 
-                    plane_textures[0] = std::make_unique<dreamrender::texture>(device, allocator, decoded_width, decoded_height, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
-                    plane_textures[1] = std::make_unique<dreamrender::texture>(device, allocator, decoded_width/2, decoded_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
-                    plane_textures[2] = std::make_unique<dreamrender::texture>(device, allocator, decoded_width/2, decoded_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
+                    plane_textures[0] = std::make_unique<dreamrender::texture>(device, allocator, image_width, image_height, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
+                    plane_textures[1] = std::make_unique<dreamrender::texture>(device, allocator, image_width/2, image_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
+                    plane_textures[2] = std::make_unique<dreamrender::texture>(device, allocator, image_width/2, image_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
 
                     vk::DescriptorImageInfo output_info({}, unormView.get(), vk::ImageLayout::eGeneral);
                     vk::DescriptorImageInfo input_y_info({}, plane_textures[0]->imageView.get(), vk::ImageLayout::eGeneral);
@@ -178,12 +179,7 @@ export class video_player : public component, public action_receiver, public joy
                 loaded = true;
             }
 
-            float pic_aspect = decoded_width / (float)decoded_height;
-            glm::vec2 limit(pic_aspect, 1.0f);
-            limit *= zoom;
-            limit /= 2.0f;
-
-            offset = glm::clamp(offset + move_delta_pos, -limit, limit);
+            base_viewer::tick();
             return result::success;
         }
 
@@ -281,7 +277,7 @@ export class video_player : public component, public action_receiver, public joy
                     );
                     cmd.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline.get());
                     cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, pipelineLayout.get(), 0, descriptorSet, {});
-                    cmd.dispatch((decoded_width+31)/16/2, (decoded_height+31)/16/2, 1);
+                    cmd.dispatch((image_width+31)/16/2, (image_height+31)/16/2, 1);
                     cmd.pipelineBarrier(
                         vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eFragmentShader,
                         {}, {}, {},
@@ -301,7 +297,7 @@ export class video_player : public component, public action_receiver, public joy
                             videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name());
                     }
                     allocator.copyMemoryToAllocation(videoFrame.data(), staging_buffer_allocations[frame].get(), 0,
-                        std::min(videoFrame.size(), static_cast<size_t>(decoded_width*decoded_height*4)) /* videoFrame.size() is too big sometimes */);
+                        std::min(videoFrame.size(), static_cast<size_t>(image_width*image_height*4)) /* videoFrame.size() is too big sometimes */);
                     cmd.pipelineBarrier(
                         vk::PipelineStageFlagBits::eFragmentShader, vk::PipelineStageFlagBits::eTransfer,
                         {}, {}, {},
@@ -314,7 +310,7 @@ export class video_player : public component, public action_receiver, public joy
                     );
                     cmd.copyBufferToImage(staging_buffers[frame].get(), decoded_image.get(), vk::ImageLayout::eTransferDstOptimal,
                         vk::BufferImageCopy(0, 0, 0, vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
-                            vk::Offset3D(0, 0, 0), vk::Extent3D(decoded_width, decoded_height, 1)));
+                            vk::Offset3D(0, 0, 0), vk::Extent3D(image_width, image_height, 1)));
                     cmd.pipelineBarrier(
                         vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
                         {}, {}, {},
@@ -336,65 +332,26 @@ export class video_player : public component, public action_receiver, public joy
             }
 
             constexpr float size = 0.9;
-
-            float bw = size*renderer.aspect_ratio;
-            float bh = size;
-
-            float pic_aspect = decoded_width / (float)decoded_height;
-            float w{}, h{};
-            if(pic_aspect > renderer.aspect_ratio) {
-                w = bw;
-                h = bw / pic_aspect;
-            } else {
-                h = bh;
-                w = bh * pic_aspect;
-            }
-            glm::vec2 offset = {(1.0f-size)/2, (1.0f-size)/2};
-            offset += glm::vec2((bw-w)/2/renderer.aspect_ratio, (bh-h)/2);
-            offset -= (zoom-1.0f) * glm::vec2(w/renderer.aspect_ratio, h) / 2.0f;
-            offset += this->offset / glm::vec2(renderer.aspect_ratio, 1.0f);
-
-            renderer.set_clip((1.0f-size)/2, (1.0f-size)/2, size, size);
-            renderer.draw_image(decoded_view.get(), offset.x, offset.y, zoom*w, zoom*h);
-            renderer.reset_clip();
+            base_viewer::render(decoded_view.get(), size, renderer);
         }
         result on_action(action action) override {
             if(action == action::cancel) {
                 return result::close;
-            }
-            else if(action == action::up) {
-                zoom *= 1.1f;
-                return result::success;
-            }
-            else if(action == action::down) {
-                zoom /= 1.1f;
-                return result::success;
-            }
-            else if(action == action::extra) {
-                offset = {0.0f, 0.0f};
-                zoom = 1.0f;
-                return result::success;
+            } else {
+                result r = base_viewer::on_action(action);
+                if(r != result::unsupported) {
+                    return r;
+                }
             }
             return result::failure;
         }
 
         result on_joystick(unsigned int index, float x, float y) override {
-            if(index == 1) {
-                move_delta_pos = -glm::vec2(x, y)/25.0f;
-                if(std::abs(x) < 0.1f) {
-                    move_delta_pos.x = 0.0f;
-                }
-                if(std::abs(y) < 0.1f) {
-                    move_delta_pos.y = 0.0f;
-                }
-                return result::success;
-            }
-            return result::unsupported;
+            return base_viewer::on_joystick(index, x, y);
         }
 
         result on_mouse_move(float x, float y) override {
-            offset = glm::vec2(x, y) - glm::vec2(0.5f, 0.5f);
-            return result::success;
+            return base_viewer::on_mouse_move(x, y);
         }
 
         [[nodiscard]] bool is_opaque() const override {
@@ -419,7 +376,7 @@ export class video_player : public component, public action_receiver, public joy
         vma::UniqueImage decoded_image;
         vma::UniqueAllocation decoded_allocation;
         vk::UniqueImageView decoded_view;
-        unsigned int decoded_width, decoded_height;
+        unsigned int image_width, image_height;
 
         bool yuv_conversion = false;
         std::array<std::unique_ptr<dreamrender::texture>, 3> plane_textures;
@@ -435,10 +392,13 @@ export class video_player : public component, public action_receiver, public joy
         std::vector<vma::UniqueBuffer> staging_buffers;
         std::vector<vma::UniqueAllocation> staging_buffer_allocations;
 
-        glm::vec2 move_delta_pos = {0.0f, 0.0f};
-
-        float zoom = 1.0f;
-        glm::vec2 offset = {0.0f, 0.0f};
+        enum class play_state {
+            playing,
+            paused,
+            stopped,
+        };
+        play_state state = play_state::playing;
+        std::chrono::steady_clock::time_point start_time;
 };
 
 namespace {
