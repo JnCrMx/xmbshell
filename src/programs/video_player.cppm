@@ -153,11 +153,11 @@ export class video_player : private base_viewer, public component, public action
                     pipelineLayout = device.createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo({}, descriptorSetLayout.get()));
                     vk::UniqueShaderModule shaderModule = render::shaders::yuv420p::decode_comp(device);
                     vk::PipelineShaderStageCreateInfo shaderInfo({}, vk::ShaderStageFlagBits::eCompute, shaderModule.get(), "main");
-                    vk::Result r{};
-                    std::tie(r, pipeline) = device.createComputePipelineUnique({}, vk::ComputePipelineCreateInfo({}, shaderInfo, pipelineLayout.get())).asTuple();
+                    auto [r, p] = device.createComputePipelineUnique({}, vk::ComputePipelineCreateInfo({}, shaderInfo, pipelineLayout.get())).asTuple();
                     if(r != vk::Result::eSuccess) {
                         throw std::runtime_error("Failed to create compute pipeline");
                     }
+                    this->pipeline = std::move(p);
 
                     plane_textures[0] = std::make_unique<dreamrender::texture>(device, allocator, image_width, image_height, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
                     plane_textures[1] = std::make_unique<dreamrender::texture>(device, allocator, image_width/2, image_height/2, vk::ImageUsageFlagBits::eStorage, vk::Format::eR8Unorm);
