@@ -9,6 +9,9 @@ variables:
     path_style: true
     region: eu-central-jcm
 
+when:
+  - event: push
+
 clone:
   git:
     image: docker.io/woodpeckerci/plugin-git:2.4.0
@@ -72,7 +75,9 @@ steps:
   upload-snapcraft:
     image: git.jcm.re/jcm/snapcraft:core24-noble-stable
     pull: true
-    secrets: [ snapcraft_store_credentials ]
+    environment:
+      SNAPCRAFT_STORE_CREDENTIALS:
+        from_secret: snapcraft_store_credentials
     commands:
       - RELEASE="latest/edge/${CI_COMMIT_BRANCH}"
       - if [ "${CI_COMMIT_BRANCH}" = "main" ]; then RELEASE="latest/edge"; fi

@@ -9,6 +9,9 @@ variables:
     path_style: true
     region: eu-central-jcm
 
+when:
+  - event: push
+
 matrix:
   UBUNTU_VERSION:
     - noble
