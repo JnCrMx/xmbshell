@@ -82,6 +82,15 @@ parts:
       ${CRAFT_PART_SRC}/bin/gpu-2404-cleanup mesa-2404
     prime:
       - bin/gpu-2404-wrapper
+  cleanup:
+    after: [xmbshell]
+    plugin: nil
+    build-snaps: [core24, gtk-common-themes, gnome-46-2404]
+    override-prime: |
+      set -eux
+      for snap in "core24" "gtk-common-themes" "gnome-46-2404"; do
+        cd "/snap/$snap/current" && find . -type f,l -name *.so.* -exec rm -f "$CRAFT_PRIME/{}" \;
+      done
 layout:
   $SNAP/usr/share/xmbshell/Ubuntu-R.ttf:
     symlink: $SNAP/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf
