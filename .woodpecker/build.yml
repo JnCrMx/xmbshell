@@ -40,6 +40,7 @@ steps:
       - mkdir -p build
       - >-
         cmake
+        -DCMAKE_TOOLCHAIN_FILE=/toolchain.cmake
         -DCMAKE_BUILD_TYPE=Release
         -DBUILD_VERSION=$BUILD_VERSION
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=amd64
