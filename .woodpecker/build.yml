@@ -26,7 +26,7 @@ steps:
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         clang-19 lld-19 cmake ninja-build libstdc++-14-dev:amd64 git patch ssh-client ca-certificates
-        clang-tools-19 glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
+        clang-tools-19 glslang-tools xxd patch curl wget gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
         libavformat-dev:amd64 libavcodec-dev:amd64 libavutil-dev:amd64 libavfilter-dev:amd64
