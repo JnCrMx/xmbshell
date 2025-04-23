@@ -18,7 +18,7 @@ matrix:
 
 steps:
   build:
-    image: "git.jcm.re/jcm/cross-compile-clang-amd64:19-${UBUNTU_VERSION}"
+    image: "ubuntu:${UBUNTU_VERSION}"
     pull: true
     commands:
       - TARGETARCH=amd64 BUILDARCH=$(dpkg --print-architecture) ./.woodpecker/setup-cross-compile.sh
