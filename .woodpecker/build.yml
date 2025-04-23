@@ -21,22 +21,20 @@ steps:
     image: "git.jcm.re/jcm/cross-compile-clang-amd64:19-${UBUNTU_VERSION}"
     pull: true
     commands:
+      - TARGETARCH=amd64 BUILDARCH=$(dpkg --print-architecture) ./.woodpecker/setup-cross-compile.sh
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        clang-19 lld-19 cmake ninja-build libstdc++-14-dev:amd64 git patch ssh-client ca-certificates
         clang-tools-19 glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
         libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
         libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
         libavformat-dev:amd64 libavcodec-dev:amd64 libavutil-dev:amd64 libavfilter-dev:amd64
         libswscale-dev:amd64 libswresample-dev:amd64 libpostproc-dev:amd64 libavdevice-dev:amd64
       - >-
-        [ "$UBUNTU_VERSION" = "jammy" ] &&
-          curl -L https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-aarch64.tar.gz | tar -xz --directory=/usr --strip-components=1 &&
-          curl -L https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux-aarch64.zip --output /tmp/ninja.zip &&
-          unzip -p /tmp/ninja.zip ninja > /usr/bin/ninja && chmod +x /usr/bin/ninja && rm /tmp/ninja.zip &&
-          curl -L http://de.archive.ubuntu.com/ubuntu/pool/main/v/vulkan-loader/libvulkan-dev_1.3.275.0-1build1_amd64.deb --output /tmp/libvulkan-dev.deb &&
-          dpkg -i /tmp/libvulkan-dev.deb && rm /tmp/libvulkan-dev.deb
-          cmake --version && ninja --version
+        ln -sf /usr/bin/clang-19 /usr/bin/cc &&
+        ln -sf /usr/bin/clang++-19 /usr/bin/c++ &&
+        ln -sf /usr/bin/ld.lld-19 /usr/bin/ld
       - .woodpecker/download_unlicensed.sh
       - BUILD_VERSION=$(git describe --tags --always)
       - mkdir -p build
@@ -57,8 +55,7 @@ steps:
       - DESTDIR=install cmake --install . --prefix /usr
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.tar.gz -C install .
       - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}.tar.gz
-      # Build AppImage (only on noble)
-      - if [ "$UBUNTU_VERSION" != "noble" ]; then exit $?; fi
+      # Build AppImage
       - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
       - wget "https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-aarch64.AppImage"
       - chmod +x linuxdeploy-aarch64.AppImage appimagetool-aarch64.AppImage
