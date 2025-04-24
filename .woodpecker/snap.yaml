@@ -19,16 +19,15 @@ clone:
       tags: true
 steps:
   snapcraft:
-    image: git.jcm.re/jcm/snapcraft:core24-noble-stable
+    image: git.jcm.re/jcm/snapcraft:core24
     pull: true
     commands:
       - apt-get update
       - apt-get install -y python3 python3-yaml git gettext-base curl jq
       - export BUILD_VERSION=$(git describe --tags --always)
       - cd .woodpecker/snap
-      - ./install-snap.sh gtk-common-themes
-      - ./install-snap.sh gnome-46-2404
-      - ./install-snap.sh mesa-2404
+      - ARCH=amd64 snap-install.sh gtk-common-themes
+      - ARCH=amd64 snap-install.sh gnome-46-2404
       # Generate the Snapcraft file
       - >-
         python3 generate.py
@@ -76,7 +75,7 @@ steps:
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
   upload-snapcraft:
-    image: git.jcm.re/jcm/snapcraft:core24-noble-stable
+    image: git.jcm.re/jcm/snapcraft:core24
     pull: true
     environment:
       SNAPCRAFT_STORE_CREDENTIALS:
