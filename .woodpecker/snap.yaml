@@ -23,9 +23,12 @@ steps:
     pull: true
     commands:
       - apt-get update
-      - apt-get install -y python3 python3-yaml git gettext-base
+      - apt-get install -y python3 python3-yaml git gettext-base curl jq
       - export BUILD_VERSION=$(git describe --tags --always)
       - cd .woodpecker/snap
+      - ./install-snap.sh gtk-common-themes
+      - ./install-snap.sh gnome-46-2404
+      - ./install-snap.sh mesa-2404
       # Generate the Snapcraft file
       - >-
         python3 generate.py
