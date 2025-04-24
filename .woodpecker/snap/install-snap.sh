@@ -8,7 +8,7 @@ fi
 SNAPNAME=$1
 
 url="$(curl -s -H 'X-Ubuntu-Series: 16' -H "X-Ubuntu-Architecture: $ARCH" "https://api.snapcraft.io/api/v1/snaps/details/$SNAPNAME" | jq '.download_url' -r)"
-curl -s -H 'X-Ubuntu-Series: 16' -H "X-Ubuntu-Architecture: $ARCH" "$url" -o "$SNAPNAME.snap"
+curl -L -H 'X-Ubuntu-Series: 16' -H "X-Ubuntu-Architecture: $ARCH" "$url" -o "$SNAPNAME.snap"
 if [ $? -ne 0 ]; then
   echo "Failed to download $SNAPNAME"
   exit 1
