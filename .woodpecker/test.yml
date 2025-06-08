@@ -11,6 +11,7 @@ variables:
 
 when:
   - event: push
+  - event: manual
 
 steps:
   build:
