@@ -36,7 +36,7 @@ steps:
         cmake -B build -G Ninja
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
         -DCMAKE_BUILD_TYPE=Debug -DBUILD_VERSION=$BUILD_VERSION
-      - cmake --build build --parallel 4
+      - cmake --build build --parallel 3
       - glib-compile-schemas schemas
       # Install it (and upload it for debugging)
       - cd build/
