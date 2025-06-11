@@ -12,20 +12,19 @@ variables:
 when:
   - event: push
 
+labels:
+  compat: riscv64
+  gpu: BXE-4-32
+
 steps:
   build:
-    image: ubuntu:noble
+    image: ubuntu:plucky
     commands:
-      - UBUNTU_VERSION=noble
-      - apt-get update
-      - DEBIAN_FRONTEND=noninteractive apt-get install -y curl
-      - mkdir -p /etc/apt/keyrings
-      - curl https://apt.llvm.org/llvm-snapshot.gpg.key -o /etc/apt/keyrings/llvm.asc
-      - echo "deb [signed-by=/etc/apt/keyrings/llvm.asc] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" > /etc/apt/sources.list.d/llvm.list
+      - UBUNTU_VERSION=plucky
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang-19 clang-tools-19 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin imagemagick
+        curl clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin imagemagick
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.4-dev libsdbus-c++-dev libboost-dev
         libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev
@@ -34,9 +33,9 @@ steps:
       - BUILD_VERSION=$(git describe --tags --always)
       - >-
         cmake -B build -G Ninja
-        -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19
+        -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
         -DCMAKE_BUILD_TYPE=Debug -DBUILD_VERSION=$BUILD_VERSION
-      - cmake --build build --parallel 2
+      - cmake --build build --parallel 4
       - glib-compile-schemas schemas
       # Install it (and upload it for debugging)
       - cd build/
@@ -44,10 +43,8 @@ steps:
       - DESTDIR=install cmake --install . --prefix /usr
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz -C install .
       - cp upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz upload/beta/xmbshell-beta-$UBUNTU_VERSION-$(arch).tar.gz
-      # Sleep for robustness
-      - sleep 60
   build-upload-build:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -55,7 +52,7 @@ steps:
       strip_prefix: build/upload/build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
   build-upload-branch:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -70,15 +67,15 @@ steps:
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
-        libspdlog1.12 libglibmm-2.4-1t64 libsdbus-c++1
-        libavformat60 libavcodec60 libavutil58 libavfilter9 libswscale7 libswresample4 libpostproc57 libavdevice60
-        vulkan-validationlayers ffmpeg fonts-ubuntu xdotool
-      - DREAMRENDER_DEVICE_NAME="V3D 4.2.14" ./test/headless.sh
+        libglibmm-2.4-1t64 libsdbus-c++2
+        libavformat61 libavcodec61 libavutil59 libavfilter10 libswscale8 libswresample5 libpostproc58 libavdevice61
+        vulkan-validationlayers ffmpeg fonts-ubuntu
+      - DREAMRENDER_DEVICE_NAME="PowerVR B-Series BXE-4-32" ./test/headless.sh
     volumes:
       - /dev/dri/renderD128:/dev/dri/renderD128
     privileged: true
   test-upload:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -88,7 +85,7 @@ steps:
     when:
       - status: [ success, failure ]
   test-upload-branch:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
     settings:
       <<: *minio-settings
       bucket: woodpecker
