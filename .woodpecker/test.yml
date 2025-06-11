@@ -67,10 +67,14 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        dbus-x11 mesa-vulkan-drivers libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
+        dbus-x11 mesa-vulkan-drivers curl libdrm2
+        libsdl2-2.0-0 libsdl2-mixer-2.0-0 libsdl2-image-2.0-0
         libglibmm-2.4-1t64 libsdbus-c++2
         libavformat61 libavcodec61 libavutil59 libavfilter10 libswscale8 libswresample5 libpostproc58 libavdevice61
         vulkan-validationlayers ffmpeg fonts-ubuntu
+      - >
+        curl -L https://github.com/starfive-tech/soft_3rdpart/raw/refs/heads/JH7110_VisionFive2_devel/IMG_GPU/out/img-gpu-powervr-bin-1.19.6345021.tar.gz
+        | tar -x -z -v -C / --strip-components=2 --keep-directory-symlink img-gpu-powervr-bin-1.19.6345021/target
       - DREAMRENDER_DEVICE_NAME="PowerVR B-Series BXE-4-32" ./test/headless.sh
     volumes:
       - /dev/dri/renderD128:/dev/dri/renderD128
