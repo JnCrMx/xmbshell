@@ -62,7 +62,7 @@ steps:
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
   test:
-    image: ubuntu:noble
+    image: ubuntu:plucky
     commands:
       - apt-get update
       - >-
