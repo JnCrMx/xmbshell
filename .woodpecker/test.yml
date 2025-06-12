@@ -75,6 +75,7 @@ steps:
       - >
         curl -L https://github.com/starfive-tech/soft_3rdpart/raw/refs/heads/JH7110_VisionFive2_devel/IMG_GPU/out/img-gpu-powervr-bin-1.19.6345021.tar.gz
         | tar -x -z -v -C / --strip-components=2 --keep-directory-symlink img-gpu-powervr-bin-1.19.6345021/target
+        && rm /usr/lib/libvulkan.so*
       - DREAMRENDER_DEVICE_NAME="PowerVR B-Series BXE-4-32" ./test/headless.sh
     volumes:
       - /dev/dri/renderD128:/dev/dri/renderD128
