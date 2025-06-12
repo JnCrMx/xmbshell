@@ -14,7 +14,7 @@ export XMB_ASSET_DIR=.
 export SPDLOG_LEVEL=debug
 
 duration=30
-dbus-launch timeout $duration ./build/xmbshell | tee build/test-log.txt
+dbus-launch timeout $duration ./build/xmbshell < /dev/null | tee build/test-log.txt
 
 frames=$(ls -1q $DREAMRENDER_HEADLESS_OUTPUT_DIR | wc -l)
 framerate=$(($frames / $duration))
