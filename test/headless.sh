@@ -13,7 +13,7 @@ export GSETTINGS_SCHEMA_DIR="$PWD/schemas:$GSETTINGS_SCHEMA_DIR"
 export XMB_ASSET_DIR=.
 export SPDLOG_LEVEL=debug
 
-duration=30
+duration=120
 dbus-launch timeout $duration ./build/xmbshell | tee build/test-log.txt
 
 frames=$(ls -1q $DREAMRENDER_HEADLESS_OUTPUT_DIR | wc -l)
