@@ -188,6 +188,10 @@ export class video_player : private base_viewer, public component, public action
                 return;
             }
 
+            if(state != play_state::playing) {
+                return;
+            }
+
             while(true) {
                 av::Packet pkt = ctx->ictx.readPacket();
                 if(pkt.isNull()) {
@@ -200,6 +204,7 @@ export class video_player : private base_viewer, public component, public action
                 if(!videoFrame) {
                     continue;
                 }
+                decoded_timestamp = videoFrame.pts().seconds();
                 spdlog::trace("Decoded frame @ {}s: {}x{} format={}, size={}", videoFrame.pts().seconds(),
                     videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name(),
                     videoFrame.size());
@@ -331,16 +336,51 @@ export class video_player : private base_viewer, public component, public action
                 return;
             }
 
-            constexpr float size = 0.9;
+            constexpr float size = 0.8;
             base_viewer::render(decoded_view.get(), size, renderer);
+
+            { // progress bar
+                double progress = ctx->ictx.duration().seconds() > 0.0f
+                    ? decoded_timestamp / ctx->ictx.duration().seconds()
+                    : 0.5f;
+
+                simple_renderer::params border_radius{
+                    {}, {0.5f, 0.5f, 0.5f, 0.5f}
+                };
+                simple_renderer::params blur{
+                    std::array{glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.5f}, glm::vec2{0.0f, 0.5f}},
+                    {0.5f, 0.5f, 0.5f, 0.5f}
+                };
+                renderer.draw_rect(glm::vec2(0.1f, 0.95f), glm::vec2(0.8f, 0.01f), glm::vec4(0.2f, 0.2f, 0.2f, 1.0f), border_radius);
+                renderer.draw_rect(glm::vec2(0.1f, 0.95f), glm::vec2(0.8f, 0.01f), glm::vec4(0.1f, 0.1f, 0.1f, 1.0f), blur);
+
+                constexpr glm::vec2 padding = glm::vec2{0.001f, 0.001f};
+                renderer.draw_rect(glm::vec2(0.1f, 0.95f)+padding, glm::vec2(progress*0.8f, 0.01f)-2.0f*padding,
+                    glm::vec4(0x83/255.0f, 0x8d/255.0f, 0x22/255.0f, 1.0f), border_radius); // #838d22
+                renderer.draw_rect(glm::vec2(0.1f, 0.95f)+padding, glm::vec2(progress*0.8f, 0.01f)-2.0f*padding,
+                    glm::vec4(1.0f, 1.0f, 1.0f, 0.1f), blur);
+            }
         }
         result on_action(action action) override {
-            if(action == action::cancel) {
-                return result::close;
-            } else {
-                result r = base_viewer::on_action(action);
-                if(r != result::unsupported) {
-                    return r;
+            switch(action) {
+                case action::cancel:
+                    return result::close;
+                case action::ok:
+                    if(state == play_state::playing) {
+                        state = play_state::paused;
+                    } else if(state == play_state::paused) {
+                        state = play_state::playing;
+                        start_time = std::chrono::steady_clock::now();
+                    } else {
+                        // TODO
+                    }
+                    return result::success | result::ok_sound;
+                default: {
+                    result r = base_viewer::on_action(action);
+                    if(r != result::unsupported) {
+                        return r;
+                    }
+                    break;
                 }
             }
             return result::failure;
@@ -376,7 +416,7 @@ export class video_player : private base_viewer, public component, public action
         vma::UniqueImage decoded_image;
         vma::UniqueAllocation decoded_allocation;
         vk::UniqueImageView decoded_view;
-        unsigned int image_width, image_height;
+        double decoded_timestamp = 0.0;
 
         bool yuv_conversion = false;
         std::array<std::unique_ptr<dreamrender::texture>, 3> plane_textures;
