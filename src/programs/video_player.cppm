@@ -58,7 +58,7 @@ export class video_player : private base_viewer, public component, public action
                     ctx->codec = av::findDecodingCodec(ctx->vdec.raw()->codec_id);
                     ctx->vdec.setCodec(ctx->codec);
                     ctx->vdec.setRefCountedFrames(true);
-                    ctx->vdec.open({{"threads", "1"}}); // TODO: change to auto, once we resolved "Resource temporarily unavailable"
+                    ctx->vdec.open({{"threads", "auto"}}); // TODO: change to auto, once we resolved "Resource temporarily unavailable"
                     if(!ctx->vdec.isValid()) {
                         throw std::runtime_error("Cannot open video decoder context found");
                     }
@@ -176,6 +176,9 @@ export class video_player : private base_viewer, public component, public action
                     device.updateDescriptorSets(writes, {});
                 }
 
+                start_time = std::chrono::steady_clock::now();
+                state = play_state::playing;
+
                 loaded = true;
             }
 
@@ -200,14 +203,26 @@ export class video_player : private base_viewer, public component, public action
                 if(pkt.streamIndex() != ctx->vst.index()) {
                     continue;
                 }
-                av::VideoFrame videoFrame = ctx->vdec.decode(pkt);
+                decoded_timestamp = pkt.pts().seconds();
+                // if(!pkt.isKeyPacket() && (start_time + decoded_timestamp*std::chrono::seconds(1)) < std::chrono::steady_clock::now()) {
+                //     spdlog::trace("Skipping packet @ {}s, too old", decoded_timestamp);
+                //     continue; // skip non-key packets that are too old
+                // }
+
+                av::VideoFrame videoFrame;
+                try {
+                    videoFrame = ctx->vdec.decode(pkt);
+                } catch(const std::exception& e) {
+                    spdlog::warn("Failed to decode video frame @ {}s: {}", decoded_timestamp, e.what());
+                    continue;
+                }
                 if(!videoFrame) {
                     continue;
                 }
-                decoded_timestamp = videoFrame.pts().seconds();
                 spdlog::trace("Decoded frame @ {}s: {}x{} format={}, size={}", videoFrame.pts().seconds(),
                     videoFrame.width(), videoFrame.height(), videoFrame.pixelFormat().name(),
                     videoFrame.size());
+
                 if(yuv_conversion) {
                     unsigned int offset = 0;
                     allocator.copyMemoryToAllocation(videoFrame.data(0), staging_buffer_allocations[frame].get(), offset, videoFrame.size(0));
@@ -370,9 +385,11 @@ export class video_player : private base_viewer, public component, public action
                         state = play_state::paused;
                     } else if(state == play_state::paused) {
                         state = play_state::playing;
+                        start_time = std::chrono::floor<std::chrono::steady_clock::time_point::duration>(
+                            std::chrono::steady_clock::now() - decoded_timestamp * std::chrono::seconds(1));
+                    } else if(state == play_state::stopped) {
+                        state = play_state::playing;
                         start_time = std::chrono::steady_clock::now();
-                    } else {
-                        // TODO
                     }
                     return result::success | result::ok_sound;
                 default: {
@@ -433,11 +450,12 @@ export class video_player : private base_viewer, public component, public action
         std::vector<vma::UniqueAllocation> staging_buffer_allocations;
 
         enum class play_state {
+            loading,
             playing,
             paused,
             stopped,
         };
-        play_state state = play_state::playing;
+        play_state state = play_state::loading;
         std::chrono::steady_clock::time_point start_time;
 };
 

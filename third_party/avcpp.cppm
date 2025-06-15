@@ -3,6 +3,7 @@ module;
 #include "audioresampler.h"
 #include "av.h"
 #include "avutils.h"
+#include "averror.h"
 #include "codec.h"
 #include "ffmpeg.h"
 #include "packet.h"
@@ -45,4 +46,8 @@ export namespace av {
     using av::VideoEncoderContext;
     using av::VideoFrame;
     using av::VideoRescaler;
+    using av::OptionalErrorCode;
+    using av::Errors;
+    using av::error2string;
+    using av::make_ffmpeg_error;
 }
