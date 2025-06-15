@@ -99,7 +99,7 @@ FetchContent_MakeAvailable_ExcludeFromAll(argparse)
 
 FetchContent_Declare(avcpp
   GIT_REPOSITORY https://github.com/h4tr3d/avcpp.git
-  GIT_TAG        v2.4.0
+  GIT_TAG        v2.7.1
   GIT_SUBMODULES ""
   EXCLUDE_FROM_ALL
 )
