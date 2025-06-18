@@ -13,6 +13,11 @@ when:
   - event: push
   - event: manual
 
+matrix:
+  TARGETARCH:
+    - amd64
+    - arm64
+
 clone:
   git:
     image: docker.io/woodpeckerci/plugin-git:2.4.0
@@ -27,8 +32,8 @@ steps:
       - apt-get install -y python3 python3-yaml git gettext-base curl jq
       - export BUILD_VERSION=$(git describe --tags --always)
       - cd .woodpecker/snap
-      - ARCH=amd64 snap-install.sh gtk-common-themes
-      - ARCH=amd64 snap-install.sh gnome-46-2404
+      - ARCH=${TARGETARCH} snap-install.sh gtk-common-themes
+      - ARCH=${TARGETARCH} snap-install.sh gnome-46-2404
       # Generate the Snapcraft file
       - >-
         python3 generate.py
@@ -36,14 +41,14 @@ steps:
         snapcraft.yaml
         xmbshell
         $BUILD_VERSION
-        https://woodpecker.web.garage.jcm.re/artifacts/$CI_REPO/$CI_PIPELINE_NUMBER/public/xmbshell-$BUILD_VERSION-noble.tar.gz
+        https://woodpecker.web.garage.jcm.re/artifacts/$CI_REPO/$CI_PIPELINE_NUMBER/public/xmbshell-$BUILD_VERSION-noble-${TARGETARCH}.tar.gz
         fix-ffmpeg.yaml
       - cat snapcraft.yaml
       # Build the Snap
-      - snapcraft --destructive-mode --platform=amd64-on-arm64
+      - snapcraft --destructive-mode --platform=${TARGETARCH}-on-arm64
       # Prepare beta version
       - mkdir -p upload/beta upload/build
-      - cp xmbshell_*.snap upload/beta/xmbshell_beta_amd64.snap
+      - cp xmbshell_*.snap upload/beta/xmbshell_beta_${TARGETARCH}.snap
       - cp xmbshell_*.snap upload/build/
       # Copy the logs
       - mkdir -p logs/

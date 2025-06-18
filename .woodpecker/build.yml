@@ -16,22 +16,27 @@ when:
 matrix:
   UBUNTU_VERSION:
     - noble
+  TARGETARCH:
+    - amd64
+    - arm64
 
 steps:
   build:
     image: "ubuntu:${UBUNTU_VERSION}"
     pull: true
     commands:
-      - TARGETARCH=amd64 BUILDARCH=$(dpkg --print-architecture) ./.woodpecker/setup-cross-compile.sh
+      - TARGETARCH=${TARGETARCH} BUILDARCH=$(dpkg --print-architecture) ./.woodpecker/setup-cross-compile.sh
+      - TARGETCPU=$(dpkg-architecture -aarm64 -qDEB_TARGET_GNU_CPU)
+      - TARGETTRIPLE=$(dpkg-architecture -aarm64 -qDEB_TARGET_GNU_TYPE)
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang-19 lld-19 cmake ninja-build libstdc++-14-dev:amd64 git patch ssh-client ca-certificates
+        clang-19 lld-19 cmake ninja-build libstdc++-14-dev:${TARGETARCH} git patch ssh-client ca-certificates
         clang-tools-19 glslang-tools xxd patch curl wget gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
-        libvulkan-dev:amd64 pkg-config libsystemd-dev:amd64 libsdl2-dev:amd64 libsdl2-mixer-dev:amd64 libsdl2-image-dev:amd64 libglm-dev:amd64
-        libspdlog-dev:amd64 libfreetype-dev:amd64 libglibmm-2.4-dev:amd64 libsdbus-c++-dev:amd64 libboost-dev:amd64
-        libavformat-dev:amd64 libavcodec-dev:amd64 libavutil-dev:amd64 libavfilter-dev:amd64
-        libswscale-dev:amd64 libswresample-dev:amd64 libpostproc-dev:amd64 libavdevice-dev:amd64
+        libvulkan-dev:${TARGETARCH} pkg-config libsystemd-dev:${TARGETARCH} libsdl2-dev:${TARGETARCH} libsdl2-mixer-dev:${TARGETARCH} libsdl2-image-dev:${TARGETARCH} libglm-dev:${TARGETARCH}
+        libspdlog-dev:${TARGETARCH} libfreetype-dev:${TARGETARCH} libglibmm-2.4-dev:${TARGETARCH} libsdbus-c++-dev:${TARGETARCH} libboost-dev:${TARGETARCH}
+        libavformat-dev:${TARGETARCH} libavcodec-dev:${TARGETARCH} libavutil-dev:${TARGETARCH} libavfilter-dev:${TARGETARCH}
+        libswscale-dev:${TARGETARCH} libswresample-dev:${TARGETARCH} libpostproc-dev:${TARGETARCH} libavdevice-dev:${TARGETARCH}
       - >-
         ln -sf /usr/bin/clang-19 /usr/bin/cc &&
         ln -sf /usr/bin/clang++-19 /usr/bin/c++ &&
@@ -44,19 +49,19 @@ steps:
         -DCMAKE_TOOLCHAIN_FILE=/toolchain.cmake
         -DCMAKE_BUILD_TYPE=Release
         -DBUILD_VERSION=$BUILD_VERSION
-        -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=amd64
-        -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}
-        -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}.log
-      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}.log
+        -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=${TARGETARCH}
+        -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}
+        -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}-${TARGETARCH}.log
+      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}-${TARGETARCH}.log
       - cd build
       - cpack -G DEB
       - mkdir -p upload/build upload/beta
-      - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb
-      - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb
+      - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.deb
+      - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}-${TARGETARCH}.deb
       # install it (so we can build a Snap later on)
       - DESTDIR=install cmake --install . --prefix /usr
-      - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.tar.gz -C install .
-      - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}.tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}.tar.gz
+      - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz -C install .
+      - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz
       # Build AppImage
       - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
       - wget "https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-aarch64.AppImage"
@@ -66,16 +71,16 @@ steps:
       - DESTDIR=AppDir cmake --install . --prefix /usr
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
-      - LIBROOT="/lib/x86_64-linux-gnu" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=x86_64 NO_STRIP=1 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
+      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
-      - install -T -D /usr/lib/x86_64-linux-gnu/glib-2.0/gio-launch-desktop AppDir/usr/lib/x86_64-linux-gnu/glib-2.0/gio-launch-desktop
+      - install -T -D /usr/lib/TARGETTRIPLE/glib-2.0/gio-launch-desktop AppDir/usr/lib/TARGETTRIPLE/glib-2.0/gio-launch-desktop
       - rm AppDir/usr/lib/libwayland-*
-      - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-x86_64.AppImage" -O AppDir/usr/bin/appimageupdatetool
+      - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-$TARGETCPU.AppImage" -O AppDir/usr/bin/appimageupdatetool
       - chmod +x AppDir/usr/bin/appimageupdatetool
-      - ARCH=x86_64 ./appimagetool-aarch64.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-x86_64.AppImage.zsync" AppDir/
-      - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-x86_64.AppImage
-      - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-x86_64.AppImage
-      - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-x86_64.AppImage.zsync
+      - ARCH=$TARGETCPU ./appimagetool-aarch64.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-$TARGETCPU.AppImage.zsync" AppDir/
+      - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-$TARGETCPU.AppImage
+      - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-$TARGETCPU.AppImage
+      - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-$TARGETCPU.AppImage.zsync
       # Sleep for robustness
       - sleep 60
   upload-logs:
@@ -108,7 +113,7 @@ steps:
   upload-packages:
     image: alpine/curl
     commands:
-      - curl --user jcm:$GITEA_PACKAGE_TOKEN --upload-file build/upload/beta/xmbshell-beta-${UBUNTU_VERSION}.deb "https://git.jcm.re/api/packages/jcm/debian/pool/${UBUNTU_VERSION}/edge-${CI_COMMIT_BRANCH}/upload"
+      - curl --user jcm:$GITEA_PACKAGE_TOKEN --upload-file build/upload/beta/xmbshell-beta-${UBUNTU_VERSION}-${TARGETARCH}.deb "https://git.jcm.re/api/packages/jcm/debian/pool/${UBUNTU_VERSION}/edge-${CI_COMMIT_BRANCH}/upload"
     environment:
       GITEA_PACKAGE_TOKEN:
         from_secret: gitea_package_token
