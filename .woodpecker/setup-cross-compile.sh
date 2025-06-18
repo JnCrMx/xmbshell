@@ -2,6 +2,7 @@
 
 if [ "$TARGETARCH" == "$BUILDARCH" ]; then
     echo "TARGETARCH is the same as BUILDARCH, skipping cross-compilation setup"
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends dpkg-dev
     touch /toolchain.cmake
     exit 0
 fi
