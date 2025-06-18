@@ -71,6 +71,7 @@ steps:
       - DESTDIR=AppDir cmake --install . --prefix /usr
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
+      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 env
       - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - install -T -D /usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop AppDir/usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop
@@ -88,7 +89,7 @@ steps:
     settings:
       <<: *minio-settings
       bucket: woodpecker
-      source: build/cmake-*-${UBUNTU_VERSION}.log
+      source: build/cmake-*-${UBUNTU_VERSION}-${TARGETARCH}.log
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
     when:
