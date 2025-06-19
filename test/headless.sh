@@ -6,8 +6,7 @@ export DREAMRENDER_HEADLESS=1
 export DREAMRENDER_HEADLESS_WIDTH=800
 export DREAMRENDER_HEADLESS_HEIGHT=600
 export DREAMRENDER_HEADLESS_OUTPUT_DIR="output/"
-export DREAMRENDER_HEADLESS_OUTPUT_PATTERN="{:$format_spec}.jpg"
-export DREAMRENDER_HEADLESS_OUTPUT_QUALITY=90
+export DREAMRENDER_HEADLESS_OUTPUT_PATTERN="{:$format_spec}.bmp"
 
 export GSETTINGS_SCHEMA_DIR="$PWD/schemas:$GSETTINGS_SCHEMA_DIR"
 export XMB_ASSET_DIR=.
@@ -24,7 +23,7 @@ echo "Frames: $frames"
 echo "Framerate: $framerate"
 
 ffmpeg -framerate $framerate \
-    -i "$DREAMRENDER_HEADLESS_OUTPUT_DIR"/"%$format_spec.jpg" \
+    -i "$DREAMRENDER_HEADLESS_OUTPUT_DIR"/"%$format_spec.bmp" \
     build/test-output.mp4 \
     build/test-output.webm \
     -loop 65535 build/test-output.webp
