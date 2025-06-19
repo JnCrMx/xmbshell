@@ -28,6 +28,7 @@ steps:
       - TARGETARCH=${TARGETARCH} BUILDARCH=$(dpkg --print-architecture) ./.woodpecker/setup-cross-compile.sh
       - TARGETCPU=$(dpkg-architecture -a${TARGETARCH} -qDEB_TARGET_GNU_CPU)
       - TARGETTRIPLE=$(dpkg-architecture -a${TARGETARCH} -qDEB_TARGET_GNU_TYPE)
+      - HOSTCPU=$(dpkg-architecture -qDEB_HOST_GNU_CPU)
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
@@ -63,22 +64,22 @@ steps:
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz -C install .
       - cp upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz upload/beta/xmbshell-beta-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz
       # Build AppImage
-      - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-aarch64.AppImage"
-      - wget "https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-aarch64.AppImage"
-      - chmod +x linuxdeploy-aarch64.AppImage appimagetool-aarch64.AppImage
+      - wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-$HOSTCPU.AppImage"
+      - wget "https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-$HOSTCPU.AppImage"
+      - chmod +x linuxdeploy-$HOSTCPU.AppImage appimagetool-$HOSTCPU.AppImage
       - ln -sf /usr/bin/llvm-strip-19 /usr/bin/strip
       - mkdir -p AppDir
       - DESTDIR=AppDir cmake --install . --prefix /usr
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
       - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 env
-      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run --appdir AppDir
+      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-$HOSTCPU.AppImage --appimage-extract-and-run --appdir AppDir
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - install -T -D /usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop AppDir/usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop
       - rm AppDir/usr/lib/libwayland-*
       - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-$TARGETCPU.AppImage" -O AppDir/usr/bin/appimageupdatetool
       - chmod +x AppDir/usr/bin/appimageupdatetool
-      - ARCH=$TARGETCPU ./appimagetool-aarch64.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-$TARGETCPU.AppImage.zsync" AppDir/
+      - ARCH=$TARGETCPU ./appimagetool-$HOSTCPU.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-$TARGETCPU.AppImage.zsync" AppDir/
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-$TARGETCPU.AppImage
       - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-$TARGETCPU.AppImage
       - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-$TARGETCPU.AppImage.zsync
