@@ -45,7 +45,7 @@ steps:
         fix-ffmpeg.yaml
       - cat snapcraft.yaml
       # Build the Snap
-      - snapcraft --destructive-mode --platform=${TARGETARCH}-on-arm64
+      - snapcraft --destructive-mode --platform=${TARGETARCH}
       # Prepare beta version
       - mkdir -p upload/beta upload/build
       - cp xmbshell_*.snap upload/beta/xmbshell_beta_${TARGETARCH}.snap

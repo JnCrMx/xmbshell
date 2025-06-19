@@ -22,6 +22,9 @@ def merge(a: dict, b: dict, path=[]):
 UBUNTU_KEY_ID = 'F6ECB3762474EDA9D21B7022871920D1991BC93C'
 UBUNTU_URL = 'http://de.archive.ubuntu.com/ubuntu'
 
+UBUNTU_PORTS_KEY_ID = 'F6ECB3762474EDA9D21B7022871920D1991BC93C'
+UBUNTU_PORTS_URL = 'http://ports.ubuntu.com/ubuntu-ports'
+
 if len(sys.argv) < 6:
     print("Usage: generate.py <input> <output> <main part> <version> <url> [additional yaml files...]")
     sys.exit(1)
@@ -53,16 +56,25 @@ with open(input_file, 'r') as f:
             'suites': ['noble'],
             'key-id': UBUNTU_KEY_ID,
             'url': UBUNTU_URL,
+        },
+        {
+            'type': 'apt',
+            'formats': ['deb'],
+            'architectures': ['arm64'],
+            'components': ['main', 'universe'],
+            'suites': ['noble'],
+            'key-id': UBUNTU_PORTS_KEY_ID,
+            'url': UBUNTU_PORTS_URL,
         }
     ]
     data['platforms'] = {
-        'amd64-on-arm64':{
-            'build-on': ['arm64'],
+        'amd64':{
+            'build-on': ['arm64', 'amd64'],
             'build-for': ['amd64']
         },
-        'amd64-on-amd64':{
-            'build-on': ['amd64'],
-            'build-for': ['amd64']
+        'arm64':{
+            'build-on': ['arm64', 'amd64'],
+            'build-for': ['arm64']
         }
     }
     data['lint'] = {'ignore': ['classic', 'library']}
@@ -73,8 +85,8 @@ with open(input_file, 'r') as f:
         'plugin': 'dump',
         'source': BUILD_URL,
         'stage-packages': [
-            package + ':amd64' for package in part['stage-packages']
-        ] + ['shared-mime-info:amd64']
+            package + ':${CRAFT_ARCH_BUILD_FOR}' for package in part['stage-packages']
+        ] + ['shared-mime-info:${CRAFT_ARCH_BUILD_FOR}']
     }
     for additional_file in sys.argv[6:]:
         with open(additional_file, 'r') as f:
