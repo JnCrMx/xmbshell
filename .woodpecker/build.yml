@@ -26,8 +26,8 @@ steps:
     pull: true
     commands:
       - TARGETARCH=${TARGETARCH} BUILDARCH=$(dpkg --print-architecture) ./.woodpecker/setup-cross-compile.sh
-      - export TARGETCPU=$(dpkg-architecture -aarm64 -qDEB_TARGET_GNU_CPU)
-      - export TARGETTRIPLE=$(dpkg-architecture -aarm64 -qDEB_TARGET_GNU_TYPE)
+      - TARGETCPU=$(dpkg-architecture -a${TARGETARCH} -qDEB_TARGET_GNU_CPU)
+      - TARGETTRIPLE=$(dpkg-architecture -a${TARGETARCH} -qDEB_TARGET_GNU_TYPE)
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
