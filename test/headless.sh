@@ -22,9 +22,8 @@ echo "Duration: $duration"
 echo "Frames: $frames"
 echo "Framerate: $framerate"
 
-ffmpeg -threads auto -framerate $framerate \
+ffmpeg -threads 4 -framerate $framerate \
     -i "$DREAMRENDER_HEADLESS_OUTPUT_DIR"/"%$format_spec.bmp" \
     build/test-output.mp4 \
     build/test-output.webm \
     -loop 65535 build/test-output.webp
-
