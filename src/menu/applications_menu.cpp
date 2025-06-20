@@ -31,11 +31,12 @@ applications_menu::applications_menu(std::string name, dreamrender::texture&& ic
         if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
             if(!filter(*desktop_app.get()))
                 continue;
-            if(!show_hidden && config::CONFIG.excludedApplications.contains(app->get_id()))
+            bool is_hidden = config::CONFIG.excludedApplications.contains(app->get_id());
+            if(!show_hidden && is_hidden)
                 continue;
 
             spdlog::trace("Found application: {} ({})", desktop_app->get_display_name(), desktop_app->get_id());
-            auto entry = create_action_menu_entry(desktop_app);
+            auto entry = create_action_menu_entry(desktop_app, is_hidden);
             apps.push_back(desktop_app);
             entries.push_back(std::move(entry));
         } else {
@@ -44,7 +45,7 @@ applications_menu::applications_menu(std::string name, dreamrender::texture&& ic
     }
 }
 
-std::unique_ptr<action_menu_entry> applications_menu::create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app) {
+std::unique_ptr<action_menu_entry> applications_menu::create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app, bool hidden) {
     std::string icon_path;
     if(auto r = utils::resolve_icon(app->get_icon().get())) {
         icon_path = r->string();
@@ -53,7 +54,11 @@ std::unique_ptr<action_menu_entry> applications_menu::create_action_menu_entry(G
     }
 
     dreamrender::texture icon_texture(loader.getDevice(), loader.getAllocator());
-    auto entry = std::make_unique<action_menu_entry>(app->get_display_name(), std::move(icon_texture),
+    std::string name = app->get_display_name();
+    if(hidden) {
+        name += " (hidden)"_();
+    }
+    auto entry = std::make_unique<action_menu_entry>(name, std::move(icon_texture),
         std::function<result()>{}, [this, app](auto && PH1) { return activate_app(app, std::forward<decltype(PH1)>(PH1)); });
     if(!icon_path.empty()) {
         loader.loadTexture(&entry->get_icon(), icon_path);
@@ -65,7 +70,8 @@ void applications_menu::reload() {
     auto appInfos = Gio::AppInfo::get_all();
     for (const auto& app : appInfos) {
         if(auto desktop_app = Glib::RefPtr<Gio::DesktopAppInfo>::cast_dynamic(app)) {
-            bool should_include = filter(*desktop_app.get()) && (show_hidden || !config::CONFIG.excludedApplications.contains(desktop_app->get_id()));
+            bool is_hidden = config::CONFIG.excludedApplications.contains(app->get_id());
+            bool should_include = filter(*desktop_app.get()) && (show_hidden || !is_hidden);
             spdlog::trace("Found application: {} ({})", desktop_app->get_display_name(), desktop_app->get_id());
             auto it = std::ranges::find_if(apps, [&desktop_app](const Glib::RefPtr<Gio::DesktopAppInfo>& app){
                 return app->get_id() == desktop_app->get_id();
@@ -73,7 +79,7 @@ void applications_menu::reload() {
             if(it == apps.end()) {
                 if(should_include) {
                     spdlog::trace("Found new application: {} ({})", desktop_app->get_display_name(), desktop_app->get_id());
-                    auto entry = create_action_menu_entry(desktop_app);
+                    auto entry = create_action_menu_entry(desktop_app, is_hidden);
                     apps.push_back(desktop_app);
                     entries.push_back(std::move(entry));
                 }

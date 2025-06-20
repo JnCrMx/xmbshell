@@ -57,7 +57,7 @@ export namespace menu {
             void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
         private:
             void reload();
-            std::unique_ptr<action_menu_entry> create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app);
+            std::unique_ptr<action_menu_entry> create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app, bool hidden = false);
             result activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, action action);
 
             app::xmbshell* xmb;
