@@ -43,6 +43,7 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
         Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_VIDEOS), loader));
     menus.push_back(make_simple_of<menu::menu>("TV"_(), asset_directory/"icons/icon_category_tv.png", loader));
     menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, shell, loader, ::menu::categoryFilter("Game")));
+    menus.push_back(make_simple<menu::applications_menu>("Application"_(), asset_directory/"icons/icon_category_application.png", loader, shell, loader));
     menus.push_back(make_simple_of<menu::menu>("Network"_(), asset_directory/"icons/icon_category_network.png", loader));
     menus.push_back(make_simple_of<menu::menu>("Friends"_(), asset_directory/"icons/icon_category_friends.png", loader));
 
