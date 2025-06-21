@@ -64,6 +64,5 @@ echo "Framerate: $framerate"
 
 ffmpeg -threads 1 -loglevel verbose -framerate $framerate \
     -i "$DREAMRENDER_HEADLESS_OUTPUT_DIR"/"%$format_spec.bmp" \
-    build/test-output.mp4 \
-    build/test-output.webm \
-    -loop 65535 build/test-output.webp
+    -c:v vp9 -cpu-used 5 build/test-output.webm \
+    -loop 65535 -compression_level 2 -quality 75 build/test-output.webp
