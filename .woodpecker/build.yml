@@ -21,6 +21,15 @@ matrix:
     - arm64
 
 steps:
+  restore-cache:
+    image: meltwater/drone-cache
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker-cache
+      cache_key: "build-{{ .Commit.Branch }}-${UBUNTU_VERSION}-${TARGETARCH}"
+      restore: true
+      mount:
+        - 'build'
   build:
     image: "ubuntu:${UBUNTU_VERSION}"
     pull: true
@@ -52,8 +61,9 @@ steps:
         -DBUILD_VERSION=$BUILD_VERSION
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=${TARGETARCH}
         -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}
-        -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}-${TARGETARCH}.log
-      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}-${TARGETARCH}.log
+        -B build -G Ninja -S . 2>&1 | tee cmake-configure-${UBUNTU_VERSION}-${TARGETARCH}.log
+      - cmake --build build --parallel 2 2>&1 | tee cmake-build-${UBUNTU_VERSION}-${TARGETARCH}.log
+      - cp -r build cache_build
       - cd build
       - cpack -G DEB
       - mkdir -p upload/build upload/beta
@@ -90,8 +100,7 @@ steps:
     settings:
       <<: *minio-settings
       bucket: woodpecker
-      source: build/cmake-*-${UBUNTU_VERSION}-${TARGETARCH}.log
-      strip_prefix: build/
+      source: cmake-*-${UBUNTU_VERSION}-${TARGETARCH}.log
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
     when:
       - status: [ success, failure ]
@@ -119,3 +128,12 @@ steps:
     environment:
       GITEA_PACKAGE_TOKEN:
         from_secret: gitea_package_token
+  rebuild-cache:
+    image: meltwater/drone-cache
+    settings:
+      <<: *minio-settings
+      bucket: woodpecker-cache
+      cache_key: "build-{{ .Commit.Branch }}-${UBUNTU_VERSION}-${TARGETARCH}"
+      rebuild: true
+      mount:
+        - 'cache_build'
