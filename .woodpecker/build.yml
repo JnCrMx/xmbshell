@@ -20,6 +20,11 @@ matrix:
     - amd64
     - arm64
 
+clone:
+  git:
+    image: docker.io/woodpeckerci/plugin-git:2.4.0
+    settings:
+      tags: true
 steps:
   build:
     image: "ubuntu:${UBUNTU_VERSION}"
