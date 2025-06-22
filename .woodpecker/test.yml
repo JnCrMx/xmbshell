@@ -18,15 +18,6 @@ labels:
   gpu: BXE-4-32
 
 steps:
-  restore-cache:
-    image: meltwater/drone-cache
-    settings:
-      <<: *minio-settings
-      bucket: woodpecker-cache
-      cache_key: "test-{{ .Commit.Branch }}-${UBUNTU_VERSION}-${TARGETARCH}"
-      restore: true
-      mount:
-        - 'build'
   build:
     image: ubuntu:plucky
     commands:
@@ -46,7 +37,6 @@ steps:
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
         -DCMAKE_BUILD_TYPE=Debug -DBUILD_VERSION=$BUILD_VERSION
       - cmake --build build --parallel 3
-      - cp -r build cache_build
       - glib-compile-schemas schemas
       # Install it (and upload it for debugging)
       - cd build/
@@ -109,12 +99,3 @@ steps:
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
-  rebuild-cache:
-    image: meltwater/drone-cache
-    settings:
-      <<: *minio-settings
-      bucket: woodpecker-cache
-      cache_key: "test-{{ .Commit.Branch }}-${UBUNTU_VERSION}-${TARGETARCH}"
-      rebuild: true
-      mount:
-        - 'cache_build'
