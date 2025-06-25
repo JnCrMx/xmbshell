@@ -28,6 +28,8 @@ import :choice_overlay;
 import :message_overlay;
 import :progress_overlay;
 
+import :text_viewer;
+
 namespace menu {
     using namespace mfk::i18n::literals;
 
@@ -352,31 +354,26 @@ namespace menu {
         }));
 
         std::array licenses = {
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", licenses::i18n_cpp),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", licenses::sdbus_cpp),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", licenses::argparse),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("avcpp", "https://github.com/h4tr3d/avcpp", licenses::avcpp),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("glibmm", "https://gitlab.gnome.org/GNOME/glibmm", licenses::glibmm),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("Vulkan-Hpp", "https://github.com/KhronosGroup/Vulkan-Hpp", licenses::vulkan_hpp),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("spdlog", "https://github.com/gabime/spdlog", licenses::spdlog),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("SDL2", "https://github.com/libsdl-org/SDL", licenses::sdl2),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("FreeType", "https://gitlab.freedesktop.org/freetype/freetype", licenses::freetype),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("glm", "https://github.com/g-truc/glm", licenses::glm),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator-Hpp", "https://github.com/YaaZ/VulkanMemoryAllocator-Hpp", licenses::vulkanmemoryallocator_hpp),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", std::string_view(licenses::argparse, sizeof(licenses::argparse))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("avcpp", "https://github.com/h4tr3d/avcpp", std::string_view(licenses::avcpp, sizeof(licenses::avcpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("glibmm", "https://gitlab.gnome.org/GNOME/glibmm", std::string_view(licenses::glibmm, sizeof(licenses::glibmm))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("Vulkan-Hpp", "https://github.com/KhronosGroup/Vulkan-Hpp", std::string_view(licenses::vulkan_hpp, sizeof(licenses::vulkan_hpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("spdlog", "https://github.com/gabime/spdlog", std::string_view(licenses::spdlog, sizeof(licenses::spdlog))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("SDL2", "https://github.com/libsdl-org/SDL",std::string_view(licenses::sdl2, sizeof(licenses::sdl2))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("FreeType", "https://gitlab.freedesktop.org/freetype/freetype", std::string_view(licenses::freetype, sizeof(licenses::freetype))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("glm", "https://github.com/g-truc/glm", std::string_view(licenses::glm, sizeof(licenses::glm))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator-Hpp", "https://github.com/YaaZ/VulkanMemoryAllocator-Hpp", std::string_view(licenses::vulkanmemoryallocator_hpp, sizeof(licenses::vulkanmemoryallocator_hpp))),
         };
         std::vector<std::unique_ptr<menu_entry>> license_entries;
         for(const auto& [name, url, license_text] : licenses) {
             license_entries.push_back(make_simple<action_menu_entry>(std::string{name}, asset_dir/"icons/icon_license.png", loader, [xmb, name, url, license_text](){
                 xmb->emplace_overlay<app::choice_overlay>(
                     std::vector<std::string>{"View License Text"_(), "Open website in browser"_()}, 0,
-                    [name, url, license_text](unsigned int selection){
+                    [name, url, license_text, xmb](unsigned int selection){
                         if(selection == 0) {
-                            std::filesystem::path path = std::filesystem::temp_directory_path() / std::format("license-{}.txt", name);
-                            {
-                                std::ofstream file{path};
-                                std::ranges::copy(license_text, std::ostreambuf_iterator<char>{file});
-                            }
-                            Gio::AppInfo::launch_default_for_uri(std::format("file:///{}", path.string()));
+                            xmb->emplace_overlay<programs::text_viewer>("License for {}"_(name), license_text);
                         } else {
                             Gio::AppInfo::launch_default_for_uri(std::string{url});
                         }

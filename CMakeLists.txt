@@ -178,6 +178,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/programs.cppm
   src/programs/base_viewer.cppm
   src/programs/image_viewer.cppm
+  src/programs/text_viewer.cppm
   src/programs/video_player.cppm
   src/render/module.cppm
   src/render/shaders.cppm
