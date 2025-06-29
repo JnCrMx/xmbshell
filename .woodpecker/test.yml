@@ -50,7 +50,7 @@ steps:
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz -C install .
       - cp upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz upload/beta/xmbshell-beta-$UBUNTU_VERSION-$(arch).tar.gz
   build-upload-build:
-    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
+    image: woodpeckerci/plugin-s3
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -58,7 +58,7 @@ steps:
       strip_prefix: build/upload/build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
   build-upload-branch:
-    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
+    image: woodpeckerci/plugin-s3
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -86,7 +86,7 @@ steps:
       - /dev/dri/renderD128:/dev/dri/renderD128
     privileged: true
   test-upload:
-    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
+    image: woodpeckerci/plugin-s3
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -96,7 +96,7 @@ steps:
     when:
       - status: [ success, failure ]
   test-upload-branch:
-    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest-riscv64
+    image: woodpeckerci/plugin-s3
     settings:
       <<: *minio-settings
       bucket: woodpecker
