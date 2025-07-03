@@ -57,8 +57,8 @@ namespace app {
                 const auto& choice = choices[i];
                 auto size = renderer.measure_text(choice, 0.05f);
                 if(i == selected) {
-                    constexpr glm::vec2 padding{0.005f, 0.005f};
-                    float aspect_ratio = size.x / size.y;
+                    constexpr glm::vec2 padding{0.010f, 0.005f};
+                    float aspect_ratio = (size.x+padding.x) / (size.y+padding.y);
                     simple_renderer::params params = {
                         .blur = {
                             glm::vec2{-0.01f, 0.4f}/aspect_ratio, glm::vec2{-0.01f, 0.4f}/aspect_ratio,
