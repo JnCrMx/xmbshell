@@ -17,90 +17,400 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/app/components/main_menu.cpp:29
+#: src/app/components/main_menu.cpp:36
 msgid "Users"
 msgstr "Users"
 
-#: src/app/components/main_menu.cpp:30
+#: src/app/components/main_menu.cpp:37
 msgid "Settings"
 msgstr "Settings"
 
-#: src/app/components/main_menu.cpp:31
+#: src/app/components/main_menu.cpp:38
 msgid "Photo"
 msgstr "Photo"
 
-#: src/app/components/main_menu.cpp:32
+#: src/app/components/main_menu.cpp:40
 msgid "Music"
 msgstr "Music"
 
-#: src/app/components/main_menu.cpp:33
+#: src/app/components/main_menu.cpp:42
 msgid "Video"
 msgstr "Video"
 
-#: src/app/components/main_menu.cpp:34
+#: src/app/components/main_menu.cpp:44
 msgid "TV"
 msgstr "TV"
 
-#: src/app/components/main_menu.cpp:35
+#: src/app/components/main_menu.cpp:45
 msgid "Game"
 msgstr "Game"
 
-#: src/app/components/main_menu.cpp:36
+#: src/app/components/main_menu.cpp:46
+msgid "Application"
+msgstr "Application"
+
+#: src/app/components/main_menu.cpp:47
 msgid "Network"
 msgstr "Network"
 
-#: src/app/components/main_menu.cpp:37
+#: src/app/components/main_menu.cpp:48
 msgid "Friends"
 msgstr "Friends"
 
-#: src/app/xmbshell.cpp:380
+#: src/app/xmbshell.cpp:529
 msgid "FPS: {:.2f}"
 msgstr "FPS: {:.2f}"
 
-#: src/app/xmbshell.cpp:390
+#: src/app/xmbshell.cpp:541
 msgid "Memory: {:.2f}/{:.2f} MB"
 msgstr "Memory: {:.2f}/{:.2f} MB"
 
-#: src/menu/settings_menu.cpp:44
+#: src/menu/applications_menu.cpp:104
+msgid "Launch application"
+msgstr "Launch application"
+
+#: src/menu/applications_menu.cpp:104
+msgid "Remove from XMB"
+msgstr "Remove from XMB"
+
+#: src/menu/applications_menu.cpp:104
+msgid "Show in XMB"
+msgstr "Show in XMB"
+
+#: src/menu/applications_menu.cpp:104 src/menu/files_menu.cpp:272
+msgid "View information"
+msgstr "View information"
+
+#: src/menu/applications_menu.cpp:112
+msgid "ID: "
+msgstr "ID: "
+
+#: src/menu/applications_menu.cpp:113
+msgid "Name: "
+msgstr "Name: "
+
+#: src/menu/applications_menu.cpp:114
+msgid "Display Name: "
+msgstr "Display Name: "
+
+#: src/menu/applications_menu.cpp:115
+msgid "Description: "
+msgstr "Description: "
+
+#: src/menu/applications_menu.cpp:116
+msgid "Executable: "
+msgstr "Executable: "
+
+#: src/menu/applications_menu.cpp:117
+msgid "Command Line: "
+msgstr "Command Line: "
+
+#: src/menu/applications_menu.cpp:118
+msgid "Icon: "
+msgstr "Icon: "
+
+#: src/menu/applications_menu.cpp:119
+msgid "Categories: "
+msgstr "Categories: "
+
+#: src/menu/applications_menu.cpp:120
+msgid "Application Information"
+msgstr "Application Information"
+
+#: src/menu/applications_menu.cpp:120 src/menu/files_menu.cpp:218
+#: src/menu/files_menu.cpp:311 src/menu/files_menu.cpp:342
+#: src/programs/video_player.cppm:93
+msgid "OK"
+msgstr "OK"
+
+#: src/menu/applications_menu.cpp:125
+msgid "Remove Application"
+msgstr "Remove Application"
+
+#: src/menu/applications_menu.cpp:126
+msgid "Are you sure you want to remove this application from XMB Shell?"
+msgstr "Are you sure you want to remove this application from XMB Shell?"
+
+#: src/menu/applications_menu.cpp:127 src/menu/settings_menu.cpp:121
+#: src/menu/users_menu.cpp:110 src/menu/users_menu.cpp:67
+#: src/menu/users_menu.cpp:86 src/menu/users_menu.cpp:98
+msgid "No"
+msgstr "No"
+
+#: src/menu/applications_menu.cpp:127 src/menu/settings_menu.cpp:121
+#: src/menu/users_menu.cpp:110 src/menu/users_menu.cpp:67
+#: src/menu/users_menu.cpp:86 src/menu/users_menu.cpp:98
+msgid "Yes"
+msgstr "Yes"
+
+#: src/menu/applications_menu.cpp:157 src/menu/files_menu.cpp:354
+msgid "Options"
+msgstr "Options"
+
+#: src/menu/applications_menu.cpp:158
+msgid "Hide excluded apps"
+msgstr "Hide excluded apps"
+
+#: src/menu/applications_menu.cpp:158
+msgid "Show excluded apps"
+msgstr "Show excluded apps"
+
+#: src/menu/applications_menu.cpp:59
+msgid " (hidden)"
+msgstr " (hidden)"
+
+#: src/menu/files_menu.cpp:216
+msgid "No program found"
+msgstr "No program found"
+
+#: src/menu/files_menu.cpp:217
+msgid "No program found for file of type \"{}\": {}"
+msgstr "No program found for file of type \"{}\": {}"
+
+#: src/menu/files_menu.cpp:272
+msgid "Copy"
+msgstr "Copy"
+
+#: src/menu/files_menu.cpp:272
+msgid "Cut"
+msgstr "Cut"
+
+#: src/menu/files_menu.cpp:272
+msgid "Delete"
+msgstr "Delete"
+
+#: src/menu/files_menu.cpp:272
+msgid "Open"
+msgstr "Open"
+
+#: src/menu/files_menu.cpp:272
+msgid "Open externally"
+msgstr "Open externally"
+
+#: src/menu/files_menu.cpp:272
+msgid "Refresh"
+msgstr "Refresh"
+
+#: src/menu/files_menu.cpp:276
+msgid "Paste here"
+msgstr "Paste here"
+
+#: src/menu/files_menu.cpp:278
+msgid "Paste into"
+msgstr "Paste into"
+
+#: src/menu/files_menu.cpp:310
+msgid "Copy failed"
+msgstr "Copy failed"
+
+#: src/menu/files_menu.cpp:310
+msgid "Failed to copy file: {}"
+msgstr "Failed to copy file: {}"
+
+#: src/menu/files_menu.cpp:341
+msgid "Failed to move file: {}"
+msgstr "Failed to move file: {}"
+
+#: src/menu/files_menu.cpp:341
+msgid "Move failed"
+msgstr "Move failed"
+
+#: src/menu/files_menu.cpp:355
+msgid "Sort and Filter"
+msgstr "Sort and Filter"
+
+#: src/menu/settings_menu.cpp:116
+msgid "No updates available."
+msgstr "No updates available."
+
+#: src/menu/settings_menu.cpp:120
+msgid "An update is available. Would you like to install it?"
+msgstr "An update is available. Would you like to install it?"
+
+#: src/menu/settings_menu.cpp:120
+msgid "Update Available"
+msgstr "Update Available"
+
+#: src/menu/settings_menu.cpp:123
+msgid "Updating"
+msgstr "Updating"
+
+#: src/menu/settings_menu.cpp:129
+msgid "Failed to check for updates."
+msgstr "Failed to check for updates."
+
+#: src/menu/settings_menu.cpp:160
+msgid "Off"
+msgstr "Off"
+
+#: src/menu/settings_menu.cpp:160
+msgid "On"
+msgstr "On"
+
+#: src/menu/settings_menu.cpp:284
 msgid "Video Settings"
 msgstr "Video Settings"
 
-#: src/menu/settings_menu.cpp:46
+#: src/menu/settings_menu.cpp:286
 msgid "VSync"
 msgstr "VSync"
 
-#: src/menu/settings_menu.cpp:47
+#: src/menu/settings_menu.cpp:287
 msgid "Sample Count"
 msgstr "Sample Count"
 
-#: src/menu/settings_menu.cpp:48
+#: src/menu/settings_menu.cpp:288
 msgid "Max FPS"
 msgstr "Max FPS"
 
-#: src/menu/settings_menu.cpp:51
+#: src/menu/settings_menu.cpp:291
+msgid "Input Settings"
+msgstr "Input Settings"
+
+#: src/menu/settings_menu.cpp:293
+msgid "Controller Type"
+msgstr "Controller Type"
+
+#: src/menu/settings_menu.cpp:294
+msgid "None"
+msgstr "None"
+
+#: src/menu/settings_menu.cpp:295
+msgid "Automatic"
+msgstr "Automatic"
+
+#: src/menu/settings_menu.cpp:296
+msgid "Keyboard"
+msgstr "Keyboard"
+
+#: src/menu/settings_menu.cpp:297
+msgid "PlayStation"
+msgstr "PlayStation"
+
+#: src/menu/settings_menu.cpp:298
+msgid "Xbox"
+msgstr "Xbox"
+
+#: src/menu/settings_menu.cpp:299
+msgid "Steam Controller / Steamdeck"
+msgstr "Steam Controller / Steamdeck"
+
+#: src/menu/settings_menu.cpp:300
+msgid "Ouya"
+msgstr "Ouya"
+
+#: src/menu/settings_menu.cpp:302
+msgid "Controller Rumble"
+msgstr "Controller Rumble"
+
+#: src/menu/settings_menu.cpp:303
+msgid "Navigate Menus with Analog Stick"
+msgstr "Navigate Menus with Analog Stick"
+
+#: src/menu/settings_menu.cpp:306
 msgid "Debug Settings"
 msgstr "Debug Settings"
 
-#: src/menu/settings_menu.cpp:53
+#: src/menu/settings_menu.cpp:308
 msgid "Show FPS"
 msgstr "Show FPS"
 
-#: src/menu/settings_menu.cpp:54
+#: src/menu/settings_menu.cpp:309
 msgid "Show Memory Usage"
 msgstr "Show Memory Usage"
 
-#: src/menu/settings_menu.cpp:57
+#: src/menu/settings_menu.cpp:311
+msgid "Toggle Background Blur"
+msgstr "Toggle Background Blur"
+
+#: src/menu/settings_menu.cpp:316
+msgid "Toggle Ingame Mode"
+msgstr "Toggle Ingame Mode"
+
+#: src/menu/settings_menu.cpp:325
 msgid "Check for Updates"
 msgstr "Check for Updates"
 
-#: src/menu/settings_menu.cpp:61
+#: src/menu/settings_menu.cpp:327
+msgid "System Update"
+msgstr "System Update"
+
+#: src/menu/settings_menu.cpp:331
 msgid "Report bug"
 msgstr "Report bug"
 
-#: src/menu/settings_menu.cpp:65
+#: src/menu/settings_menu.cpp:335
 msgid "Reset"
 msgstr "Reset"
 
-#: src/menu/users_menu.cpp:15
+#: src/menu/settings_menu.cpp:373
+msgid "Open website in browser"
+msgstr "Open website in browser"
+
+#: src/menu/settings_menu.cpp:373
+msgid "View License Text"
+msgstr "View License Text"
+
+#: src/menu/settings_menu.cpp:376
+msgid "License for {}"
+msgstr "License for {}"
+
+#: src/menu/settings_menu.cpp:386
+msgid "Licenses"
+msgstr "Licenses"
+
+#: src/menu/settings_menu.cpp:41
+msgid "Updating..."
+msgstr "Updating..."
+
+#: src/menu/settings_menu.cpp:68
+msgid "Update successful. Please restart the application to apply it."
+msgstr "Update successful. Please restart the application to apply it."
+
+#: src/menu/settings_menu.cpp:71
+msgid "Failed to update."
+msgstr "Failed to update."
+
+#: src/menu/settings_menu.cpp:92
+msgid "Checking for updates..."
+msgstr "Checking for updates..."
+
+#: src/menu/users_menu.cpp:108 src/menu/users_menu.cpp:109
+msgid "Suspend"
+msgstr "Suspend"
+
+#: src/menu/users_menu.cpp:109
+msgid "Do you really want to suspend the system?"
+msgstr "Do you really want to suspend the system?"
+
+#: src/menu/users_menu.cpp:65 src/menu/users_menu.cpp:66
 msgid "Quit"
 msgstr "Quit"
+
+#: src/menu/users_menu.cpp:66
+msgid "Do you really want to quit the application?"
+msgstr "Do you really want to quit the application?"
+
+#: src/menu/users_menu.cpp:84 src/menu/users_menu.cpp:85
+msgid "Power off"
+msgstr "Power off"
+
+#: src/menu/users_menu.cpp:85
+msgid "Do you really want to power off the system?"
+msgstr "Do you really want to power off the system?"
+
+#: src/menu/users_menu.cpp:96 src/menu/users_menu.cpp:97
+msgid "Reboot"
+msgstr "Reboot"
+
+#: src/menu/users_menu.cpp:97
+msgid "Do you really want to reboot the system?"
+msgstr "Do you really want to reboot the system?"
+
+#: src/programs/video_player.cppm:91
+msgid "Failed to open video"
+msgstr "Failed to open video"
+
+#: src/programs/video_player.cppm:92
+msgid "Unknown error"
+msgstr "Unknown error"

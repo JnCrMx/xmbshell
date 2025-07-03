@@ -12,6 +12,7 @@ export namespace constants
     constexpr uint32_t version = 1;
 
     constexpr auto asset_directory = "../share/xmbshell/";
+    constexpr auto locale_directory = "../share/locale/";
     constexpr auto fallback_font = "../share/xmbshell/Ubuntu-R.ttf";
     constexpr auto fallback_datetime_format = "%m/%d %H:%M";
     constexpr auto pipeline_cache_file = "pipeline_cache.bin";

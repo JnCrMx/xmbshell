@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     // Initialize Glib and Gio
     Gio::init();
     setlocale(LC_ALL, "");
+    bindtextdomain("xmbshell", config::CONFIG.locale_directory.c_str());
     textdomain("xmbshell");
     Glib::RefPtr<Glib::MainLoop> loop;
 #if __cpp_lib_jthread >= 201911L

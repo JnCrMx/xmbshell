@@ -34,6 +34,12 @@ export namespace config
                 }
                 return exe_directory / std::string(constants::asset_directory);
             }();
+            std::filesystem::path locale_directory = [this](){
+                if(auto v = std::getenv("XMB_LOCALE_DIR"); v != nullptr) {
+                    return std::filesystem::path(v);
+                }
+                return exe_directory / std::string(constants::locale_directory);
+            }();
             std::filesystem::path fallback_font = exe_directory / std::string(constants::fallback_font);
 
             vk::PresentModeKHR      preferredPresentMode = vk::PresentModeKHR::eFifoRelaxed; //aka VSync
