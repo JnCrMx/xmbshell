@@ -15,7 +15,8 @@ class menu_entry {
     public:
         virtual ~menu_entry() = default;
 
-        virtual const std::string& get_name() const = 0;
+        virtual std::string_view get_name() const = 0;
+        virtual std::string_view get_description() const = 0;
         virtual const dreamrender::texture& get_icon() const = 0;
         virtual result activate(action action) {
             return result::unsupported;
@@ -49,11 +50,15 @@ class simple : public T {
     public:
         using icon_type = dreamrender::texture;
 
-        simple(std::string name, icon_type&& icon) : name(std::move(name)), icon(std::move(icon)) {}
+        simple(std::string name, icon_type&& icon, std::string description = "") :
+            name(std::move(name)), icon(std::move(icon)), description(std::move(description)) {}
         ~simple() override = default;
 
-        const std::string& get_name() const override {
+        std::string_view get_name() const override {
             return name;
+        }
+        std::string_view get_description() const override {
+            return description;
         }
         const dreamrender::texture& get_icon() const override {
             return icon;
@@ -63,6 +68,7 @@ class simple : public T {
         }
     private:
         std::string name;
+        std::string description;
         icon_type icon;
 };
 
@@ -71,11 +77,15 @@ class simple_shared : public T {
     public:
         using icon_type = std::shared_ptr<dreamrender::texture>;
 
-        simple_shared(std::string name, icon_type&& icon) : name(std::move(name)), icon(std::move(icon)) {}
+        simple_shared(std::string name, icon_type&& icon, std::string description = "") :
+            name(std::move(name)), icon(std::move(icon)), description(std::move(description)) {}
         ~simple_shared() override = default;
 
-        const std::string& get_name() const override {
+        std::string_view get_name() const override {
             return name;
+        }
+        std::string_view get_description() const override {
+            return description;
         }
         const dreamrender::texture& get_icon() const override {
             return *icon;
@@ -85,6 +95,7 @@ class simple_shared : public T {
         }
     private:
         std::string name;
+        std::string description;
         icon_type icon;
 };
 
@@ -96,9 +107,12 @@ using simple_menu_entry_shared = simple_shared<menu_entry>;
 template<typename Base>
 class action_menu_entry_generic : public Base {
     public:
-        action_menu_entry_generic(std::string name, Base::icon_type&& icon,
-            std::function<result()> on_activate, std::function<result(action)> on_action = {})
-            : Base(std::move(name), std::move(icon)), on_activate(std::move(on_activate)), on_action(std::move(on_action)) {}
+        action_menu_entry_generic(
+            std::string name, Base::icon_type&& icon,
+            std::function<result()> on_activate, std::function<result(action)> on_action = {},
+            std::string description = ""
+        ) :
+            Base(std::move(name), std::move(icon), std::move(description)), on_activate(std::move(on_activate)), on_action(std::move(on_action)) {}
         ~action_menu_entry_generic() override = default;
 
         result activate(action action) override {
@@ -119,15 +133,20 @@ using action_menu_entry_shared = action_menu_entry_generic<simple_menu_entry_sha
 template<typename Base>
 class simple_menu_generic : public Base {
     public:
-        simple_menu_generic(std::string name, Base::icon_type&& icon) : Base(std::move(name), std::move(icon)) {}
+        simple_menu_generic(std::string name, Base::icon_type&& icon, std::string description = "") :
+            Base(std::move(name), std::move(icon), std::move(description)) {}
 
         template<std::derived_from<menu_entry> T, std::size_t N>
-        simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::array<std::unique_ptr<T>, N>&& entries) : Base(name, std::move(icon)) {
+        simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::array<std::unique_ptr<T>, N>&& entries, std::string description = "") :
+            Base(name, std::move(icon), std::move(description))
+        {
             for(auto& entry : std::move(entries)) {
                 this->entries.push_back(std::move(entry));
             }
         }
-        simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::ranges::range auto&& entries) : Base(name, std::move(icon)) {
+        simple_menu_generic(const std::string& name, Base::icon_type&& icon, std::ranges::range auto&& entries, std::string description = "") :
+            Base(name, std::move(icon), std::move(description))
+        {
             for(auto& entry : std::move(entries)) {
                 this->entries.push_back(std::move(entry));
             }

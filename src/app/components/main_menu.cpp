@@ -387,6 +387,10 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
             auto& entry = submenu->get_submenu(i);
             renderer.draw_image_a(entry.get_icon(), base_pos.x + 0.1 + offset, y, size, size);
             renderer.draw_text(entry.get_name(), base_pos.x + 0.2, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+            if(i == selected) {
+                auto s = renderer.measure_text(entry.get_name(), size/2);
+                renderer.draw_text(entry.get_description(), base_pos.x + 0.2, y+size/2 + s.y, size / 3);
+            }
         }
     }
 }

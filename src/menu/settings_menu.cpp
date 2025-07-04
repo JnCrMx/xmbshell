@@ -143,17 +143,17 @@ namespace menu {
     };
 
     std::unique_ptr<action_menu_entry> entry_base(dreamrender::resource_loader& loader,
-        std::string name, const std::string& key,
+        std::string name, std::string description, const std::string& key,
         std::function<result()> callback)
     {
         std::string filename = std::format("icon_settings_{}.png", key);
-        return make_simple<action_menu_entry>(std::move(name), config::CONFIG.asset_directory/"icons"/filename, loader, callback);
+        return make_simple<action_menu_entry>(std::move(name), config::CONFIG.asset_directory/"icons"/filename, loader, callback, std::function<result(action)>{}, std::move(description));
     }
 
     std::unique_ptr<action_menu_entry> entry_bool(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, const std::string& schema, const std::string& key)
+        std::string name, std::string description, const std::string& schema, const std::string& key)
     {
-        return entry_base(loader, std::move(name), key, [xmb, key, schema](){
+        return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema](){
             auto settings = Gio::Settings::create(schema);
             bool value = settings->get_boolean(key);
             xmb->emplace_overlay<app::choice_overlay>(
@@ -168,9 +168,9 @@ namespace menu {
     }
 
     std::unique_ptr<action_menu_entry> entry_int(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, const std::string& schema, const std::string& key, int min, int max, int step = 1)
+        std::string name, std::string description, const std::string& schema, const std::string& key, int min, int max, int step = 1)
     {
-        return entry_base(loader, std::move(name), key, [xmb, key, schema, min, max, step](){
+        return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, min, max, step](){
             auto settings = Gio::Settings::create(schema);
             int value = settings->get_int(key);
             std::vector<std::string> choices;
@@ -193,10 +193,10 @@ namespace menu {
         });
     }
     std::unique_ptr<action_menu_entry> entry_int(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, const std::string& schema, const std::string& key, std::ranges::range auto values)
+        std::string name, std::string description, const std::string& schema, const std::string& key, std::ranges::range auto values)
         requires std::is_integral_v<std::ranges::range_value_t<decltype(values)>>
     {
-        return entry_base(loader, std::move(name), key, [xmb, key, schema, values](){
+        return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, values](){
             auto settings = Gio::Settings::create(schema);
             int value = settings->get_int(key);
             std::vector<std::string> choices;
@@ -216,9 +216,9 @@ namespace menu {
         });
     }
     std::unique_ptr<action_menu_entry> entry_enum(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, const std::string& schema, const std::string& key, std::ranges::range auto values)
+        std::string name, std::string description, const std::string& schema, const std::string& key, std::ranges::range auto values)
     {
-        return entry_base(loader, std::move(name), key, [xmb, key, schema, values](){
+        return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, values](){
             auto settings = Gio::Settings::create(schema);
             std::string value = settings->get_string(key);
             std::vector<std::string> choices;
@@ -243,6 +243,7 @@ namespace menu {
     namespace licenses {
         #pragma clang diagnostic push
         #pragma clang diagnostic ignored "-Wc23-extensions"
+        // NOLINTBEGIN(*-avoid-c-arrays)
         constexpr char i18n_cpp[] = {
             #embed "_deps/i18n++-src/LICENSE.md"
         };
@@ -276,6 +277,7 @@ namespace menu {
         constexpr char vulkanmemoryallocator_hpp[] = {
             #embed "_deps/vulkanmemoryallocator-hpp-src/LICENSE"
         };
+        // NOLINTEND(*-avoid-c-arrays)
         #pragma clang diagnostic pop
     }
 
@@ -283,14 +285,14 @@ namespace menu {
         const std::filesystem::path& asset_dir = config::CONFIG.asset_directory;
         entries.push_back(make_simple<simple_menu>("Video Settings"_(), asset_dir/"icons/icon_settings_video.png", loader,
             std::array{
-                entry_bool(loader, xmb, "VSync"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
-                entry_int(loader, xmb, "Sample Count"_(), "re.jcm.xmbos.xmbshell.render", "sample-count", std::array{1, 2, 4, 8, 16}),
-                entry_int(loader, xmb, "Max FPS"_(), "re.jcm.xmbos.xmbshell.render", "max-fps", 15, 200, 5),
+                entry_bool(loader, xmb, "VSync"_(), "Avoid tearing and limit FPS to refresh rate of display"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
+                entry_int(loader, xmb, "Sample Count"_(), "Number of samples used for Multisample Anti-Aliasing"_(), "re.jcm.xmbos.xmbshell.render", "sample-count", std::array{1, 2, 4, 8, 16}),
+                entry_int(loader, xmb, "Max FPS"_(), "FPS limit used if VSync is disabled"_(), "re.jcm.xmbos.xmbshell.render", "max-fps", 15, 200, 5),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Input Settings"_(), asset_dir/"icons/icon_settings_input.png", loader,
             std::array{
-                entry_enum(loader, xmb, "Controller Type"_(), "re.jcm.xmbos.xmbshell", "controller-type", std::array{
+                entry_enum(loader, xmb, "Controller Type"_(), "Type of connected controller and corresponding button prompts"_(), "re.jcm.xmbos.xmbshell", "controller-type", std::array{
                     std::pair{"none", "None"_()},
                     std::pair{"auto", "Automatic"_()},
                     std::pair{"keyboard", "Keyboard"_()},
@@ -299,14 +301,14 @@ namespace menu {
                     std::pair{"steam", "Steam Controller / Steamdeck"_()},
                     std::pair{"ouya", "Ouya"_()},
                 }),
-                entry_bool(loader, xmb, "Controller Rumble"_(), "re.jcm.xmbos.xmbshell", "controller-rumble"),
-                entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
+                entry_bool(loader, xmb, "Controller Rumble"_(), "Enable controller rumble as feedback for actions"_(), "re.jcm.xmbos.xmbshell", "controller-rumble"),
+                entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "Allow navigating all menus using the analog stick in addition to the D-Pad"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Debug Settings"_(), asset_dir/"icons/icon_settings_debug.png", loader,
             std::array{
-                entry_bool(loader, xmb, "Show FPS"_(), "re.jcm.xmbos.xmbshell.render", "show-fps"),
-                entry_bool(loader, xmb, "Show Memory Usage"_(), "re.jcm.xmbos.xmbshell.render", "show-mem"),
+                entry_bool(loader, xmb, "Show FPS"_(), "", "re.jcm.xmbos.xmbshell.render", "show-fps"),
+                entry_bool(loader, xmb, "Show Memory Usage"_(), "", "re.jcm.xmbos.xmbshell.render", "show-mem"),
 #ifndef NDEBUG
                 make_simple<action_menu_entry>("Toggle Background Blur"_(), asset_dir/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
                     spdlog::info("Toggling background blur");
@@ -354,6 +356,7 @@ namespace menu {
         }));
 
         std::array licenses = {
+            // NOLINTBEGIN(*-array-to-pointer-decay)
             std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", std::string_view(licenses::argparse, sizeof(licenses::argparse))),
@@ -365,6 +368,7 @@ namespace menu {
             std::make_tuple<std::string_view, std::string_view, std::string_view>("FreeType", "https://gitlab.freedesktop.org/freetype/freetype", std::string_view(licenses::freetype, sizeof(licenses::freetype))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("glm", "https://github.com/g-truc/glm", std::string_view(licenses::glm, sizeof(licenses::glm))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator-Hpp", "https://github.com/YaaZ/VulkanMemoryAllocator-Hpp", std::string_view(licenses::vulkanmemoryallocator_hpp, sizeof(licenses::vulkanmemoryallocator_hpp))),
+            // NOLINTEND(*-array-to-pointer-decay)
         };
         std::vector<std::unique_ptr<menu_entry>> license_entries;
         for(const auto& [name, url, license_text] : licenses) {
