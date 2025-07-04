@@ -54,25 +54,29 @@ steps:
       - mkdir -p logs/
       - cp /root/.local/state/snapcraft/log/snapcraft-*.log logs/
   upload-logs:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:
       <<: *minio-settings
       bucket: woodpecker
       source: .woodpecker/snap/logs/snapcraft-*.log
       strip_prefix: .woodpecker/snap/logs/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+      retry_count: 60
+      retry_delay: 10s
     when:
       - status: [ success, failure ]
   upload-build:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:
       <<: *minio-settings
       bucket: woodpecker
       source: .woodpecker/snap/upload/build/*
       strip_prefix: .woodpecker/snap/upload/build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+      retry_count: 60
+      retry_delay: 10s
   upload-beta:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -80,6 +84,8 @@ steps:
       strip_prefix: .woodpecker/snap/upload/beta/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
+      retry_count: 60
+      retry_delay: 10s
   upload-snapcraft:
     image: git.jcm.re/jcm/snapcraft:core24
     pull: true

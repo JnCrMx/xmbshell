@@ -88,28 +88,30 @@ steps:
       - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-$TARGETCPU.AppImage
       - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-$TARGETCPU.AppImage
       - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-$TARGETCPU.AppImage.zsync
-      # Sleep for robustness
-      - sleep 60
   upload-logs:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:
       <<: *minio-settings
       bucket: woodpecker
       source: build/cmake-*-${UBUNTU_VERSION}-${TARGETARCH}.log
       strip_prefix: build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+      retry_count: 60
+      retry_delay: 10s
     when:
       - status: [ success, failure ]
   upload-build:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:
       <<: *minio-settings
       bucket: woodpecker
       source: build/upload/build/*
       strip_prefix: build/upload/build/
       target: /artifacts/${CI_REPO}/${CI_PIPELINE_NUMBER}/public/
+      retry_count: 60
+      retry_delay: 10s
   upload-beta:
-    image: woodpeckerci/plugin-s3
+    image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:
       <<: *minio-settings
       bucket: woodpecker
@@ -117,6 +119,8 @@ steps:
       strip_prefix: build/upload/beta/
       target: /artifacts/${CI_REPO}/${CI_COMMIT_BRANCH}/public/
       overwrite: true
+      retry_count: 60
+      retry_delay: 10s
   upload-packages:
     image: alpine/curl
     commands:
