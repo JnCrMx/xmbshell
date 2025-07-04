@@ -142,11 +142,11 @@ int main(int argc, char *argv[])
     dreamrender::window window{window_config};
     window.init();
 
-    app::xmbshell* shell = new app::xmbshell(&window);
+    auto* shell = new app::xmbshell(&window);
     if(program.get<bool>("--background-only")) {
         shell->set_background_only(true);
     }
-    window.set_phase(shell, shell, shell);
+    window.set_phase(shell, shell, shell); // window takes ownership of shell
 
     std::unique_ptr<dbus::dbus_server> server;
     try {

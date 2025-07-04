@@ -101,15 +101,15 @@ export namespace utils
                 data(static_cast<std::byte*>(data)), alignment(alignment) {}
 
             T& operator[](std::size_t i) {
-                return *reinterpret_cast<T*>(data + i * aligned(sizeof(T), alignment));
+                return *reinterpret_cast<T*>(data + i * aligned(sizeof(T), alignment)); // NOLINT
             }
 
             const T& operator[](std::size_t i) const {
-                return *reinterpret_cast<const T*>(data + i * aligned(sizeof(T), alignment));
+                return *reinterpret_cast<const T*>(data + i * aligned(sizeof(T), alignment)); // NOLINT
             }
 
             T* operator+(std::size_t i) {
-                return reinterpret_cast<T*>(data + i * aligned(sizeof(T), alignment));
+                return reinterpret_cast<T*>(data + i * aligned(sizeof(T), alignment)); // NOLINT
             }
 
             std::size_t offset(std::size_t i) const {
