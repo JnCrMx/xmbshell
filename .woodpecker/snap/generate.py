@@ -54,6 +54,7 @@ with open(input_file, 'r') as f:
             'architectures': ['amd64'],
             'components': ['main', 'universe'],
             'suites': ['noble'],
+            'priority': 'defer',
             'key-id': UBUNTU_KEY_ID,
             'url': UBUNTU_URL,
         },
@@ -63,6 +64,7 @@ with open(input_file, 'r') as f:
             'architectures': ['arm64'],
             'components': ['main', 'universe'],
             'suites': ['noble'],
+            'priority': 'defer',
             'key-id': UBUNTU_PORTS_KEY_ID,
             'url': UBUNTU_PORTS_URL,
         }
