@@ -52,22 +52,20 @@ with open(input_file, 'r') as f:
             'type': 'apt',
             'formats': ['deb'],
             'architectures': ['amd64'],
-            'components': ['main', 'universe'],
-            'suites': ['noble'],
-            'priority': 'defer',
+            'components': ['main', 'universe', 'multiverse', 'restricted'],
+            'suites': ['noble', 'noble-security', 'noble-updates', 'noble-backports'],
             'key-id': UBUNTU_KEY_ID,
             'url': UBUNTU_URL,
         },
-        # {
-        #     'type': 'apt',
-        #     'formats': ['deb'],
-        #     'architectures': ['arm64'],
-        #     'components': ['main', 'universe'],
-        #     'suites': ['noble'],
-        #     'priority': 'defer',
-        #     'key-id': UBUNTU_PORTS_KEY_ID,
-        #     'url': UBUNTU_PORTS_URL,
-        # }
+        {
+            'type': 'apt',
+            'formats': ['deb'],
+            'architectures': ['arm64'],
+            'components': ['main', 'universe', 'multiverse', 'restricted'],
+            'suites': ['noble', 'noble-security', 'noble-updates', 'noble-backports'],
+            'key-id': UBUNTU_PORTS_KEY_ID,
+            'url': UBUNTU_PORTS_URL,
+        }
     ]
     data['platforms'] = {
         'amd64':{
