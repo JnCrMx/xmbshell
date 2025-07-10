@@ -283,6 +283,15 @@ namespace menu {
 
     settings_menu::settings_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(std::move(name), std::move(icon)) {
         const std::filesystem::path& asset_dir = config::CONFIG.asset_directory;
+        entries.push_back(make_simple<simple_menu>("Appearance Settings"_(), asset_dir/"icons/icon_settings_appearance.png", loader,
+            std::array{
+                entry_enum(loader, xmb, "Background Type"_(), "Type of background to use"_(), "re.jcm.xmbos.xmbshell", "background-type", std::array{
+                    std::pair{"wave", "Animated Wave"_()},
+                    std::pair{"color", "Static Color"_()},
+                    std::pair{"image", "Static Image"_()},
+                }),
+            }
+        ));
         entries.push_back(make_simple<simple_menu>("Video Settings"_(), asset_dir/"icons/icon_settings_video.png", loader,
             std::array{
                 entry_bool(loader, xmb, "VSync"_(), "Avoid tearing and limit FPS to refresh rate of display"_(), "re.jcm.xmbos.xmbshell.render", "vsync"),
