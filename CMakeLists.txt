@@ -234,6 +234,11 @@ file(STRINGS po/LINGUAS LINGUAS)
 foreach(LING ${LINGUAS})
   gettext_process_po_files(${LING} ALL PO_FILES po/${LING}.po)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LING}.gmo DESTINATION ${CMAKE_INSTALL_LOCALEDIR}/${LING}/LC_MESSAGES/ RENAME xmbshell.mo)
+  add_custom_target(xmbshell-link-po-${LING} ALL
+    COMMAND
+      ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/locales/${LING}/LC_MESSAGES &&
+      ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/${LING}.gmo ${CMAKE_CURRENT_BINARY_DIR}/locales/${LING}/LC_MESSAGES/xmbshell.mo
+  )
 endforeach()
 
 foreach(shader ${XMBSHELL_SHADERS})
