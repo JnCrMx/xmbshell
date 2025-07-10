@@ -290,6 +290,11 @@ namespace menu {
                     std::pair{"color", "Static Color"_()},
                     std::pair{"image", "Static Image"_()},
                 }),
+                entry_enum(loader, xmb, "Language"_(), "Preferred language for the shell"_(), "re.jcm.xmbos.xmbshell", "language", std::array{
+                    std::pair{"auto", "Use system language"_()},
+                    std::pair{"en", "English"_()},
+                    std::pair{"de", "German"_()},
+                }),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Video Settings"_(), asset_dir/"icons/icon_settings_video.png", loader,

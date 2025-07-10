@@ -538,7 +538,7 @@ namespace app
             constexpr double mb = 1024.0*1024.0;
             auto u = static_cast<double>(usage)/mb;
             auto b = static_cast<double>(budget)/mb;
-            renderer.draw_text("Memory: {:.2f}/{:.2f} MB"_(u, b), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+            renderer.draw_text("Video Memory: {:.2f}/{:.2f} MB"_(u, b), 0, debug_y, 0.05f, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
             debug_y += 0.025f;
         }
     }

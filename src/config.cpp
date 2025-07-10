@@ -3,9 +3,10 @@ module;
 #include <glm/vec3.hpp>
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
-#include <map>
 #include <functional>
+#include <map>
 #include <version>
 
 module xmbshell.config;
@@ -78,6 +79,8 @@ void config::reload() {
     setFontPath(shellSettings->get_string("font-path"));
     setBackgroundType(shellSettings->get_string("background-type"));
     backgroundImage = shellSettings->get_string("background-image");
+
+    setLanguage(shellSettings->get_string("language"));
 
     int sampleCount = renderSettings->get_int("sample-count");
     switch(sampleCount) {
@@ -191,6 +194,15 @@ void config::setDateTimeFormat(const std::string& format) {
         spdlog::error("Invalid date-time format: \"{}\", error is: {}", format, e.what());
         spdlog::warn("Using fallback format: {}", constants::fallback_datetime_format);
         dateTimeFormat = constants::fallback_datetime_format;
+    }
+}
+
+void config::setLanguage(const std::string& lang) {
+    language = lang;
+    if(!language.empty() && language != "auto") {
+        setenv("LANGUAGE", language.c_str(), 1);
+    } else {
+        unsetenv("LANGUAGE");
     }
 }
 

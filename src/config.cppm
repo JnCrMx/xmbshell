@@ -58,6 +58,7 @@ export namespace config
             glm::vec3               waveColor{};
             std::string             dateTimeFormat = constants::fallback_datetime_format;
             double                  dateTimeOffset = 0.0;
+            std::string             language;
 
             std::unordered_set<std::string> excludedApplications;
 
@@ -83,6 +84,7 @@ export namespace config
             void setWaveColor(std::string_view hex);
             void setWaveColor(const std::string& hex);
             void setDateTimeFormat(const std::string& format);
+            void setLanguage(const std::string& lang);
 
             void excludeApplication(const std::string& application, bool exclude = true);
         private:

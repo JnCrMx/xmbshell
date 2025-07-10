@@ -86,6 +86,14 @@
                 Color of the background wave.
             </description>
         </key>
+        <key name='language' type='s'>
+            <default>'auto'</default>
+            <summary>Language</summary>
+            <description>
+                Preferred language to use for text inside the shell.
+                This can be set to 'auto' to use the system language.
+            </description>
+        </key>
         <key name='excluded-applications' type='as'>
             <default>[]</default>
             <summary>Excluded applications</summary>

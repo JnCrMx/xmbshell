@@ -61,8 +61,8 @@ msgid "FPS: {:.2f}"
 msgstr "FPS: {:.2f}"
 
 #: src/app/xmbshell.cpp:541
-msgid "Memory: {:.2f}/{:.2f} MB"
-msgstr "Speicher: {:.2f}/{:.2f} MB"
+msgid "Video Memory: {:.2f}/{:.2f} MB"
+msgstr "Videospeicher: {:.2f}/{:.2f} MB"
 
 #: src/menu/applications_menu.cpp:104
 msgid "Launch application"
@@ -270,143 +270,163 @@ msgstr "Feste Farbe"
 msgid "Static Image"
 msgstr "Festes Bild"
 
+#: src/menu/settings_menu.cpp:293
+msgid "Language"
+msgstr "Sprache"
+
+#: src/menu/settings_menu.cpp:293
+msgid "Preferred language for the shell"
+msgstr "Bevorzugte Anzeigesprache für die Shell"
+
+#: src/menu/settings_menu.cpp:294
+msgid "Use system language"
+msgstr "Systemsprache verwenden"
+
 #: src/menu/settings_menu.cpp:295
+msgid "English"
+msgstr "Englisch"
+
+#: src/menu/settings_menu.cpp:296
+msgid "German"
+msgstr "Deutsch"
+
+#: src/menu/settings_menu.cpp:300
 msgid "Video Settings"
 msgstr "Videoeinstellungen"
 
-#: src/menu/settings_menu.cpp:297
+#: src/menu/settings_menu.cpp:302
 msgid "Avoid tearing and limit FPS to refresh rate of display"
 msgstr ""
 "Verhindert Teariung und limitiert die Bildwiederholdrate passend zum Monitor"
 
-#: src/menu/settings_menu.cpp:297
+#: src/menu/settings_menu.cpp:302
 msgid "VSync"
 msgstr "VSync"
 
-#: src/menu/settings_menu.cpp:298
+#: src/menu/settings_menu.cpp:303
 msgid "Number of samples used for Multisample Anti-Aliasing"
 msgstr "Anzahl der Samples für Multisample anti-aliasing"
 
-#: src/menu/settings_menu.cpp:298
+#: src/menu/settings_menu.cpp:303
 msgid "Sample Count"
 msgstr "MSAA Qualität"
 
-#: src/menu/settings_menu.cpp:299
+#: src/menu/settings_menu.cpp:304
 msgid "FPS limit used if VSync is disabled"
 msgstr "Limitierung des Bildwiederholrate, wenn VSync deaktiviert ist"
 
-#: src/menu/settings_menu.cpp:299
+#: src/menu/settings_menu.cpp:304
 msgid "Max FPS"
 msgstr "Maximale FPS"
 
-#: src/menu/settings_menu.cpp:302
+#: src/menu/settings_menu.cpp:307
 msgid "Input Settings"
 msgstr "Eingabeeinstellungen"
 
-#: src/menu/settings_menu.cpp:304
+#: src/menu/settings_menu.cpp:309
 msgid "Controller Type"
 msgstr "Kontrollertyp"
 
-#: src/menu/settings_menu.cpp:304
+#: src/menu/settings_menu.cpp:309
 msgid "Type of connected controller and corresponding button prompts"
 msgstr "Typ des verbundenen Kontrollers"
 
-#: src/menu/settings_menu.cpp:305
+#: src/menu/settings_menu.cpp:310
 msgid "None"
 msgstr "Keiner"
 
-#: src/menu/settings_menu.cpp:306
+#: src/menu/settings_menu.cpp:311
 msgid "Automatic"
 msgstr "Automatisch"
 
-#: src/menu/settings_menu.cpp:307
+#: src/menu/settings_menu.cpp:312
 msgid "Keyboard"
 msgstr "Tastatur"
 
-#: src/menu/settings_menu.cpp:308
+#: src/menu/settings_menu.cpp:313
 msgid "PlayStation"
 msgstr "PlayStation"
 
-#: src/menu/settings_menu.cpp:309
+#: src/menu/settings_menu.cpp:314
 msgid "Xbox"
 msgstr "Xbox"
 
-#: src/menu/settings_menu.cpp:310
+#: src/menu/settings_menu.cpp:315
 msgid "Steam Controller / Steamdeck"
 msgstr "Steam Controller / Steam Deck"
 
-#: src/menu/settings_menu.cpp:311
+#: src/menu/settings_menu.cpp:316
 msgid "Ouya"
 msgstr "Ouya"
 
-#: src/menu/settings_menu.cpp:313
+#: src/menu/settings_menu.cpp:318
 msgid "Controller Rumble"
 msgstr "Kontrollervibration"
 
-#: src/menu/settings_menu.cpp:313
+#: src/menu/settings_menu.cpp:318
 msgid "Enable controller rumble as feedback for actions"
 msgstr "Aktiviert Kontrollervibration als Feedback für Aktionen"
 
-#: src/menu/settings_menu.cpp:314
+#: src/menu/settings_menu.cpp:319
 msgid ""
 "Allow navigating all menus using the analog stick in addition to the D-Pad"
 msgstr ""
 "Erlaubt es alle Menüs auch mit dem Joysick und nicht nur mit dem D-Pad zu "
 "bedienen"
 
-#: src/menu/settings_menu.cpp:314
+#: src/menu/settings_menu.cpp:319
 msgid "Navigate Menus with Analog Stick"
 msgstr "Bedienung von Menüs mit Joystick"
 
-#: src/menu/settings_menu.cpp:317
+#: src/menu/settings_menu.cpp:322
 msgid "Debug Settings"
 msgstr "Debugeinstellungen"
 
-#: src/menu/settings_menu.cpp:319
+#: src/menu/settings_menu.cpp:324
 msgid "Show FPS"
 msgstr "FPS anzeigen"
 
-#: src/menu/settings_menu.cpp:320
+#: src/menu/settings_menu.cpp:325
 msgid "Show Memory Usage"
 msgstr "Speichernutzung anzeigen"
 
-#: src/menu/settings_menu.cpp:322
+#: src/menu/settings_menu.cpp:327
 msgid "Toggle Background Blur"
 msgstr "Hintergrund verwischen (an/aus)"
 
-#: src/menu/settings_menu.cpp:327
+#: src/menu/settings_menu.cpp:332
 msgid "Toggle Ingame Mode"
 msgstr "Im-Spiel-Modus (an/aus)"
 
-#: src/menu/settings_menu.cpp:336
+#: src/menu/settings_menu.cpp:341
 msgid "Check for Updates"
 msgstr "Auf Updates prüfen"
 
-#: src/menu/settings_menu.cpp:338
+#: src/menu/settings_menu.cpp:343
 msgid "System Update"
 msgstr "Systemaktualisierung"
 
-#: src/menu/settings_menu.cpp:342
+#: src/menu/settings_menu.cpp:347
 msgid "Report bug"
 msgstr "Fehler melden"
 
-#: src/menu/settings_menu.cpp:346
+#: src/menu/settings_menu.cpp:351
 msgid "Reset"
 msgstr "Zurücksetzen"
 
-#: src/menu/settings_menu.cpp:386
+#: src/menu/settings_menu.cpp:391
 msgid "Open website in browser"
 msgstr "Webseite im Browser öffnen"
 
-#: src/menu/settings_menu.cpp:386
+#: src/menu/settings_menu.cpp:391
 msgid "View License Text"
 msgstr "Lizenztext anzeigen"
 
-#: src/menu/settings_menu.cpp:389
+#: src/menu/settings_menu.cpp:394
 msgid "License for {}"
 msgstr "Lizenz für {}"
 
-#: src/menu/settings_menu.cpp:399
+#: src/menu/settings_menu.cpp:404
 msgid "Licenses"
 msgstr "Lizenzen"
 
