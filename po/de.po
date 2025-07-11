@@ -247,7 +247,7 @@ msgid "On"
 msgstr "An"
 
 #: src/menu/settings_menu.cpp:286
-msgid "Appearance Settings"
+msgid "Personalization Settings"
 msgstr "Personalisierung"
 
 #: src/menu/settings_menu.cpp:288

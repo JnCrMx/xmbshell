@@ -283,7 +283,7 @@ namespace menu {
 
     settings_menu::settings_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(std::move(name), std::move(icon)) {
         const std::filesystem::path& asset_dir = config::CONFIG.asset_directory;
-        entries.push_back(make_simple<simple_menu>("Appearance Settings"_(), asset_dir/"icons/icon_settings_appearance.png", loader,
+        entries.push_back(make_simple<simple_menu>("Personalization Settings"_(), asset_dir/"icons/icon_settings_personalization.png", loader,
             std::array{
                 entry_enum(loader, xmb, "Background Type"_(), "Type of background to use"_(), "re.jcm.xmbos.xmbshell", "background-type", std::array{
                     std::pair{"wave", "Animated Wave"_()},

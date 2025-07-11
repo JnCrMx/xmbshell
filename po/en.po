@@ -248,8 +248,8 @@ msgid "On"
 msgstr "On"
 
 #: src/menu/settings_menu.cpp:286
-msgid "Appearance Settings"
-msgstr "Appearance Settings"
+msgid "Personalization Settings"
+msgstr "Personalization Settings"
 
 #: src/menu/settings_menu.cpp:288
 msgid "Background Type"
