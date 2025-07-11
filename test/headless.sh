@@ -3,8 +3,8 @@
 format_spec="05d"
 
 export DREAMRENDER_HEADLESS=1
-export DREAMRENDER_HEADLESS_WIDTH=800
-export DREAMRENDER_HEADLESS_HEIGHT=600
+export DREAMRENDER_HEADLESS_WIDTH=960
+export DREAMRENDER_HEADLESS_HEIGHT=540
 export DREAMRENDER_HEADLESS_OUTPUT_DIR="output/"
 export DREAMRENDER_HEADLESS_OUTPUT_PATTERN="{:$format_spec}.bmp"
 
@@ -36,6 +36,7 @@ duration=15
     sleep 1.0; key_down; \
     sleep 0.5; key_up; \
     sleep 0.5; key_right; \
+    sleep 0.5; key_down; \
     sleep 0.5; key_return; \
     sleep 0.5; key_down; \
     sleep 0.5; key_return; \
