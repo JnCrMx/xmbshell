@@ -134,7 +134,7 @@ namespace app
             debugName(device, blurImageDst->image, "Blur Image Destination");
         }
 
-        font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
+        font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get(), nullptr, 0x20, 0xff);
         image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
         simple_render->preload({shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
         wave_render->preload({backgroundRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
