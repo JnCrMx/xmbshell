@@ -1,15 +1,15 @@
 #
-#  <>, 2024-2025.
+# JCM <jcm@jcm.re>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xmbshell 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-07-14 02:40+0000\n"
-"PO-Revision-Date: 2025-07-10 14:56+0200\n"
-"Last-Translator:  <>\n"
-"Language-Team: English\n"
-"Language: en\n"
+"PO-Revision-Date: 2025-07-12 03:53+0200\n"
+"Last-Translator: JCM <jcm@jcm.re>\n"
+"Language-Team: German\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -81,34 +81,42 @@ msgid "View information"
 msgstr "Informationen anzeigen"
 
 #: src/menu/applications_menu.cpp:112
+msgctxt "appinfo"
 msgid "ID: "
 msgstr "ID: "
 
 #: src/menu/applications_menu.cpp:113
+msgctxt "appinfo"
 msgid "Name: "
 msgstr "Name: "
 
 #: src/menu/applications_menu.cpp:114
+msgctxt "appinfo"
 msgid "Display Name: "
 msgstr "Anzeigename: "
 
 #: src/menu/applications_menu.cpp:115
+msgctxt "appinfo"
 msgid "Description: "
 msgstr "Beschreibung: "
 
 #: src/menu/applications_menu.cpp:116
+msgctxt "appinfo"
 msgid "Executable: "
 msgstr "Programmdatei: "
 
 #: src/menu/applications_menu.cpp:117
+msgctxt "appinfo"
 msgid "Command Line: "
 msgstr "Befehlszeile: "
 
 #: src/menu/applications_menu.cpp:118
+msgctxt "appinfo"
 msgid "Icon: "
 msgstr "Icon: "
 
 #: src/menu/applications_menu.cpp:119
+msgctxt "appinfo"
 msgid "Categories: "
 msgstr "Kategorien: "
 
@@ -332,30 +340,37 @@ msgid "Type of connected controller and corresponding button prompts"
 msgstr "Typ des verbundenen Kontrollers"
 
 #: src/menu/settings_menu.cpp:310
+msgctxt "controllertype"
 msgid "None"
 msgstr "Keiner"
 
 #: src/menu/settings_menu.cpp:311
+msgctxt "controllertype"
 msgid "Automatic"
-msgstr "Automatisch"
+msgstr "Automatisch erkennen"
 
 #: src/menu/settings_menu.cpp:312
+msgctxt "controllertype"
 msgid "Keyboard"
 msgstr "Tastatur"
 
 #: src/menu/settings_menu.cpp:313
+msgctxt "controllertype"
 msgid "PlayStation"
 msgstr "PlayStation"
 
 #: src/menu/settings_menu.cpp:314
+msgctxt "controllertype"
 msgid "Xbox"
 msgstr "Xbox"
 
 #: src/menu/settings_menu.cpp:315
+msgctxt "controllertype"
 msgid "Steam Controller / Steamdeck"
 msgstr "Steam Controller / Steam Deck"
 
 #: src/menu/settings_menu.cpp:316
+msgctxt "controllertype"
 msgid "Ouya"
 msgstr "Ouya"
 

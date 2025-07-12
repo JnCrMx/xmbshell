@@ -109,14 +109,14 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
                     return;
                 case 1: {
                     std::string info{};
-                    info += "ID: "_() + app->get_id() + "\n";
-                    info += "Name: "_() + app->get_name() + "\n";
-                    info += "Display Name: "_() + app->get_display_name() + "\n";
-                    info += "Description: "_() + app->get_description() + "\n";
-                    info += "Executable: "_() + app->get_executable() + "\n";
-                    info += "Command Line: "_() + app->get_commandline() + "\n";
-                    info += "Icon: "_() + app->get_icon()->to_string() + "\n";
-                    info += "Categories: "_() + app->get_categories() + "\n";
+                    info += "appinfo|ID: "_() + app->get_id() + "\n";
+                    info += "appinfo|Name: "_() + app->get_name() + "\n";
+                    info += "appinfo|Display Name: "_() + app->get_display_name() + "\n";
+                    info += "appinfo|Description: "_() + app->get_description() + "\n";
+                    info += "appinfo|Executable: "_() + app->get_executable() + "\n";
+                    info += "appinfo|Command Line: "_() + app->get_commandline() + "\n";
+                    info += "appinfo|Icon: "_() + app->get_icon()->to_string() + "\n";
+                    info += "appinfo|Categories: "_() + app->get_categories() + "\n";
                     xmb->emplace_overlay<app::message_overlay>("Application Information"_(), info, std::vector<std::string>{"OK"_()}, [](unsigned int){}, false);
                     return;
                     }
