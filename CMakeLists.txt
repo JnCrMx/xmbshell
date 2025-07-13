@@ -24,6 +24,7 @@ option(GENERATE_POT "Generate .pot file" OFF)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_options(-fPIC)
 add_compile_options(-Wno-nullability-completeness)
 
 find_package(glm REQUIRED)

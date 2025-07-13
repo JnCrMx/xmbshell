@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <filesystem>
 #include <functional>
+#include <numeric>
 #include <string>
 #include <unordered_set>
 #include <variant>
