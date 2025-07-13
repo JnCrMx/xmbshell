@@ -24,7 +24,7 @@ option(GENERATE_POT "Generate .pot file" OFF)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_options(-Wno-nullability-completeness)
+add_compile_options(-Wno-nullability-completeness -fPIC)
 
 find_package(glm REQUIRED)
 find_package(Freetype REQUIRED)
@@ -108,6 +108,15 @@ set(AV_ENABLE_STATIC ON CACHE BOOL "" FORCE)
 set(AV_ENABLE_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable_ExcludeFromAll(avcpp)
 
+FetchContent_Declare(waylandpp
+  GIT_REPOSITORY https://github.com/NilsBrause/waylandpp.git
+  GIT_TAG        1.0.1
+  EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable_ExcludeFromAll(waylandpp)
+add_library(waylandpp::wayland-server++ ALIAS wayland-server++)
+add_library(waylandpp::wayland-server-extra++ ALIAS wayland-server-extra++)
+
 add_library(glibmmModule STATIC)
 target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES third_party/glibmm.cppm)
 target_compile_features(glibmmModule PUBLIC cxx_std_20)
@@ -137,6 +146,12 @@ target_sources(avcppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/avcpp.c
 target_compile_features(avcppModule PUBLIC cxx_std_23)
 target_link_libraries(avcppModule PUBLIC avcpp::avcpp)
 target_compile_options(avcppModule PRIVATE -pthread)
+
+add_library(waylandppModule STATIC)
+target_sources(waylandppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/waylandpp.cppm)
+target_compile_features(waylandppModule PUBLIC cxx_std_23)
+target_link_libraries(waylandppModule PUBLIC waylandpp::wayland-server++ waylandpp::wayland-server-extra++)
+target_compile_options(waylandppModule PRIVATE -pthread)
 
 set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
@@ -226,6 +241,10 @@ if(GENERATE_POT)
 else()
   target_link_libraries(xmbshell PRIVATE i18n::i18n-lib)
 endif()
+
+add_executable(wayland_server_test "test/wayland_server.cpp")
+target_link_libraries(wayland_server_test PRIVATE waylandppModule)
+target_compile_options(wayland_server_test PRIVATE -pthread)
 
 include(GNUInstallDirs)
 
