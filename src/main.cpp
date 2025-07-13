@@ -5,6 +5,9 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+
 import sdl2;
 import spdlog;
 import glibmm;
@@ -16,6 +19,7 @@ import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
 
+#if __linux__
 std::string find_visualid() {
     std::unique_ptr<Display, decltype(&XCloseDisplay)> display(XOpenDisplay(nullptr), XCloseDisplay);
     if (!display) {
@@ -27,7 +31,9 @@ std::string find_visualid() {
     }
     return std::to_string(visualInfo.visualid);
 }
+#endif
 
+#undef main
 int main(int argc, char *argv[])
 {
 #ifndef NDEBUG
@@ -92,7 +98,7 @@ int main(int argc, char *argv[])
     // Initialize Glib and Gio
     Gio::init();
     setlocale(LC_ALL, "");
-    bindtextdomain("xmbshell", config::CONFIG.locale_directory.c_str());
+    bindtextdomain("xmbshell", config::CONFIG.locale_directory.string().c_str());
     textdomain("xmbshell");
     Glib::RefPtr<Glib::MainLoop> loop;
 #if __cpp_lib_jthread >= 201911L
@@ -110,8 +116,18 @@ int main(int argc, char *argv[])
     av::set_logging_level("debug");
 #endif
 
+#ifdef _WIN32
+    if(!std::getenv("GSETTINGS_SCHEMA_DIR")) {
+        auto dir = config::CONFIG.exe_directory / "../share/glib-2.0/schemas/";
+        spdlog::debug("Setting GSETTINGS_SCHEMA_DIR to {}", dir.string());
+        putenv(std::string("GSETTINGS_SCHEMA_DIR=" + dir.string()).c_str());
+    }
+#endif
+
     config::CONFIG.load();
     spdlog::debug("Config loaded");
+
+    SDL_SetMainReady();
 
     dreamrender::window_config window_config;
     window_config.name = "xmbshell";
@@ -119,9 +135,11 @@ int main(int argc, char *argv[])
     window_config.preferredPresentMode = config::CONFIG.preferredPresentMode;
     window_config.sampleCount = config::CONFIG.sampleCount;
     window_config.fpsLimit = config::CONFIG.maxFPS;
+#if __linux__
     if(std::getenv("DISPLAY")) {
         window_config.sdl_hints[sdl::hints::video_x11_window_visualid] = find_visualid();
     }
+#endif
     window_config.width = program.get<int>("--width");
     window_config.height = program.get<int>("--height");
     window_config.fullscreen = !program.get<bool>("--no-fullscreen");

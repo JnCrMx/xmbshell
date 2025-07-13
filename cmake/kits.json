@@ -1,0 +1,6 @@
+[
+    {
+        "name": "Windows x64",
+        "toolchainFile": "cmake/windows.cmake"
+    }
+]

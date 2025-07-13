@@ -1,6 +1,8 @@
 module;
 
+#if __linux__
 #include <sdbus-c++/sdbus-c++.h>
+#endif
 
 module xmbshell.dbus;
 
@@ -14,6 +16,7 @@ namespace dbus
 {
     dbus_server::dbus_server(dreamrender::window* w, app::xmbshell* x) : win(w), xmb(x)
     {
+#if __linux__
         const char* serviceName = "re.jcm.xmbos.xmbshell";
         connection = sdbus::createSessionBusConnection(serviceName);
 
@@ -48,15 +51,20 @@ namespace dbus
             });
 
         object->finishRegistration();
+#endif
     }
 
     dbus_server::~dbus_server()
     {
+#if __linux__
         connection->leaveEventLoop();
+#endif
     }
 
     void dbus_server::run()
     {
+#if __linux__
         connection->enterEventLoopAsync();
+#endif
     }
 }

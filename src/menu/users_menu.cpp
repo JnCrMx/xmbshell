@@ -33,6 +33,7 @@ namespace menu {
             spdlog::error("Failed to create DBus proxies: {}", static_cast<std::string>(e.what()));
         }
 
+#if __linux__
         if(accounts) try {
             uint64_t my_uid = getuid();
             Glib::Variant<std::vector<Glib::DBusObjectPathString>> users;
@@ -61,6 +62,7 @@ namespace menu {
         } catch (const Glib::Exception& e) {
             spdlog::error("Failed to get user list: {}", static_cast<std::string>(e.what()));
         }
+#endif
 
         entries.push_back(make_simple<action_menu_entry>("Quit"_(), config::CONFIG.asset_directory/"icons/icon_action_quit.png", loader, [xmb](){
             xmb->emplace_overlay<app::message_overlay>("Quit"_(), "Do you really want to quit the application?"_(),

@@ -14,8 +14,10 @@ module;
 #include <cxxabi.h>
 #endif
 
+#if __linux__
 #include <fcntl.h>
 #include <sys/mman.h>
+#endif
 
 module xmbshell.utils;
 
@@ -24,6 +26,7 @@ import giomm;
 import spdlog;
 
 namespace utils {
+#if __linux__
     class GtkIconCache {
         public:
             GtkIconCache(const std::filesystem::path& path) : m_fd(-1), m_data(nullptr) {
@@ -165,11 +168,12 @@ namespace utils {
             std::size_t m_bucket_count;
             std::size_t m_directory_offset;
     };
-
     inline std::vector<std::tuple<std::filesystem::path, GtkIconCache>> gtkIconCaches;
+#endif
     inline std::once_flag iconInitFlag;
 
     static void initialize_icons(){
+#if __linux__
         auto process = [](const std::filesystem::path& path) {
             try {
                 auto cache = path / "icon-theme.cache";
@@ -211,6 +215,7 @@ namespace utils {
             }
         }
         spdlog::debug("Found {} themed icon caches", gtkIconCaches.size());
+#endif
     };
 
     std::optional<std::filesystem::path> resolve_icon(const Gio::Icon* icon) {
@@ -218,6 +223,7 @@ namespace utils {
 
         if(auto* themed_icon = dynamic_cast<const Gio::ThemedIcon*>(icon)) {
             std::string name = *themed_icon->get_names().begin();
+#if __linux__
             for(const auto& [p, c] : gtkIconCaches) {
                 try {
                     if(auto r = c.lookup(name)) {
@@ -227,6 +233,7 @@ namespace utils {
                     spdlog::error("Error while looking up themed icon \"{}\" in cache {}: {}", name, p.string(), e.what());
                 }
             }
+#endif
             spdlog::warn("Themed icon \"{}\" not found", name);
         } else if(auto* file_icon = dynamic_cast<const Gio::FileIcon*>(icon)) {
             return file_icon->get_file()->get_path();

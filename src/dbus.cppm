@@ -1,6 +1,8 @@
 module;
 
+#if __linux__
 #include <sdbus-c++/sdbus-c++.h>
+#endif
 
 export module xmbshell.dbus;
 import dreamrender;
@@ -15,8 +17,10 @@ export namespace dbus
             ~dbus_server();
             void run();
         private:
+#if __linux__
             std::unique_ptr<sdbus::IConnection> connection;
             std::unique_ptr<sdbus::IObject> object;
+#endif
             dreamrender::window* win;
             app::xmbshell* xmb;
     };

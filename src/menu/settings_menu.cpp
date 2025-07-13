@@ -11,7 +11,9 @@ module;
 #include <string>
 #include <vector>
 
+#if __linux__
 #include <sys/wait.h>
+#endif
 
 module xmbshell.app;
 
@@ -33,6 +35,7 @@ import :text_viewer;
 namespace menu {
     using namespace mfk::i18n::literals;
 
+#if __linux__
     class updater : public app::progress_item {
         public:
             updater() = default;
@@ -141,6 +144,7 @@ namespace menu {
             constexpr static auto wait_duration = std::chrono::milliseconds(500);
             app::xmbshell* xmb;
     };
+#endif
 
     std::unique_ptr<action_menu_entry> entry_base(dreamrender::resource_loader& loader,
         std::string name, std::string description, const std::string& key,
@@ -337,6 +341,7 @@ namespace menu {
 #endif
             }
         ));
+#if __linux__
         if(std::getenv("APPIMAGE")) {
             entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), asset_dir/"icons/icon_settings_update.png", loader, [xmb](){
                 spdlog::info("Update request from XMB");
@@ -344,6 +349,7 @@ namespace menu {
                 return result::unsupported;
             }));
         }
+#endif
         entries.push_back(make_simple<action_menu_entry>("Report bug"_(), asset_dir/"icons/icon_bug.png", loader, [](){
             spdlog::info("Bug report request from XMB");
             return result::unsupported;

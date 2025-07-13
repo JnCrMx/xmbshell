@@ -8,9 +8,11 @@ module;
 #include <span>
 #include <utility>
 
+#if __linux__
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#endif
 
 export module xmbshell.app:text_viewer;
 
@@ -26,6 +28,7 @@ namespace programs {
 
 using namespace app;
 
+#if __linux__
 class mapped_memory {
     public:
         mapped_memory(const std::filesystem::path& path) {
@@ -87,6 +90,58 @@ class mapped_memory {
         std::size_t m_size = 0;
         void* m_data = nullptr;
 };
+#else
+class mapped_memory {
+    public:
+        mapped_memory(const std::filesystem::path& path) {
+            std::ifstream file(path, std::ios::binary | std::ios::ate);
+            if(!file.is_open()) {
+                spdlog::error("Failed to open file {}: {}", path.string(), strerror(errno));
+                throw std::runtime_error("Failed to open file");
+            }
+            std::streamsize size = -1;
+            if(size < 0) {
+                spdlog::error("Failed to get size of file {}: {}", path.string(), strerror(errno));
+                throw std::runtime_error("Failed to get file size");
+            }
+            file.seekg(0, std::ios::beg);
+
+            m_data.resize(static_cast<std::size_t>(size));
+            if(!file.read(m_data.data(), size)) {
+                spdlog::error("Failed to read file {}: {}", path.string(), strerror(errno));
+                throw std::runtime_error("Failed to read file");
+            }
+        }
+        mapped_memory(const mapped_memory&) = delete;
+        mapped_memory(mapped_memory&& other) noexcept : m_data(std::move(other.m_data)) {
+        }
+        ~mapped_memory() = default;
+
+        mapped_memory& operator=(const mapped_memory&) = delete;
+        mapped_memory& operator=(mapped_memory&& other) noexcept {
+            if(this != &other) {
+                m_data = std::move(other.m_data);
+            }
+            return *this;
+        }
+
+        template<typename T>
+        const T* data() const {
+            return reinterpret_cast<const T*>(m_data.data());
+        }
+
+        std::size_t size() const {
+            return m_data.size();
+        }
+
+        template<typename T>
+        operator std::span<const T>() const {
+            return std::span<const T>(reinterpret_cast<const T*>(m_data.data()), m_data.size() / sizeof(T));
+        }
+    private:
+        std::string m_data;
+};
+#endif
 
 export class text_viewer : public component, public action_receiver, public joystick_receiver, public mouse_receiver {
     public:

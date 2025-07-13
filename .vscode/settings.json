@@ -7,5 +7,8 @@
     "clangd.arguments": [
         "--clang-tidy",
         "--header-insertion=never"
+    ],
+    "cmake.additionalKits": [
+        "${workspaceFolder}/cmake/kits.json"
     ]
 }
