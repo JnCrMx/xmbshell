@@ -29,11 +29,11 @@ steps:
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         curl clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext
-        ca-certificates libglib2.0-bin imagemagick pkg-config make
+        ca-certificates libglib2.0-bin imagemagick pkg-config make tar gpg zstd
       - .woodpecker/download_unlicensed.sh
       - git clone https://github.com/HolyBlackCat/quasi-msys2.git
       - cd quasi-msys2
-      - make _gcc _glibmm _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
+      - make install _gcc _glibmm _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
       - cd ..
       - export MSYS2_ROOT=$PWD/quasi-msys2
       - mkdir -p build
