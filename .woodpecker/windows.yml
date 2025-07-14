@@ -1,0 +1,46 @@
+variables:
+  - &minio-settings
+    access_key:
+      from_secret: minio_access_key
+    secret_key:
+      from_secret: minio_secret_key
+    endpoint:
+      from_secret: minio_endpoint
+    path_style: true
+    region: eu-central-jcm
+
+when:
+  - event: push
+  - event: manual
+
+labels:
+  compat: riscv64
+
+clone:
+  git:
+    image: docker.io/woodpeckerci/plugin-git:2.4.0
+    settings:
+      tags: true
+steps:
+  build:
+    image: ubuntu:plucky
+    commands:
+      - apt-get update
+      - >-
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        curl clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext
+        ca-certificates libglib2.0-bin imagemagick pkg-config make
+      - .woodpecker/download_unlicensed.sh
+      - git clone https://github.com/HolyBlackCat/quasi-msys2.git
+      - cd quasi-msys2
+      - make _gcc _glibmm _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
+      - cd ..
+      - export MSYS2_ROOT=$PWD/quasi-msys2
+      - mkdir -p build
+      - >-
+        cmake
+        -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_LINKER_TYPE=LLD
+        -DCMAKE_TOOLCHAIN_FILE=.woodpecker/windows.cmake
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_VERSION=$BUILD_VERSION
+        -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-windows.log
+      - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-windows.log

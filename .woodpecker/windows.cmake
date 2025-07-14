@@ -1,11 +1,5 @@
-set(ENV{MSYS2_ROOT} "/tmp/quasi-msys2/root")
-
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
-
-set(CMAKE_C_COMPILER clang-19)
-set(CMAKE_CXX_COMPILER clang++-19)
-set(CMAKE_LINKER_TYPE LLD)
 
 set(TARGET_TRIPLE x86_64-pc-windows-gnu)
 set(CMAKE_C_COMPILER_TARGET ${TARGET_TRIPLE})
