@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 
 #ifdef _WIN32
     if(!std::getenv("GSETTINGS_SCHEMA_DIR")) {
-        auto dir = config::CONFIG.exe_directory / "../share/glib-2.0/schemas/";
+        auto dir = config::CONFIG.exe_directory / "./glib-2.0/schemas/";
         spdlog::debug("Setting GSETTINGS_SCHEMA_DIR to {}", dir.string());
         putenv(std::string("GSETTINGS_SCHEMA_DIR=" + dir.string()).c_str());
     }

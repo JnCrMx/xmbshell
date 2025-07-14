@@ -10,6 +10,7 @@ set(CMAKE_C_COMPILER_TARGET ${TARGET_TRIPLE})
 set(CMAKE_CXX_COMPILER_TARGET ${TARGET_TRIPLE})
 set(CMAKE_LIBRARY_ARCHITECTURE ${TARGET_TRIPLE})
 set(CMAKE_CXX_FLAGS "--start-no-unused-arguments --sysroot=/tmp/quasi-msys2/root/ucrt64 -pthread -fuse-ld=lld-19 -stdlib=libstdc++ -femulated-tls -rtlib=libgcc -unwindlib=libgcc -static --end-no-unused-arguments")
+set(CMAKE_C_FLAGS "--start-no-unused-arguments --sysroot=/tmp/quasi-msys2/root/ucrt64 -pthread -fuse-ld=lld-19 -femulated-tls -rtlib=libgcc -unwindlib=libgcc -static --end-no-unused-arguments")
 
 set(CMAKE_FIND_ROOT_PATH "/tmp/quasi-msys2/root/ucrt64/")
 set(ENV{PKG_CONFIG_PATH} "/tmp/quasi-msys2/root/ucrt64/lib/pkgconfig:/tmp/quasi-msys2/root/ucrt64/share/pkgconfig")
