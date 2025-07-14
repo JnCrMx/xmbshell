@@ -35,7 +35,7 @@ steps:
       - cd quasi-msys2
       - make install _gcc _glibmm _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
       - cd ..
-      - export MSYS2_ROOT=$PWD/quasi-msys2
+      - export MSYS2_ROOT=$PWD/quasi-msys2/root
       - mkdir -p build
       - >-
         cmake
