@@ -251,9 +251,11 @@ namespace menu {
         constexpr char i18n_cpp[] = {
             #embed "_deps/i18n++-src/LICENSE.md"
         };
+#if __linux__
         constexpr char sdbus_cpp[] = {
             #embed "_deps/sdbus-cpp-src/COPYING"
         };
+#endif
         constexpr char argparse[] = {
             #embed "_deps/argparse-src/LICENSE"
         };
@@ -378,7 +380,9 @@ namespace menu {
         std::array licenses = {
             // NOLINTBEGIN(*-array-to-pointer-decay)
             std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
+#if __linux__
             std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
+#endif
             std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", std::string_view(licenses::argparse, sizeof(licenses::argparse))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("avcpp", "https://github.com/h4tr3d/avcpp", std::string_view(licenses::avcpp, sizeof(licenses::avcpp))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("glibmm", "https://gitlab.gnome.org/GNOME/glibmm", std::string_view(licenses::glibmm, sizeof(licenses::glibmm))),
