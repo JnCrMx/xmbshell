@@ -53,7 +53,7 @@ steps:
       # Copy dependencies
       - wget https://files.jcm.re/copydeps-$(arch) -O copydeps
       - chmod +x copydeps
-      - ./copydeps --search-dir $MSYS2_ROOT/ucrt64/bin --verbose xmbshell-windows/xmbshell.exe xmbshell-windows/
+      - ./copydeps --search-dir $MSYS2_ROOT/ucrt64/bin --verbose xmbshell-windows/xmbshell.exe xmbshell-windows/ || true
       # Zip and prepare for upload
       - mkdir -p upload/build upload/beta
       - zip -r upload/build/xmbshell-$BUILD-windows.zip xmbshell-windows/
