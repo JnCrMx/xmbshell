@@ -40,7 +40,7 @@ steps:
       - >-
         cmake
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_LINKER_TYPE=LLD
-        -DCMAKE_TOOLCHAIN_FILE=.woodpecker/windows.cmake
+        -DCMAKE_TOOLCHAIN_FILE=cmake/windows.cmake
         -DCMAKE_BUILD_TYPE=Release -DBUILD_VERSION=$BUILD_VERSION
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-windows.log
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-windows.log

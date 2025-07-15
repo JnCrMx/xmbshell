@@ -206,6 +206,9 @@ target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
 
 target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_CURRENT_BINARY_DIR}/shaders)
 target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_CURRENT_BINARY_DIR})
+if(WIN32)
+  target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_FIND_ROOT_PATH})
+endif()
 
 target_link_libraries(xmbshell PRIVATE dreams::dreamrender)
 target_link_libraries(xmbshell PRIVATE dreams::sdl2Module)

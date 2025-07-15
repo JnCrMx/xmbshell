@@ -251,25 +251,42 @@ namespace menu {
         constexpr char i18n_cpp[] = {
             #embed "_deps/i18n++-src/LICENSE.md"
         };
-#if __linux__
-        constexpr char sdbus_cpp[] = {
-            #embed "_deps/sdbus-cpp-src/COPYING"
-        };
-#endif
         constexpr char argparse[] = {
             #embed "_deps/argparse-src/LICENSE"
         };
         constexpr char avcpp[] = {
             #embed "_deps/avcpp-src/LICENSE-bsd.txt"
         };
-        constexpr char glibmm[] = {
-            #embed "/usr/share/doc/libglibmm-2.4-dev/copyright"
+        constexpr char vulkanmemoryallocator_hpp[] = {
+            #embed "_deps/vulkanmemoryallocator-hpp-src/LICENSE"
         };
         constexpr char vulkan_hpp[] = {
-            #embed "/usr/share/doc/libvulkan-dev/copyright"
+            #embed "_deps/vulkan-hpp-src/LICENSE.txt"
         };
         constexpr char spdlog[] = {
-            #embed "/usr/share/doc/libspdlog-dev/copyright"
+            #embed "_deps/spdlog-src/LICENSE"
+        };
+#if __linux__
+        constexpr char sdbus_cpp[] = {
+            #embed "_deps/sdbus-cpp-src/COPYING"
+        };
+#endif
+#if _WIN32
+        constexpr char glibmm[] = {
+            #embed "share/licenses/glibmm/COPYING"
+        };
+        constexpr char sdl2[] = {
+            #embed "share/licenses/SDL2/LICENSE.txt"
+        };
+        constexpr char freetype[] = {
+            #embed "share/licenses/freetype/FTL.TXT"
+        };
+        constexpr char glm[] = {
+            #embed "share/licenses/glm/copying.txt"
+        };
+#else
+        constexpr char glibmm[] = {
+            #embed "/usr/share/doc/libglibmm-2.4-dev/copyright"
         };
         constexpr char sdl2[] = {
             #embed "/usr/share/doc/libsdl2-dev/copyright"
@@ -280,9 +297,7 @@ namespace menu {
         constexpr char glm[] = {
             #embed "/usr/share/doc/libglm-dev/copyright"
         };
-        constexpr char vulkanmemoryallocator_hpp[] = {
-            #embed "_deps/vulkanmemoryallocator-hpp-src/LICENSE"
-        };
+#endif
         // NOLINTEND(*-avoid-c-arrays)
         #pragma clang diagnostic pop
     }
