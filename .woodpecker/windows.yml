@@ -45,9 +45,16 @@ steps:
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-windows.log
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-windows.log
       - cd build
+      # Install
       - DESTDIR=xmbshell-windows cmake --install . --prefix /
+      # Compile schemas and copy fonts
       - glib-compile-schemas xmbshell-windows/glib-2.0/schemas/
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf xmbshell-windows/xmbshell/Ubuntu-R.ttf
+      # Copy dependencies
+      - wget https://files.jcm.re/copydeps-$(arch) -O copydeps
+      - chmod +x copydeps
+      - ./copydeps --search-dir $MSYS2_ROOT/ucrt64/bin --verbose xmbshell-windows/xmbshell.exe xmbshell-windows/
+      # Zip and prepare for upload
       - mkdir -p upload/build upload/beta
       - zip -r upload/build/xmbshell-$BUILD-windows.zip xmbshell-windows/
       - cp upload/build/xmbshell-$BUILD-windows.zip upload/beta/xmbshell-windows.zip
