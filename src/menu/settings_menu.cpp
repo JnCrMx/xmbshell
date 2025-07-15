@@ -294,6 +294,7 @@ namespace menu {
                     std::pair{"auto", "Use system language"_()},
                     std::pair{"en", "English"_()},
                     std::pair{"de", "German"_()},
+                    std::pair{"pl", "Polish"_()},
                 }),
             }
         ));
@@ -348,7 +349,7 @@ namespace menu {
             spdlog::info("Bug report request from XMB");
             return result::unsupported;
         }));
-        entries.push_back(make_simple<action_menu_entry>("Reset"_(), asset_dir/"icons/icon_settings_reset.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Reset all Settings to default"_(), asset_dir/"icons/icon_settings_reset.png", loader, [](){
             spdlog::info("Settings reset request from XMB");
             Glib::RefPtr<Gio::Settings> shellSettings =
                 Gio::Settings::create("re.jcm.xmbos.xmbshell");

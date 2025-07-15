@@ -101,7 +101,7 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
     } else if(action == action::options) {
         bool hidden = config::CONFIG.excludedApplications.contains(app->get_id());
         xmb->emplace_overlay<app::choice_overlay>(std::vector{
-            "Launch application"_(), "View information"_(), hidden ? "Show in XMB"_() : "Remove from XMB"_()
+            "Launch Application"_(), "View information"_(), hidden ? "Show in XMB"_() : "Hide from XMB"_()
         }, 0, [this, app, hidden](unsigned int index){
             switch(index) {
                 case 0:
@@ -122,8 +122,8 @@ result applications_menu::activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, ac
                     }
                 case 2:
                     if(!hidden) {
-                        xmb->emplace_overlay<app::message_overlay>("Remove Application"_(),
-                            "Are you sure you want to remove this application from XMB Shell?"_(),
+                        xmb->emplace_overlay<app::message_overlay>("Hide Application"_(),
+                            "Are you sure you want to hide this application from XMB Shell?"_(),
                             std::vector<std::string>{"Yes"_(), "No"_()}, [this, app](unsigned int index){
                             if(index == 0) {
                                 config::CONFIG.excludeApplication(app->get_id());

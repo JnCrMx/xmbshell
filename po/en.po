@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xmbshell 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-14 02:40+0000\n"
+"POT-Creation-Date: 2025-07-14 02:40+0000\n"
 "PO-Revision-Date: 2025-07-12 03:52+0200\n"
 "Last-Translator: JCM <jcm@jcm.re>\n"
 "Language-Team: English\n"
@@ -65,12 +65,12 @@ msgid "Video Memory: {:.2f}/{:.2f} MB"
 msgstr "Video Memory: {:.2f}/{:.2f} MB"
 
 #: src/menu/applications_menu.cpp:104
-msgid "Launch application"
-msgstr "Launch application"
+msgid "Launch Application"
+msgstr "Launch Application"
 
 #: src/menu/applications_menu.cpp:104
-msgid "Remove from XMB"
-msgstr "Remove from XMB"
+msgid "Hide from XMB"
+msgstr "Hide from XMB"
 
 #: src/menu/applications_menu.cpp:104
 msgid "Show in XMB"
@@ -131,12 +131,12 @@ msgid "OK"
 msgstr "OK"
 
 #: src/menu/applications_menu.cpp:125
-msgid "Remove Application"
-msgstr "Remove Application"
+msgid "Hide Application"
+msgstr "Hide Application"
 
 #: src/menu/applications_menu.cpp:126
-msgid "Are you sure you want to remove this application from XMB Shell?"
-msgstr "Are you sure you want to remove this application from XMB Shell?"
+msgid "Are you sure you want to hide this application from XMB Shell?"
+msgstr "Are you sure you want to hide this application from XMB Shell?"
 
 #: src/menu/applications_menu.cpp:127 src/menu/settings_menu.cpp:121
 #: src/menu/users_menu.cpp:110 src/menu/users_menu.cpp:67
@@ -167,12 +167,12 @@ msgid " (hidden)"
 msgstr " (hidden)"
 
 #: src/menu/files_menu.cpp:216
-msgid "No program found"
-msgstr "No program found"
+msgid "No matching program found"
+msgstr "No matching program found"
 
 #: src/menu/files_menu.cpp:217
-msgid "No program found for file of type \"{}\": {}"
-msgstr "No program found for file of type \"{}\": {}"
+msgid "No matching program found for file of type \"{}\": {}"
+msgstr "No matching program found for file of type \"{}\": {}"
 
 #: src/menu/files_menu.cpp:272
 msgid "Copy"
@@ -191,8 +191,8 @@ msgid "Open"
 msgstr "Open"
 
 #: src/menu/files_menu.cpp:272
-msgid "Open externally"
-msgstr "Open externally"
+msgid "Open using external program"
+msgstr "Open using external program"
 
 #: src/menu/files_menu.cpp:272
 msgid "Refresh"
@@ -203,8 +203,8 @@ msgid "Paste here"
 msgstr "Paste here"
 
 #: src/menu/files_menu.cpp:278
-msgid "Paste into"
-msgstr "Paste into"
+msgid "Paste into this folder"
+msgstr "Paste into this folder"
 
 #: src/menu/files_menu.cpp:310
 msgid "Copy failed"
@@ -424,8 +424,8 @@ msgid "Report bug"
 msgstr "Report bug"
 
 #: src/menu/settings_menu.cpp:351
-msgid "Reset"
-msgstr "Reset"
+msgid "Reset all Settings to default"
+msgstr "Reset all Settings to default"
 
 #: src/menu/settings_menu.cpp:391
 msgid "Open website in browser"

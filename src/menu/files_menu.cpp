@@ -213,9 +213,9 @@ namespace menu {
             if(open_infos.empty()) {
                 std::string p = path.string();
                 std::string mime_type = info->get_attribute_string("standard::fast-content-type");
-                spdlog::error("No program found for file of type \"{}\": {}", mime_type, p);
-                xmb->emplace_overlay<app::message_overlay>("No program found"_(),
-                    "No program found for file of type \"{}\": {}"_(mime_type, p),
+                spdlog::error("No machting program found for file of type \"{}\": {}", mime_type, p);
+                xmb->emplace_overlay<app::message_overlay>("No machting program found"_(),
+                    "No matching program found for file of type \"{}\": {}"_(mime_type, p),
                     std::vector<std::string>{"OK"_()});
                 return;
             }
@@ -270,13 +270,13 @@ namespace menu {
                 action_open, action_open_external, action_view_information, action_copy, action_cut, action_delete, action_refresh
             };
             std::vector options{
-                "Open"_(),   "Open externally"_(), "View information"_(),   "Copy"_(),   "Cut"_(),   "Delete"_(),   "Refresh"_()
+                "Open"_(),   "Open using external program"_(), "View information"_(),   "Copy"_(),   "Cut"_(),   "Delete"_(),   "Refresh"_()
             };
             if(const auto& cb = xmb->get_clipboard()) {
                 if(std::holds_alternative<std::function<bool(std::filesystem::path)>>(*cb)) {
                     options.push_back("Paste here"_()); actions.emplace_back(action_paste_here);
                     if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
-                        options.push_back("Paste into"_()); actions.emplace_back(action_paste_into);
+                        options.push_back("Paste into this folder"_()); actions.emplace_back(action_paste_into);
                     }
                 }
             }

@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xmbshell 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-14 02:40+0000\n"
-"PO-Revision-Date: 2025-07-12 03:53+0200\n"
+"POT-Creation-Date: 2025-07-14 02:40+0000\n"
+"PO-Revision-Date: 2025-07-15 22:32+0200\n"
 "Last-Translator: JCM <jcm@jcm.re>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -60,17 +60,18 @@ msgstr "Freunde"
 msgid "FPS: {:.2f}"
 msgstr "FPS: {:.2f}"
 
+# rename to VRAM
 #: src/app/xmbshell.cpp:541
 msgid "Video Memory: {:.2f}/{:.2f} MB"
-msgstr "Videospeicher: {:.2f}/{:.2f} MB"
+msgstr "VRAM: {:.2f}/{:.2f} MB"
 
 #: src/menu/applications_menu.cpp:104
-msgid "Launch application"
+msgid "Launch Application"
 msgstr "Anwendung starten"
 
 #: src/menu/applications_menu.cpp:104
-msgid "Remove from XMB"
-msgstr "Aus XMB entfernen"
+msgid "Hide from XMB"
+msgstr "In XMB verstecken"
 
 #: src/menu/applications_menu.cpp:104
 msgid "Show in XMB"
@@ -131,12 +132,12 @@ msgid "OK"
 msgstr "OK"
 
 #: src/menu/applications_menu.cpp:125
-msgid "Remove Application"
-msgstr "Anwendung entfernen"
+msgid "Hide Application"
+msgstr "Anwendung verstecken"
 
 #: src/menu/applications_menu.cpp:126
-msgid "Are you sure you want to remove this application from XMB Shell?"
-msgstr "Möchten Sie die Anwendung wirklich aus XMB entfernen?"
+msgid "Are you sure you want to hide this application from XMB Shell?"
+msgstr "Möchten Sie die Anwendung wirklich verstecken?"
 
 #: src/menu/applications_menu.cpp:127 src/menu/settings_menu.cpp:121
 #: src/menu/users_menu.cpp:110 src/menu/users_menu.cpp:67
@@ -167,12 +168,12 @@ msgid " (hidden)"
 msgstr "(versteckt)"
 
 #: src/menu/files_menu.cpp:216
-msgid "No program found"
-msgstr "Kein Programm gefunden"
+msgid "No matching program found"
+msgstr "Kein passendes Programm gefunden"
 
 #: src/menu/files_menu.cpp:217
-msgid "No program found for file of type \"{}\": {}"
-msgstr "Kein Programm für den Dateitype \"{}\" gefunden: {}"
+msgid "No matching program found for file of type \"{}\": {}"
+msgstr "Kein passendes Programm für den Dateitype \"{}\" gefunden: {}"
 
 #: src/menu/files_menu.cpp:272
 msgid "Copy"
@@ -191,8 +192,8 @@ msgid "Open"
 msgstr "Öffnen"
 
 #: src/menu/files_menu.cpp:272
-msgid "Open externally"
-msgstr "Extern öffnen"
+msgid "Open using external program"
+msgstr "Mit externem Programm öffnen"
 
 #: src/menu/files_menu.cpp:272
 msgid "Refresh"
@@ -203,7 +204,7 @@ msgid "Paste here"
 msgstr "Hier einfügen"
 
 #: src/menu/files_menu.cpp:278
-msgid "Paste into"
+msgid "Paste into this folder"
 msgstr "In diesen Ordner einfügen"
 
 #: src/menu/files_menu.cpp:310
@@ -426,8 +427,8 @@ msgid "Report bug"
 msgstr "Fehler melden"
 
 #: src/menu/settings_menu.cpp:351
-msgid "Reset"
-msgstr "Zurücksetzen"
+msgid "Reset all Settings to default"
+msgstr "Alle Einstellungen zurücksetzen"
 
 #: src/menu/settings_menu.cpp:391
 msgid "Open website in browser"
