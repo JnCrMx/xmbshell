@@ -33,7 +33,7 @@ steps:
       - .woodpecker/download_unlicensed.sh
       - git clone https://github.com/HolyBlackCat/quasi-msys2.git
       - cd quasi-msys2
-      - make install _gcc _glibmm _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
+      - make install _gcc _glibmm-2.68 _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
       - cd ..
       - export MSYS2_ROOT=$PWD/quasi-msys2/root
       - mkdir -p build
