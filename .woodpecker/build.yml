@@ -40,7 +40,7 @@ steps:
         clang-19 lld-19 cmake ninja-build libstdc++-14-dev:${TARGETARCH} git patch ssh-client ca-certificates
         clang-tools-19 glslang-tools xxd patch curl wget gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
         libvulkan-dev:${TARGETARCH} pkg-config libsystemd-dev:${TARGETARCH} libsdl2-dev:${TARGETARCH} libsdl2-mixer-dev:${TARGETARCH} libsdl2-image-dev:${TARGETARCH} libglm-dev:${TARGETARCH}
-        libspdlog-dev:${TARGETARCH} libfreetype-dev:${TARGETARCH} libglibmm-2.4-dev:${TARGETARCH} libsdbus-c++-dev:${TARGETARCH} libboost-dev:${TARGETARCH}
+        libspdlog-dev:${TARGETARCH} libfreetype-dev:${TARGETARCH} libglibmm-2.68-dev:${TARGETARCH} libsdbus-c++-dev:${TARGETARCH} libboost-dev:${TARGETARCH}
         libavformat-dev:${TARGETARCH} libavcodec-dev:${TARGETARCH} libavutil-dev:${TARGETARCH} libavfilter-dev:${TARGETARCH}
         libswscale-dev:${TARGETARCH} libswresample-dev:${TARGETARCH} libpostproc-dev:${TARGETARCH} libavdevice-dev:${TARGETARCH}
       - >-

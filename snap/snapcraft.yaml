@@ -47,7 +47,7 @@ parts:
       - libglm-dev
       - libspdlog-dev
       - libfreetype-dev
-      - libglibmm-2.4-dev
+      - libglibmm-2.68-dev
       - libsdl2-dev
       - libsdl2-image-dev
       - libsdl2-mixer-dev
@@ -58,7 +58,7 @@ parts:
       - libsdl2-image-2.0-0
       - libsdl2-mixer-2.0-0
       - libspdlog1.12-fmt9
-      - libglibmm-2.4-1t64
+      - libglibmm-2.68-1t64
       - libpulse0
       - fonts-ubuntu
     cmake-parameters:

@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Windows x64 (CI)",
+        "toolchainFile": "cmake/windows.cmake"
+    },
+    {
+        "name": "Windows x64 with Clang 19",
+        "toolchainFile": "cmake/windows-clang-19.cmake"
+    }
+]
