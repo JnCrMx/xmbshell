@@ -273,7 +273,7 @@ namespace menu {
 #endif
 #if _WIN32
         constexpr char glibmm[] = {
-            #embed "share/licenses/glibmm/COPYING"
+            #embed "share/licenses/glibmm-2.68/COPYING"
         };
         constexpr char sdl2[] = {
             #embed "share/licenses/SDL2/LICENSE.txt"
@@ -286,7 +286,7 @@ namespace menu {
         };
 #else
         constexpr char glibmm[] = {
-            #embed "/usr/share/doc/libglibmm-2.4-dev/copyright"
+            #embed "/usr/share/doc/libglibmm-2.68-dev/copyright"
         };
         constexpr char sdl2[] = {
             #embed "/usr/share/doc/libsdl2-dev/copyright"

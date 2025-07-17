@@ -27,9 +27,9 @@ namespace menu {
 
     users_menu::users_menu(std::string name, dreamrender::texture&& icon, app::xmbshell* xmb, dreamrender::resource_loader& loader) : simple_menu(std::move(name), std::move(icon)) {
         try {
-            login1 = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager");
-            accounts = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.Accounts", "/org/freedesktop/Accounts", "org.freedesktop.Accounts");
-        } catch (const Glib::Exception& e) {
+            login1 = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager");
+            accounts = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::SYSTEM, "org.freedesktop.Accounts", "/org/freedesktop/Accounts", "org.freedesktop.Accounts");
+        } catch (const std::exception& e) {
             spdlog::error("Failed to create DBus proxies: {}", static_cast<std::string>(e.what()));
         }
 
@@ -39,7 +39,7 @@ namespace menu {
             Glib::Variant<std::vector<Glib::DBusObjectPathString>> users;
             accounts->call_sync("ListCachedUsers", Glib::VariantContainerBase{}).get_child(users);
             for(const auto& user_path : users.get()) {
-                auto user = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::BUS_TYPE_SYSTEM, "org.freedesktop.Accounts", user_path, "org.freedesktop.Accounts.User");
+                auto user = Gio::DBus::Proxy::create_for_bus_sync(Gio::DBus::BusType::SYSTEM, "org.freedesktop.Accounts", user_path, "org.freedesktop.Accounts.User");
                 Glib::Variant<Glib::ustring> real_name, icon_file;
                 Glib::Variant<uint64_t> uid;
                 user->get_cached_property(real_name, "RealName");
@@ -59,7 +59,7 @@ namespace menu {
                     entries.push_back(std::move(entry));
                 }
             }
-        } catch (const Glib::Exception& e) {
+        } catch (const std::exception& e) {
             spdlog::error("Failed to get user list: {}", static_cast<std::string>(e.what()));
         }
 #endif
@@ -118,7 +118,7 @@ namespace menu {
                     return result::success;
                 }));
             }
-        } catch (const Glib::Exception& e) {
+        } catch (const std::exception& e) {
             spdlog::error("Failed to get power management information: {}", static_cast<std::string>(e.what()));
         }
     }

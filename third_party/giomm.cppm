@@ -8,12 +8,6 @@ export namespace Gio {
     using Gio::init;
 #if __linux__
     using Gio::DesktopAppInfo;
-#else
-    struct DesktopAppInfo : public Gio::AppInfo {
-        std::string get_categories() const {
-            return "";
-        }
-    };
 #endif
     using Gio::AppInfo;
     using Gio::Icon;

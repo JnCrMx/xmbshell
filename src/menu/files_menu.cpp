@@ -121,8 +121,6 @@ namespace menu {
                 all_files.insert(entry.path());
             } catch(const std::exception& e) {
                 spdlog::error("Failed to process entry: {}: {}", entry.path().string(), e.what());
-            } catch(const Glib::Exception& e) {
-                spdlog::error("Glib error while processing entry: {}: {}", entry.path().string(), static_cast<std::string>(e.what()));
             }
         }
 
@@ -233,7 +231,7 @@ namespace menu {
             xmb->push_overlay(open_info.create(path, loader));
         };
         if(action == action::ok) {
-            if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
+            if(info->get_file_type() == Gio::FileType::DIRECTORY) {
                 return result::unsupported;
             }
             action_open();
@@ -285,7 +283,7 @@ namespace menu {
             if(const auto& cb = xmb->get_clipboard()) {
                 if(std::holds_alternative<std::function<bool(std::filesystem::path)>>(*cb)) {
                     options.push_back("Paste here"_()); actions.emplace_back(action_paste_here);
-                    if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
+                    if(info->get_file_type() == Gio::FileType::DIRECTORY) {
                         options.push_back("Paste into"_()); actions.emplace_back(action_paste_into);
                     }
                 }

@@ -12,6 +12,7 @@ module;
 module xmbshell.config;
 
 import spdlog;
+import glibmm;
 import giomm;
 import vulkan_hpp;
 import xmbshell.constants;
@@ -205,6 +206,8 @@ void config::setLanguage(const std::string& lang) {
     } else {
         unsetenv("LANGUAGE");
     }
+#else
+    Glib::setenv("LANGUAGE", language, true);
 #endif
 }
 
@@ -215,7 +218,7 @@ void config::excludeApplication(const std::string& application, bool exclude) {
         excludedApplications.erase(application);
     }
     shellSettings->set_string_array("excluded-applications",
-        std::vector(excludedApplications.begin(), excludedApplications.end()));
+        std::vector<Glib::ustring>(excludedApplications.begin(), excludedApplications.end()));
     shellSettings->apply();
 }
 

@@ -86,8 +86,6 @@ int main(int argc, char *argv[])
             std::rethrow_exception(std::current_exception());
         } catch(const std::exception& e) {
             spdlog::critical("Exception: {}", e.what());
-        } catch(const Glib::Exception& e) {
-            spdlog::critical("Glib::Exception: {}", static_cast<std::string>(e.what()));
         } catch(...) {
             spdlog::critical("Unknown exception");
         }

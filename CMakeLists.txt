@@ -63,8 +63,8 @@ if(NOT i18n++_FOUND)
   FetchContent_MakeAvailable_ExcludeFromAll(i18n++)
 endif()
 
-pkg_check_modules(glibmm glibmm-2.4 REQUIRED IMPORTED_TARGET)
-pkg_check_modules(giomm giomm-2.4 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
 
 set(SDL_BUILDING_LIBRARY ON CACHE BOOL "" FORCE)
 find_package(SDL2 REQUIRED)

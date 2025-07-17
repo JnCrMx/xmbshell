@@ -5,10 +5,11 @@ module;
 export module glibmm;
 
 export namespace Glib {
-    using Glib::Exception;
     using Glib::Error;
     using Glib::ustring;
     using Glib::RefPtr;
+    using Glib::setenv;
+    using Glib::get_host_name;
     using Glib::get_user_name;
     using Glib::get_real_name;
     using Glib::get_home_dir;

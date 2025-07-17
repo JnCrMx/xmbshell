@@ -28,7 +28,7 @@ A desktop shell mimicking the look and functionality of the XrossMediaBar dedica
 
 First, install the following build-time dependencies:
 ```
-sudo apt install clang clang-tools cmake ninja-build fonts-ubuntu glslang-tools patch curl wget gettext libglib2.0-bin libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev libspdlog-dev libfreetype-dev libglibmm-2.4-dev libsdbus-c++-dev libboost-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev libavdevice-dev vulkan-validationlayers
+sudo apt install clang clang-tools cmake ninja-build fonts-ubuntu glslang-tools patch curl wget gettext libglib2.0-bin libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libboost-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev libavdevice-dev vulkan-validationlayers
 ```
 
 Then clone, configure and build the project:

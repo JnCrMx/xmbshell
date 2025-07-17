@@ -18,33 +18,40 @@ namespace app {
 }
 
 export namespace menu {
-    using AppFilter = std::function<bool(const Gio::DesktopAppInfo&)>;
+    using AppFilter = std::function<bool(Gio::AppInfo*)>;
 
     constexpr auto andFilter(AppFilter a, AppFilter b) {
-        return [a, b](const Gio::DesktopAppInfo& app) {
+        return [a, b](Gio::AppInfo* app) {
             return a(app) && b(app);
         };
     }
     constexpr auto noFilter() {
-        return [](const Gio::DesktopAppInfo&) {
+        return [](Gio::AppInfo*) {
             return true;
         };
     }
     constexpr auto categoryFilter(const std::string& category) {
-        return [category](const Gio::DesktopAppInfo& app) {
-            std::istringstream iss(app.get_categories());
+        return [category](Gio::AppInfo* app) {
+#if __linux__
+            auto desktop_app = dynamic_cast<Gio::DesktopAppInfo*>(app);
+            if(!desktop_app) {
+                return false;
+            }
+
+            std::istringstream iss(desktop_app->get_categories());
             std::string c;
             while(std::getline(iss, c, ';')) {
                 if(c == category) {
                     return true;
                 }
             }
+#endif
             return false;
         };
     }
     constexpr auto excludeFilter(const std::unordered_set<std::string>& ids) {
-        return [&ids](const Gio::DesktopAppInfo& app) {
-            return !ids.contains(app.get_id());
+        return [&ids](Gio::AppInfo*app) {
+            return !ids.contains(app->get_id());
         };
     }
 
@@ -57,15 +64,15 @@ export namespace menu {
             void get_button_actions(std::vector<std::pair<action, std::string>>& v) override;
         private:
             void reload();
-            std::unique_ptr<action_menu_entry> create_action_menu_entry(Glib::RefPtr<Gio::DesktopAppInfo> app, bool hidden = false);
-            result activate_app(Glib::RefPtr<Gio::DesktopAppInfo> app, action action);
+            std::unique_ptr<action_menu_entry> create_action_menu_entry(Glib::RefPtr<Gio::AppInfo> app, bool hidden = false);
+            result activate_app(Glib::RefPtr<Gio::AppInfo> app, action action);
 
             app::xmbshell* xmb;
             dreamrender::resource_loader& loader;
 
             bool show_hidden = false;
             AppFilter filter;
-            std::vector<Glib::RefPtr<Gio::DesktopAppInfo>> apps;
+            std::vector<Glib::RefPtr<Gio::AppInfo>> apps;
     };
 
 }
