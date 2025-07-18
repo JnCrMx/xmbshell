@@ -4,12 +4,19 @@ A desktop shell mimicking the look and functionality of the XrossMediaBar dedica
 
 [![Get it from the Snap Store](https://snapcraft.io/en/dark/install.svg)](https://snapcraft.io/xmbshell)
 
-**Direct downloads of latest automatic build:**
+## Direct downloads of latest automatic build
+
+**Linux**
 ||amd64|arm64|
 |---|---|---|
 |AppImage|[XMB_Shell-x86_64.AppImage](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-x86_64.AppImage)|[XMB_Shell-aarch64.AppImage](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-aarch64.AppImage)|
 |Snap package|[xmbshell_beta_amd64.snap](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell_beta_amd64.snap)|[xmbshell_beta_arm64.snap](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell_beta_arm64.snap)|
 |Ubuntu 24.04 (.deb)|[xmbshell-beta-noble-amd64.deb](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-noble-amd64.deb)|[xmbshell-beta-noble-arm64.deb](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-noble-arm64.deb)|
+
+**Windows**
+||amd64|
+|---|---|
+|portable ZIP|[xmbshell-windows.zip](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-windows.zip)|
 
 ![Preview](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.webp)
 
