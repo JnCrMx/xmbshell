@@ -37,7 +37,7 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        clang-19 lld-19 cmake ninja-build libstdc++-14-dev:${TARGETARCH} git patch ssh-client ca-certificates
+        clang-19 lld-19 llvm-19 cmake ninja-build libstdc++-14-dev:${TARGETARCH} git patch ssh-client ca-certificates
         clang-tools-19 glslang-tools xxd patch curl wget gettext ca-certificates libglib2.0-bin python3 file dpkg-dev desktop-file-utils unzip fonts-ubuntu zsync imagemagick
         libvulkan-dev:${TARGETARCH} pkg-config libsystemd-dev:${TARGETARCH} libsdl2-dev:${TARGETARCH} libsdl2-mixer-dev:${TARGETARCH} libsdl2-image-dev:${TARGETARCH} libglm-dev:${TARGETARCH}
         libspdlog-dev:${TARGETARCH} libfreetype-dev:${TARGETARCH} libglibmm-2.68-dev:${TARGETARCH} libsdbus-c++-dev:${TARGETARCH} libboost-dev:${TARGETARCH}
@@ -53,7 +53,8 @@ steps:
       - >-
         cmake
         -DCMAKE_TOOLCHAIN_FILE=/toolchain.cmake
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DSEPARATE_DEBUG_INFO=ON
         -DBUILD_VERSION=$BUILD_VERSION
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=${TARGETARCH}
         -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}
@@ -64,6 +65,8 @@ steps:
       - mkdir -p upload/build upload/beta
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.deb upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.deb
       - cp xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.deb upload/beta/xmbshell-beta-${UBUNTU_VERSION}-${TARGETARCH}.deb
+      - cp xmbshell.dbg upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.dbg
+      - cp xmbshell.dbg upload/beta/xmbshell-beta-${UBUNTU_VERSION}-${TARGETARCH}.dbg
       # install it (so we can build a Snap later on)
       - DESTDIR=install cmake --install . --prefix /usr
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}.tar.gz -C install .
@@ -85,9 +88,10 @@ steps:
       - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-$TARGETCPU.AppImage" -O AppDir/usr/bin/appimageupdatetool
       - chmod +x AppDir/usr/bin/appimageupdatetool
       - ARCH=$TARGETCPU ./appimagetool-$HOSTCPU.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-$TARGETCPU.AppImage.zsync" AppDir/
-      - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-$TARGETCPU.AppImage
-      - cp XMB_Shell-*.AppImage upload/beta/XMB_Shell-$TARGETCPU.AppImage
-      - cp XMB_Shell-*.AppImage.zsync upload/beta/XMB_Shell-$TARGETCPU.AppImage.zsync
+      - cp XMB_Shell-*.AppImage upload/build/XMB_Shell-$BUILD_VERSION-$TARGETCPU.AppImage
+      # We cannot use -beta- or change the filename here, because the zsync file will not work if I rename the files I think
+      - cp XMB_Shell-*.AppImage upload/beta/
+      - cp XMB_Shell-*.AppImage.zsync upload/beta/
   upload-logs:
     image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:

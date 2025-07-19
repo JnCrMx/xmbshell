@@ -36,12 +36,15 @@ steps:
       - make install _gcc _glibmm-2.68 _SDL2_image _SDL2_mixer _freetype _vulkan-headers _vulkan-loader _ffmpeg _glm
       - cd ..
       - export MSYS2_ROOT=$PWD/quasi-msys2/root
+      - BUILD_VERSION=$(git describe --tags --always)
       - mkdir -p build
       - >-
         cmake
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_LINKER_TYPE=LLD
         -DCMAKE_TOOLCHAIN_FILE=cmake/windows.cmake
-        -DCMAKE_BUILD_TYPE=Release -DBUILD_VERSION=$BUILD_VERSION
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DSEPARATE_DEBUG_INFO=ON
+        -DBUILD_VERSION=$BUILD_VERSION
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-windows.log
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-windows.log
       - cd build
@@ -56,8 +59,10 @@ steps:
       - ./copydeps --search-dir $MSYS2_ROOT/ucrt64/bin --verbose xmbshell-windows/xmbshell.exe xmbshell-windows/ || true
       # Zip and prepare for upload
       - mkdir -p upload/build upload/beta
-      - zip -r upload/build/xmbshell-$BUILD-windows.zip xmbshell-windows/
-      - cp upload/build/xmbshell-$BUILD-windows.zip upload/beta/xmbshell-windows.zip
+      - zip -r upload/build/xmbshell-$BUILD_VERSION-windows.zip xmbshell-windows/
+      - cp upload/build/xmbshell-$BUILD_VERSION-windows.zip upload/beta/xmbshell-beta-windows.zip
+      - cp xmbshell.exe.dbg upload/build/xmbshell-$BUILD_VERSION-windows.exe.dbg
+      - cp xmbshell.exe.dbg upload/beta/xmbshell-beta-windows.exe.dbg
   upload-logs:
     image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:

@@ -20,6 +20,7 @@ endif()
 message(STATUS "Building version ${BUILD_VERSION}")
 
 option(GENERATE_POT "Generate .pot file" OFF)
+option(SEPARATE_DEBUG_INFO "Generate separate debug info files" OFF)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD 23)
@@ -233,6 +234,27 @@ if(UNIX AND NOT APPLE)
   target_link_libraries(xmbshell PRIVATE dl)
   target_link_libraries(xmbshell PRIVATE X11)
   target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
+endif()
+
+if(SEPARATE_DEBUG_INFO)
+  function(separate_release_and_debug TARGET)
+    add_custom_command(
+      TARGET ${TARGET} POST_BUILD
+      # Separate the Debug Information from the Target file
+      COMMAND ${CMAKE_OBJCOPY} ARGS --only-keep-debug $<TARGET_FILE:${TARGET}> $<TARGET_FILE:${TARGET}>.dbg
+      # As we have previously separated the debug information from the
+      # previous output, remove all debug information from the same
+      COMMAND ${CMAKE_OBJCOPY} ARGS --strip-debug $<TARGET_FILE:${TARGET}>
+      # Link the Separate Debug Information with the Final Release
+      COMMAND ${CMAKE_OBJCOPY} ARGS --add-gnu-debuglink=$<TARGET_FILE:${TARGET}>.dbg $<TARGET_FILE:${TARGET}>
+    )
+    set_property(
+      TARGET ${TARGET}
+      APPEND PROPERTY ADDITIONAL_CLEAN_FILES $<TARGET_FILE:${TARGET}>.dbg
+    )
+  endfunction(separate_release_and_debug)
+
+  separate_release_and_debug(xmbshell)
 endif()
 
 if(WIN32)

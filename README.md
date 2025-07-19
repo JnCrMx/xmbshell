@@ -16,7 +16,7 @@ A desktop shell mimicking the look and functionality of the XrossMediaBar dedica
 **Windows**
 ||amd64|
 |---|---|
-|portable ZIP|[xmbshell-windows.zip](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-windows.zip)|
+|portable ZIP|[xmbshell-beta-windows.zip](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-windows.zip)|
 
 ![Preview](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.webp)
 
