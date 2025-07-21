@@ -53,6 +53,7 @@ steps:
       - >-
         cmake
         -DCMAKE_TOOLCHAIN_FILE=/toolchain.cmake
+        -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 -DCMAKE_LINKER_TYPE=LLD
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DSEPARATE_DEBUG_INFO=ON
         -DBUILD_VERSION=$BUILD_VERSION

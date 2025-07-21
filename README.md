@@ -1,4 +1,4 @@
-# xmbshell
+# xmbshell [![status-badge](https://woodpecker.jcm.re/api/badges/16/status.svg)](https://woodpecker.jcm.re/repos/16) [![xmbshell](https://snapcraft.io/xmbshell/badge.svg)](https://snapcraft.io/xmbshell)
 
 A desktop shell mimicking the look and functionality of the XrossMediaBar dedicated to my cute girlfriend Laura!
 
