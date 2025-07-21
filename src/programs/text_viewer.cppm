@@ -242,6 +242,9 @@ const inline register_program<text_viewer> text_viewer_program{
     "text_viewer",
     {
         "text/plain", "application/json", "text/x-shellscript", "text/x-c++"
+    },
+    {
+        ".txt", ".md", ".json", ".sh", ".cpp", ".h"
     }
 };
 }

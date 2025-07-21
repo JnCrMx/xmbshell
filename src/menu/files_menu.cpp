@@ -68,6 +68,7 @@ namespace menu {
                 std::string content_type = info->get_attribute_string("standard::fast-content-type");
                 bool thumbnail_is_valid = info->get_attribute_boolean("thumbnail::is-valid");
                 std::string thumbnail_path = info->get_attribute_as_string("thumbnail::path");
+                std::string extension = entry.path().extension().string();
 
                 if(!filter(*info.get())) {
                     continue;
@@ -90,7 +91,7 @@ namespace menu {
                     "icons"/("icon_files_type_"+content_type_key+".png");
                 if(thumbnail_is_valid && !thumbnail_path.empty()) {
                     icon_file_path = thumbnail_path;
-                } else if(content_type.starts_with("image/")) {
+                } else if(content_type.starts_with("image/") || extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".bmp") {
                     icon_file_path = entry.path(); // This might be incredibly inefficient, but it will work for now
                 } else if(std::filesystem::exists(icon_file_path)) {
                     // do nothing here, we already have a specialized icon for this file type

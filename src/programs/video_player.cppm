@@ -465,6 +465,9 @@ const inline register_program<video_player> video_player_program{
     {
         "video/mp4", "video/webm", "video/ogg", "video/quicktime",
         "video/x-matroska",
+    },
+    {
+        ".mp4", ".webm", ".ogv", ".mov", ".mkv",
     }
 };
 }
