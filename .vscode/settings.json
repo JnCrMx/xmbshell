@@ -1,10 +1,14 @@
 {
     "cmake.environment": {
         "GSETTINGS_SCHEMA_DIR": "${workspaceFolder}/schemas",
-        "XMB_ASSET_DIR": "${workspaceFolder}"
+        "XMB_ASSET_DIR": "${workspaceFolder}",
+        "XMB_LOCALE_DIR": "${workspaceFolder}/build/locales",
     },
     "clangd.arguments": [
         "--clang-tidy",
         "--header-insertion=never"
+    ],
+    "cmake.additionalKits": [
+        "${workspaceFolder}/cmake/kits.json"
     ]
 }

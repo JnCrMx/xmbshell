@@ -36,11 +36,11 @@ void main_menu::preload(vk::Device device, vma::Allocator allocator, dreamrender
     menus.push_back(make_simple<menu::users_menu>("Users"_(), asset_directory/"icons/icon_category_users.png", loader, shell, loader));
     menus.push_back(make_simple<menu::settings_menu>("Settings"_(), asset_directory/"icons/icon_category_settings.png", loader, shell, loader));
     menus.push_back(make_simple<menu::files_menu>("Photo"_(), asset_directory/"icons/icon_category_photo.png", loader, shell,
-        Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_PICTURES), loader));
+        Glib::get_user_special_dir(Glib::UserDirectory::PICTURES), loader));
     menus.push_back(make_simple<menu::files_menu>("Music"_(), asset_directory/"icons/icon_category_music.png", loader, shell,
-        Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_MUSIC), loader));
+        Glib::get_user_special_dir(Glib::UserDirectory::MUSIC), loader));
     menus.push_back(make_simple<menu::files_menu>("Video"_(), asset_directory/"icons/icon_category_video.png", loader, shell,
-        Glib::get_user_special_dir(Glib::UserDirectory::USER_DIRECTORY_VIDEOS), loader));
+        Glib::get_user_special_dir(Glib::UserDirectory::VIDEOS), loader));
     menus.push_back(make_simple_of<menu::menu>("TV"_(), asset_directory/"icons/icon_category_tv.png", loader));
     menus.push_back(make_simple<menu::applications_menu>("Game"_(), asset_directory/"icons/icon_category_game.png", loader, shell, loader, ::menu::categoryFilter("Game")));
     menus.push_back(make_simple<menu::applications_menu>("Application"_(), asset_directory/"icons/icon_category_application.png", loader, shell, loader));

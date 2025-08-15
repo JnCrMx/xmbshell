@@ -9,6 +9,10 @@ module;
 #include <unordered_set>
 #include <version>
 
+#ifdef _WIN32
+#include <libloaderapi.h>
+#endif
+
 export module xmbshell.config;
 
 import glibmm;
@@ -27,7 +31,19 @@ export namespace config
                 wave, color, image
             };
 
+#if __linux__
             std::filesystem::path exe_directory = std::filesystem::canonical("/proc/self/exe").parent_path();
+#elif _WIN32
+            std::filesystem::path exe_directory = [](){
+                std::array<char, MAX_PATH> buffer{};
+                if (GetModuleFileNameA(nullptr, buffer.data(), MAX_PATH) == 0) {
+                    throw std::runtime_error("Failed to get executable path");
+                }
+                return std::filesystem::path(std::string_view{buffer}).parent_path();
+            }();
+#else
+            std::filesystem::path exe_directory = std::filesystem::current_path(); // best guess for other platforms
+#endif
             std::filesystem::path asset_directory = [this](){
                 if(auto v = std::getenv("XMB_ASSET_DIR"); v != nullptr) {
                     return std::filesystem::path(v);

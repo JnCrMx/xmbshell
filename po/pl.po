@@ -1,0 +1,507 @@
+# Polish translations for xmbshell package.
+# Copyright (C) 2025 THE xmbshell'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the xmbshell package.
+# Cyndi <>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xmbshell 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-14 02:40+0000\n"
+"PO-Revision-Date: 2025-07-15 23:24+0200\n"
+"Last-Translator: Cyndi <>\n"
+"Language-Team: Polish\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Gtranslator 48.0\n"
+
+#: src/app/components/main_menu.cpp:36
+msgid "Users"
+msgstr "Użytkownicy"
+
+#: src/app/components/main_menu.cpp:37
+msgid "Settings"
+msgstr "Ustawienia"
+
+#: src/app/components/main_menu.cpp:38
+msgid "Photo"
+msgstr "Zdjęcia"
+
+#: src/app/components/main_menu.cpp:40
+msgid "Music"
+msgstr "Muzyka"
+
+#: src/app/components/main_menu.cpp:42
+msgid "Video"
+msgstr "Wideo"
+
+#: src/app/components/main_menu.cpp:44
+msgid "TV"
+msgstr "TV"
+
+#: src/app/components/main_menu.cpp:45
+msgid "Game"
+msgstr "Gry"
+
+#: src/app/components/main_menu.cpp:46
+msgid "Application"
+msgstr "Aplikacje"
+
+#: src/app/components/main_menu.cpp:47
+msgid "Network"
+msgstr "Sieć"
+
+#: src/app/components/main_menu.cpp:48
+msgid "Friends"
+msgstr "Znajomi"
+
+#: src/app/xmbshell.cpp:529
+msgid "FPS: {:.2f}"
+msgstr "FPS: {:.2f}"
+
+#: src/app/xmbshell.cpp:541
+msgid "Video Memory: {:.2f}/{:.2f} MB"
+msgstr "VRAM:  {:.2f}/{:.2f} MB"
+
+#: src/menu/applications_menu.cpp:104
+msgid "Launch Application"
+msgstr "Uruchom Aplikację"
+
+#: src/menu/applications_menu.cpp:104
+msgid "Hide from XMB"
+msgstr "Ukryj z XMB"
+
+#: src/menu/applications_menu.cpp:104
+msgid "Show in XMB"
+msgstr "Pokaż w XMB"
+
+#: src/menu/applications_menu.cpp:104 src/menu/files_menu.cpp:283
+msgid "View information"
+msgstr "Informacje"
+
+#: src/menu/applications_menu.cpp:112
+msgctxt "appinfo"
+msgid "ID: "
+msgstr "ID:"
+
+#: src/menu/applications_menu.cpp:113
+msgctxt "appinfo"
+msgid "Name: "
+msgstr "Nazwa:"
+
+#: src/menu/applications_menu.cpp:114
+msgctxt "appinfo"
+msgid "Display Name: "
+msgstr "Wyświetlana Nazwa:"
+
+#: src/menu/applications_menu.cpp:115
+msgctxt "appinfo"
+msgid "Description: "
+msgstr "Opis:"
+
+#: src/menu/applications_menu.cpp:116
+msgctxt "appinfo"
+msgid "Executable: "
+msgstr "Plik Wykonywalny:"
+
+#: src/menu/applications_menu.cpp:117
+msgctxt "appinfo"
+msgid "Command Line: "
+msgstr "Komenda:"
+
+#: src/menu/applications_menu.cpp:118
+msgctxt "appinfo"
+msgid "Icon: "
+msgstr "Ikona:"
+
+#: src/menu/applications_menu.cpp:119
+msgctxt "appinfo"
+msgid "Categories: "
+msgstr "Kategoria:"
+
+#: src/menu/applications_menu.cpp:120
+msgid "Application Information"
+msgstr "Informację o Aplikacji"
+
+#: src/menu/applications_menu.cpp:120 src/menu/files_menu.cpp:229
+#: src/menu/files_menu.cpp:322 src/menu/files_menu.cpp:353
+#: src/programs/video_player.cppm:93
+msgid "OK"
+msgstr "OK"
+
+#: src/menu/applications_menu.cpp:125
+msgid "Hide Application"
+msgstr "Ukryj Aplikację"
+
+#: src/menu/applications_menu.cpp:126
+msgid "Are you sure you want to hide this application from XMB Shell?"
+msgstr "Czy na pewno schować tę aplikacje z XMB Shell?"
+
+#: src/menu/applications_menu.cpp:127 src/menu/settings_menu.cpp:124
+#: src/menu/users_menu.cpp:100 src/menu/users_menu.cpp:112
+#: src/menu/users_menu.cpp:69 src/menu/users_menu.cpp:88
+msgid "No"
+msgstr "Nie"
+
+#: src/menu/applications_menu.cpp:127 src/menu/settings_menu.cpp:124
+#: src/menu/users_menu.cpp:100 src/menu/users_menu.cpp:112
+#: src/menu/users_menu.cpp:69 src/menu/users_menu.cpp:88
+msgid "Yes"
+msgstr "Tak"
+
+#: src/menu/applications_menu.cpp:157 src/menu/files_menu.cpp:365
+msgid "Options"
+msgstr "Opcje"
+
+#: src/menu/applications_menu.cpp:158
+msgid "Hide excluded apps"
+msgstr "Ukryj schowane aplikacje"
+
+#: src/menu/applications_menu.cpp:158
+msgid "Show excluded apps"
+msgstr "Pokaż schowane aplikacje"
+
+#: src/menu/applications_menu.cpp:59
+msgid " (hidden)"
+msgstr "(schowana)"
+
+#: src/menu/files_menu.cpp:227
+msgid "No matching program found"
+msgstr "Brak wymaganego programu"
+
+#: src/menu/files_menu.cpp:228
+msgid "No matching program found for file of type \"{}\": {}"
+msgstr "Brak wymaganego programu do plików typu \"{}\": {}"
+
+#: src/menu/files_menu.cpp:283
+msgid "Copy"
+msgstr "Kopiuj"
+
+#: src/menu/files_menu.cpp:283
+msgid "Cut"
+msgstr "Wytnij"
+
+#: src/menu/files_menu.cpp:283
+msgid "Delete"
+msgstr "Usuń"
+
+#: src/menu/files_menu.cpp:283
+msgid "Open"
+msgstr "Otwórz"
+
+#: src/menu/files_menu.cpp:283
+msgid "Open using external program"
+msgstr "Otwórz przy pomocy zewnętrznego programu"
+
+#: src/menu/files_menu.cpp:283
+msgid "Refresh"
+msgstr "Odśwież"
+
+#: src/menu/files_menu.cpp:287
+msgid "Paste here"
+msgstr "Wklej tutaj"
+
+#: src/menu/files_menu.cpp:289
+msgid "Paste into this folder"
+msgstr "Wklej do tego folderu"
+
+#: src/menu/files_menu.cpp:321
+msgid "Copy failed"
+msgstr "Kopiowanie nie powiodło się"
+
+#: src/menu/files_menu.cpp:321
+msgid "Failed to copy file: {}"
+msgstr "Nie udało się skopiować pliku {}"
+
+#: src/menu/files_menu.cpp:352
+msgid "Failed to move file: {}"
+msgstr "Nie udało się przenieść pliku {}"
+
+#: src/menu/files_menu.cpp:352
+msgid "Move failed"
+msgstr "Przenoszenie nie powiodło się"
+
+# ??????
+#: src/menu/files_menu.cpp:366
+msgid "Sort and Filter"
+msgstr "Sortuj i filtruj według"
+
+#: src/menu/settings_menu.cpp:119
+msgid "No updates available."
+msgstr "Brak dostępnych aktualizacji."
+
+#: src/menu/settings_menu.cpp:123
+msgid "An update is available. Would you like to install it?"
+msgstr "Aktualizacja jest dostępna. Czy chcesz zainstalować?"
+
+#: src/menu/settings_menu.cpp:123
+msgid "Update Available"
+msgstr "Aktualizacja dostępna"
+
+#: src/menu/settings_menu.cpp:126
+msgid "Updating"
+msgstr "Aktualizuję"
+
+#: src/menu/settings_menu.cpp:132
+msgid "Failed to check for updates."
+msgstr "Nie udało się sprawdzić aktualizacji."
+
+#: src/menu/settings_menu.cpp:164
+msgid "Off"
+msgstr "Wyłącz"
+
+#: src/menu/settings_menu.cpp:164
+msgid "On"
+msgstr "Włącz"
+
+#: src/menu/settings_menu.cpp:307
+msgid "Personalization Settings"
+msgstr "Ustawienia Personalizacji"
+
+#: src/menu/settings_menu.cpp:309
+msgid "Background Type"
+msgstr "Typ tła"
+
+#: src/menu/settings_menu.cpp:309
+msgid "Type of background to use"
+msgstr "Wybierz tło do użycia w XMB Shell"
+
+#: src/menu/settings_menu.cpp:310
+msgid "Animated Wave"
+msgstr "Animowana Fala"
+
+#: src/menu/settings_menu.cpp:311
+msgid "Static Color"
+msgstr "Statyczny Kolor"
+
+#: src/menu/settings_menu.cpp:312
+msgid "Static Image"
+msgstr "Statyczny Obrazek"
+
+#: src/menu/settings_menu.cpp:314
+msgid "Language"
+msgstr "Język"
+
+#: src/menu/settings_menu.cpp:314
+msgid "Preferred language for the shell"
+msgstr "Wybierz preferowany język do XMB Shell"
+
+#: src/menu/settings_menu.cpp:315
+msgid "Use system language"
+msgstr "Użyj języka systemu operacyjnego"
+
+#: src/menu/settings_menu.cpp:316
+msgid "English"
+msgstr "Angielski"
+
+#: src/menu/settings_menu.cpp:317
+msgid "German"
+msgstr "Niemiecki"
+
+#: src/menu/settings_menu.cpp:318
+msgid "Polish"
+msgstr "Polski"
+
+#: src/menu/settings_menu.cpp:322
+msgid "Video Settings"
+msgstr "Ustawienia Wideo"
+
+#: src/menu/settings_menu.cpp:324
+msgid "Avoid tearing and limit FPS to refresh rate of display"
+msgstr "Unikaj przerywania obrazu i ogranicz klatki do swojego ekranu"
+
+#: src/menu/settings_menu.cpp:324
+msgid "VSync"
+msgstr "VSync"
+
+#: src/menu/settings_menu.cpp:325
+msgid "Number of samples used for Multisample Anti-Aliasing"
+msgstr "Ilość sampli do użycia w MSAA"
+
+#: src/menu/settings_menu.cpp:325
+msgid "Sample Count"
+msgstr "Ilość Sampli"
+
+#: src/menu/settings_menu.cpp:326
+msgid "FPS limit used if VSync is disabled"
+msgstr "Ogranicz ilość klatek, gdy VSync jest wyłączony"
+
+#: src/menu/settings_menu.cpp:326
+msgid "Max FPS"
+msgstr "Maksymalna ilość Klatek"
+
+#: src/menu/settings_menu.cpp:329
+msgid "Input Settings"
+msgstr "Ustawienia Sterowania"
+
+#: src/menu/settings_menu.cpp:331
+msgid "Controller Type"
+msgstr "Rodzaj kontrolera"
+
+#: src/menu/settings_menu.cpp:331
+msgid "Type of connected controller and corresponding button prompts"
+msgstr "Wybierz rodzaj kontrolera do wyświetlenia przez XMB Shell"
+
+#: src/menu/settings_menu.cpp:332
+msgctxt "controllertype"
+msgid "None"
+msgstr "Wyłącz"
+
+#: src/menu/settings_menu.cpp:333
+msgctxt "controllertype"
+msgid "Automatic"
+msgstr "Automatycznie wykryj kontroller"
+
+#: src/menu/settings_menu.cpp:334
+msgctxt "controllertype"
+msgid "Keyboard"
+msgstr "Klawiatura"
+
+#: src/menu/settings_menu.cpp:335
+msgctxt "controllertype"
+msgid "PlayStation"
+msgstr "PlayStation"
+
+#: src/menu/settings_menu.cpp:336
+msgctxt "controllertype"
+msgid "Xbox"
+msgstr "Xbox"
+
+#: src/menu/settings_menu.cpp:337
+msgctxt "controllertype"
+msgid "Steam Controller / Steamdeck"
+msgstr "Steam Controller / Steamdeck"
+
+#: src/menu/settings_menu.cpp:338
+msgctxt "controllertype"
+msgid "Ouya"
+msgstr "Ouya"
+
+#: src/menu/settings_menu.cpp:340
+msgid "Controller Rumble"
+msgstr "Wibracje Kontrolera"
+
+#: src/menu/settings_menu.cpp:340
+msgid "Enable controller rumble as feedback for actions"
+msgstr "Włącz wibracje kontrolera podczas wykonywania akcji"
+
+#: src/menu/settings_menu.cpp:341
+msgid ""
+"Allow navigating all menus using the analog stick in addition to the D-Pad"
+msgstr "Pozwól na nawigowanie przy pomocy gałki analogowej wraz z krzyżakiem"
+
+#: src/menu/settings_menu.cpp:341
+msgid "Navigate Menus with Analog Stick"
+msgstr "Nawigowanie przy pomocy gałki analogowej"
+
+#: src/menu/settings_menu.cpp:344
+msgid "Debug Settings"
+msgstr "Ustawienia dla Nerdów"
+
+#: src/menu/settings_menu.cpp:346
+msgid "Show FPS"
+msgstr "Wyświetl ilość klatek"
+
+#: src/menu/settings_menu.cpp:347
+msgid "Show Memory Usage"
+msgstr "Wyświetl użycie RAM i VRAM"
+
+#: src/menu/settings_menu.cpp:349
+msgid "Toggle Background Blur"
+msgstr "Włącz/Wyłącz rozmazanie tła"
+
+#: src/menu/settings_menu.cpp:354
+msgid "Toggle Ingame Mode"
+msgstr "Włącz/Wyłącz tryb Ingame"
+
+#: src/menu/settings_menu.cpp:364
+msgid "Check for Updates"
+msgstr "Sprawdź Aktualizaje"
+
+#: src/menu/settings_menu.cpp:366
+msgid "System Update"
+msgstr "Aktualizacja Systemu"
+
+#: src/menu/settings_menu.cpp:371
+msgid "Report bug"
+msgstr "Zgłoś Błąd"
+
+#: src/menu/settings_menu.cpp:375
+msgid "Reset all Settings to default"
+msgstr "Zresetuj Wszystkie Ustawienia"
+
+#: src/menu/settings_menu.cpp:417
+msgid "Open website in browser"
+msgstr "Otwórz stronę internetową w przeglądarce"
+
+#: src/menu/settings_menu.cpp:417
+msgid "View License Text"
+msgstr "Wyświetl Tekst Licencji"
+
+#: src/menu/settings_menu.cpp:420
+msgid "License for {}"
+msgstr "Licencja dla {}"
+
+#: src/menu/settings_menu.cpp:430
+msgid "Licenses"
+msgstr "Licencje"
+
+#: src/menu/settings_menu.cpp:44
+msgid "Updating..."
+msgstr "Aktualizuję..."
+
+#: src/menu/settings_menu.cpp:71
+msgid "Update successful. Please restart the application to apply it."
+msgstr "Aktualizacja ukończona. Zrestartuj aplikację by ją zastosować."
+
+#: src/menu/settings_menu.cpp:74
+msgid "Failed to update."
+msgstr "Nie udało się zaktualizować."
+
+#: src/menu/settings_menu.cpp:95
+msgid "Checking for updates..."
+msgstr "Szukam aktualizacji..."
+
+#: src/menu/users_menu.cpp:110 src/menu/users_menu.cpp:111
+msgid "Suspend"
+msgstr "Uśpij"
+
+#: src/menu/users_menu.cpp:111
+msgid "Do you really want to suspend the system?"
+msgstr "Czy na pewno chcesz uśpić system?"
+
+#: src/menu/users_menu.cpp:67 src/menu/users_menu.cpp:68
+msgid "Quit"
+msgstr "Wyjdź z Aplikacji"
+
+#: src/menu/users_menu.cpp:68
+msgid "Do you really want to quit the application?"
+msgstr "Czy na pewno chcesz wyjść z aplikacji?"
+
+#: src/menu/users_menu.cpp:86 src/menu/users_menu.cpp:87
+msgid "Power off"
+msgstr "Wyłącz System"
+
+#: src/menu/users_menu.cpp:87
+msgid "Do you really want to power off the system?"
+msgstr "Czy na pewno chcesz wyłączyć system?"
+
+#: src/menu/users_menu.cpp:98 src/menu/users_menu.cpp:99
+msgid "Reboot"
+msgstr "Uruchom Ponownie"
+
+#: src/menu/users_menu.cpp:99
+msgid "Do you really want to reboot the system?"
+msgstr "Czy na pewno chcesz uruchomić system ponownie?"
+
+#: src/programs/video_player.cppm:91
+msgid "Failed to open video"
+msgstr "Nie udało się otworzyć wideo"
+
+#: src/programs/video_player.cppm:92
+msgid "Unknown error"
+msgstr "Nieznany błąd"

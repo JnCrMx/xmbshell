@@ -11,7 +11,9 @@ module;
 #include <string>
 #include <vector>
 
+#if __linux__
 #include <sys/wait.h>
+#endif
 
 module xmbshell.app;
 
@@ -33,6 +35,7 @@ import :text_viewer;
 namespace menu {
     using namespace mfk::i18n::literals;
 
+#if __linux__
     class updater : public app::progress_item {
         public:
             updater() = default;
@@ -141,6 +144,7 @@ namespace menu {
             constexpr static auto wait_duration = std::chrono::milliseconds(500);
             app::xmbshell* xmb;
     };
+#endif
 
     std::unique_ptr<action_menu_entry> entry_base(dreamrender::resource_loader& loader,
         std::string name, std::string description, const std::string& key,
@@ -247,23 +251,42 @@ namespace menu {
         constexpr char i18n_cpp[] = {
             #embed "_deps/i18n++-src/LICENSE.md"
         };
-        constexpr char sdbus_cpp[] = {
-            #embed "_deps/sdbus-cpp-src/COPYING"
-        };
         constexpr char argparse[] = {
             #embed "_deps/argparse-src/LICENSE"
         };
         constexpr char avcpp[] = {
             #embed "_deps/avcpp-src/LICENSE-bsd.txt"
         };
-        constexpr char glibmm[] = {
-            #embed "/usr/share/doc/libglibmm-2.4-dev/copyright"
+        constexpr char vulkanmemoryallocator_hpp[] = {
+            #embed "_deps/vulkanmemoryallocator-hpp-src/LICENSE"
         };
         constexpr char vulkan_hpp[] = {
-            #embed "/usr/share/doc/libvulkan-dev/copyright"
+            #embed "_deps/vulkan-hpp-src/LICENSE.txt"
         };
         constexpr char spdlog[] = {
-            #embed "/usr/share/doc/libspdlog-dev/copyright"
+            #embed "_deps/spdlog-src/LICENSE"
+        };
+#if __linux__
+        constexpr char sdbus_cpp[] = {
+            #embed "_deps/sdbus-cpp-src/COPYING"
+        };
+#endif
+#if _WIN32
+        constexpr char glibmm[] = {
+            #embed "share/licenses/glibmm-2.68/COPYING"
+        };
+        constexpr char sdl2[] = {
+            #embed "share/licenses/SDL2/LICENSE.txt"
+        };
+        constexpr char freetype[] = {
+            #embed "share/licenses/freetype/FTL.TXT"
+        };
+        constexpr char glm[] = {
+            #embed "share/licenses/glm/copying.txt"
+        };
+#else
+        constexpr char glibmm[] = {
+            #embed "/usr/share/doc/libglibmm-2.68-dev/copyright"
         };
         constexpr char sdl2[] = {
             #embed "/usr/share/doc/libsdl2-dev/copyright"
@@ -274,9 +297,7 @@ namespace menu {
         constexpr char glm[] = {
             #embed "/usr/share/doc/libglm-dev/copyright"
         };
-        constexpr char vulkanmemoryallocator_hpp[] = {
-            #embed "_deps/vulkanmemoryallocator-hpp-src/LICENSE"
-        };
+#endif
         // NOLINTEND(*-avoid-c-arrays)
         #pragma clang diagnostic pop
     }
@@ -294,6 +315,7 @@ namespace menu {
                     std::pair{"auto", "Use system language"_()},
                     std::pair{"en", "English"_()},
                     std::pair{"de", "German"_()},
+                    std::pair{"pl", "Polish"_()},
                 }),
             }
         ));
@@ -337,6 +359,7 @@ namespace menu {
 #endif
             }
         ));
+#if __linux__
         if(std::getenv("APPIMAGE")) {
             entries.push_back(make_simple<action_menu_entry>("Check for Updates"_(), asset_dir/"icons/icon_settings_update.png", loader, [xmb](){
                 spdlog::info("Update request from XMB");
@@ -344,11 +367,12 @@ namespace menu {
                 return result::unsupported;
             }));
         }
+#endif
         entries.push_back(make_simple<action_menu_entry>("Report bug"_(), asset_dir/"icons/icon_bug.png", loader, [](){
             spdlog::info("Bug report request from XMB");
             return result::unsupported;
         }));
-        entries.push_back(make_simple<action_menu_entry>("Reset"_(), asset_dir/"icons/icon_settings_reset.png", loader, [](){
+        entries.push_back(make_simple<action_menu_entry>("Reset all Settings to default"_(), asset_dir/"icons/icon_settings_reset.png", loader, [](){
             spdlog::info("Settings reset request from XMB");
             Glib::RefPtr<Gio::Settings> shellSettings =
                 Gio::Settings::create("re.jcm.xmbos.xmbshell");
@@ -372,7 +396,9 @@ namespace menu {
         std::array licenses = {
             // NOLINTBEGIN(*-array-to-pointer-decay)
             std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
+#if __linux__
             std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
+#endif
             std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", std::string_view(licenses::argparse, sizeof(licenses::argparse))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("avcpp", "https://github.com/h4tr3d/avcpp", std::string_view(licenses::avcpp, sizeof(licenses::avcpp))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("glibmm", "https://gitlab.gnome.org/GNOME/glibmm", std::string_view(licenses::glibmm, sizeof(licenses::glibmm))),

@@ -20,11 +20,13 @@ endif()
 message(STATUS "Building version ${BUILD_VERSION}")
 
 option(GENERATE_POT "Generate .pot file" OFF)
+option(SEPARATE_DEBUG_INFO "Generate separate debug info files" OFF)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_options(-Wno-nullability-completeness -fPIC)
+add_compile_options(-fPIC)
+add_compile_options(-Wno-nullability-completeness)
 
 find_package(glm REQUIRED)
 find_package(Freetype REQUIRED)
@@ -62,23 +64,24 @@ if(NOT i18n++_FOUND)
   FetchContent_MakeAvailable_ExcludeFromAll(i18n++)
 endif()
 
-pkg_check_modules(glibmm glibmm-2.4 REQUIRED IMPORTED_TARGET)
-pkg_check_modules(giomm giomm-2.4 REQUIRED IMPORTED_TARGET)
-pkg_check_modules(sdl2 sdl2 REQUIRED IMPORTED_TARGET)
-pkg_check_modules(sdl2_image SDL2_image REQUIRED IMPORTED_TARGET)
-pkg_check_modules(sdl2_mixer SDL2_mixer REQUIRED IMPORTED_TARGET)
-add_library(SDL2::SDL2 ALIAS PkgConfig::sdl2)
-add_library(SDL2_image::SDL2_image ALIAS PkgConfig::sdl2_image)
-add_library(SDL2_mixer::SDL2_mixer ALIAS PkgConfig::sdl2_mixer)
+pkg_check_modules(glibmm glibmm-2.68 REQUIRED IMPORTED_TARGET)
+pkg_check_modules(giomm giomm-2.68 REQUIRED IMPORTED_TARGET)
 
-FetchContent_Declare(sdbus-cpp
-  GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
-  GIT_TAG        v1.2.0
-  EXCLUDE_FROM_ALL
-)
-set(BUILD_DOC OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable_ExcludeFromAll(sdbus-cpp)
-add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
+set(SDL_BUILDING_LIBRARY ON CACHE BOOL "" FORCE)
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+find_package(SDL2_mixer REQUIRED)
+
+if(UNIX AND NOT APPLE)
+  FetchContent_Declare(sdbus-cpp
+    GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
+    GIT_TAG        v1.2.0
+    EXCLUDE_FROM_ALL
+  )
+  set(BUILD_DOC OFF CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable_ExcludeFromAll(sdbus-cpp)
+  add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
+endif()
 
 FetchContent_Declare(dreamrender
   GIT_REPOSITORY https://git.jcm.re/jcm/dreamrender.git
@@ -219,6 +222,9 @@ target_include_directories(xmbshell PRIVATE ${GLM_INCLUDE_DIRS})
 
 target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_CURRENT_BINARY_DIR}/shaders)
 target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_CURRENT_BINARY_DIR})
+if(WIN32)
+  target_compile_options(xmbshell PRIVATE --embed-dir=${CMAKE_FIND_ROOT_PATH})
+endif()
 
 target_link_libraries(xmbshell PRIVATE dreams::dreamrender)
 target_link_libraries(xmbshell PRIVATE dreams::sdl2Module)
@@ -226,15 +232,12 @@ target_link_libraries(xmbshell PRIVATE dreams::glmModule)
 target_link_libraries(xmbshell PRIVATE dreams::VulkanHppModule)
 target_link_libraries(xmbshell PRIVATE dreams::vmaModule)
 target_link_libraries(xmbshell PRIVATE dreams::spdlogModule)
-target_link_libraries(xmbshell PRIVATE dl)
-target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 target_link_libraries(xmbshell PRIVATE Freetype::Freetype)
 target_link_libraries(xmbshell PRIVATE glibmmModule)
 target_link_libraries(xmbshell PRIVATE giommModule)
 target_link_libraries(xmbshell PRIVATE i18nModule)
 target_link_libraries(xmbshell PRIVATE argparseModule)
 target_link_libraries(xmbshell PRIVATE avcppModule)
-target_link_libraries(xmbshell PRIVATE X11)
 
 if(GENERATE_POT)
   target_use_i18n(xmbshell NODOMAIN)
@@ -242,11 +245,45 @@ else()
   target_link_libraries(xmbshell PRIVATE i18n::i18n-lib)
 endif()
 
-add_executable(wayland_server_test "test/wayland_server.cpp")
-target_link_libraries(wayland_server_test PRIVATE waylandppModule)
-target_compile_options(wayland_server_test PRIVATE -pthread)
+if(UNIX AND NOT APPLE)
+  target_link_libraries(xmbshell PRIVATE dl)
+  target_link_libraries(xmbshell PRIVATE X11)
+  target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
 
-include(GNUInstallDirs)
+  add_executable(wayland_server_test "test/wayland_server.cpp")
+  target_link_libraries(wayland_server_test PRIVATE waylandppModule)
+  target_compile_options(wayland_server_test PRIVATE -pthread)
+endif()
+
+if(SEPARATE_DEBUG_INFO)
+  function(separate_release_and_debug TARGET)
+    add_custom_command(
+      TARGET ${TARGET} POST_BUILD
+      # Separate the Debug Information from the Target file
+      COMMAND ${CMAKE_OBJCOPY} ARGS --only-keep-debug $<TARGET_FILE:${TARGET}> $<TARGET_FILE:${TARGET}>.dbg
+      # As we have previously separated the debug information from the
+      # previous output, remove all debug information from the same
+      COMMAND ${CMAKE_OBJCOPY} ARGS --strip-debug $<TARGET_FILE:${TARGET}>
+      # Link the Separate Debug Information with the Final Release
+      COMMAND ${CMAKE_OBJCOPY} ARGS --add-gnu-debuglink=$<TARGET_FILE:${TARGET}>.dbg $<TARGET_FILE:${TARGET}>
+    )
+    set_property(
+      TARGET ${TARGET}
+      APPEND PROPERTY ADDITIONAL_CLEAN_FILES $<TARGET_FILE:${TARGET}>.dbg
+    )
+  endfunction(separate_release_and_debug)
+
+  separate_release_and_debug(xmbshell)
+endif()
+
+if(WIN32)
+  set(CMAKE_INSTALL_LOCALEDIR "/locale")
+  set(CMAKE_INSTALL_DATADIR "")
+  set(CMAKE_INSTALL_LIBDIR "")
+  set(CMAKE_INSTALL_BINDIR "")
+else()
+  include(GNUInstallDirs)
+endif(WIN32)
 
 # read po/LINGUAS file
 file(STRINGS po/LINGUAS LINGUAS)
@@ -267,12 +304,19 @@ target_include_directories(xmbshell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 
 file(GLOB ICON_FILES icons/*.png)
 
-install(TARGETS xmbshell)
-install(FILES xmbshell.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-install(FILES icons/xmbshell.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps RENAME xmbshell.png)
+install(TARGETS xmbshell
+  RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/"
+  ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
+)
 install(FILES schemas/re.jcm.xmbos.xmbshell.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)
 install(FILES ${ICON_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/icons)
 install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR}/xmbshell/)
+
+if(UNIX AND NOT APPLE)
+  install(FILES xmbshell.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+  install(FILES icons/xmbshell.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps RENAME xmbshell.png)
+endif()
 
 set(CPACK_PACKAGE_NAME "xmbshell")
 set(CPACK_PACKAGE_VERSION ${BUILD_VERSION})

@@ -50,15 +50,15 @@ class files_menu : public simple_menu {
         };
 
         static constexpr auto sort_by_name = [](const Gio::FileInfo& a, const Gio::FileInfo& b) {
-            return a.get_display_name() < b.get_display_name();
+            return a.get_display_name().compare(b.get_display_name()) < 0;
         };
         static constexpr auto sort_by_size = [](const Gio::FileInfo& a, const Gio::FileInfo& b) {
             return a.get_size() < b.get_size();
         };
         static constexpr auto sort_by_type = [](const Gio::FileInfo& a, const Gio::FileInfo& b) {
-            std::string av = a.get_attribute_string("standard::fast-content-type");
-            std::string bv = b.get_attribute_string("standard::fast-content-type");
-            return av < bv;
+            auto av = a.get_attribute_string("standard::fast-content-type");
+            auto bv = b.get_attribute_string("standard::fast-content-type");
+            return av.compare(bv) < 0;
         };
 
         using filter_entry_type = std::pair<std::string_view, std::add_pointer_t<bool(const Gio::FileInfo&)>>;

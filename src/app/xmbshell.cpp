@@ -44,7 +44,7 @@ namespace app
     {
         phase::preload();
 
-        font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath, 32, device, allocator, win->swapchainExtent, win->gpuFeatures);
+        font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath.string(), 32, device, allocator, win->swapchainExtent, win->gpuFeatures);
         image_render = std::make_unique<image_renderer>(device, win->swapchainExtent, win->gpuFeatures);
         simple_render = std::make_unique<simple_renderer>(device, allocator, win->swapchainExtent, win->gpuFeatures);
         wave_render = std::make_unique<render::wave_renderer>(device, allocator, win->swapchainExtent);
@@ -134,7 +134,7 @@ namespace app
             debugName(device, blurImageDst->image, "Blur Image Destination");
         }
 
-        font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get(), nullptr, 0x20, 0xff);
+        font_render->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get(), nullptr, 0x20, 0x1ff);
         image_render->preload({backgroundRenderPass.get(), shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
         simple_render->preload({shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
         wave_render->preload({backgroundRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get());
@@ -180,7 +180,7 @@ namespace app
         menu.preload(device, allocator, *loader);
         news.preload(device, allocator, *loader);
 
-        ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").c_str())};
+        ok_sound = sdl::mix::unique_chunk{sdl::mix::LoadWAV((config::CONFIG.asset_directory/"sounds/ok.wav").string().c_str())};
         if(!ok_sound) {
             spdlog::error("sdl::mix::LoadWAV: {}", sdl::mix::GetError());
         }

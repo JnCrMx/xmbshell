@@ -12,6 +12,7 @@ module;
 module xmbshell.config;
 
 import spdlog;
+import glibmm;
 import giomm;
 import vulkan_hpp;
 import xmbshell.constants;
@@ -78,7 +79,7 @@ void config::reload() {
 
     setFontPath(shellSettings->get_string("font-path"));
     setBackgroundType(shellSettings->get_string("background-type"));
-    backgroundImage = shellSettings->get_string("background-image");
+    backgroundImage = std::string{shellSettings->get_string("background-image")};
 
     setLanguage(shellSettings->get_string("language"));
 
@@ -199,11 +200,15 @@ void config::setDateTimeFormat(const std::string& format) {
 
 void config::setLanguage(const std::string& lang) {
     language = lang;
+#if __linux__
     if(!language.empty() && language != "auto") {
         setenv("LANGUAGE", language.c_str(), 1);
     } else {
         unsetenv("LANGUAGE");
     }
+#else
+    Glib::setenv("LANGUAGE", language, true);
+#endif
 }
 
 void config::excludeApplication(const std::string& application, bool exclude) {
@@ -213,7 +218,7 @@ void config::excludeApplication(const std::string& application, bool exclude) {
         excludedApplications.erase(application);
     }
     shellSettings->set_string_array("excluded-applications",
-        std::vector(excludedApplications.begin(), excludedApplications.end()));
+        std::vector<Glib::ustring>(excludedApplications.begin(), excludedApplications.end()));
     shellSettings->apply();
 }
 

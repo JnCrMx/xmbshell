@@ -86,6 +86,11 @@ const inline register_program<image_viewer> image_viewer_program{
         "image/x-portable-pixmap", "image/x-portable-anymap", "image/svg+xml",
         "image/x-targa", "image/x-tga", "image/tiff", "image/webp", "image/x-xcf",
         "image/x-xpixmap",
+    },
+    {
+        ".bmp", ".gif", ".jpg", ".jpeg", ".pcx", ".png",
+        ".pbm", ".pgm", ".ppm", ".pnm", ".svg", ".tga", ".tiff",
+        ".webp", ".xcf", ".xpm"
     }
 };
 }

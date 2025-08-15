@@ -6,7 +6,9 @@ export module giomm;
 
 export namespace Gio {
     using Gio::init;
+#if __linux__
     using Gio::DesktopAppInfo;
+#endif
     using Gio::AppInfo;
     using Gio::Icon;
     using Gio::FileIcon;

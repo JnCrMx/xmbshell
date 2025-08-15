@@ -1,15 +1,22 @@
-# xmbshell
+# xmbshell [![status-badge](https://woodpecker.jcm.re/api/badges/16/status.svg)](https://woodpecker.jcm.re/repos/16) [![xmbshell](https://snapcraft.io/xmbshell/badge.svg)](https://snapcraft.io/xmbshell)
 
 A desktop shell mimicking the look and functionality of the XrossMediaBar dedicated to my cute girlfriend Laura!
 
 [![Get it from the Snap Store](https://snapcraft.io/en/dark/install.svg)](https://snapcraft.io/xmbshell)
 
-**Direct downloads of latest automatic build:**
+## Direct downloads of latest automatic build
+
+**Linux**
 ||amd64|arm64|
 |---|---|---|
 |AppImage|[XMB_Shell-x86_64.AppImage](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-x86_64.AppImage)|[XMB_Shell-aarch64.AppImage](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-aarch64.AppImage)|
 |Snap package|[xmbshell_beta_amd64.snap](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell_beta_amd64.snap)|[xmbshell_beta_arm64.snap](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell_beta_arm64.snap)|
 |Ubuntu 24.04 (.deb)|[xmbshell-beta-noble-amd64.deb](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-noble-amd64.deb)|[xmbshell-beta-noble-arm64.deb](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-noble-arm64.deb)|
+
+**Windows**
+||amd64|
+|---|---|
+|portable ZIP|[xmbshell-beta-windows.zip](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/xmbshell-beta-windows.zip)|
 
 ![Preview](https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/test-output.webp)
 
@@ -28,7 +35,7 @@ A desktop shell mimicking the look and functionality of the XrossMediaBar dedica
 
 First, install the following build-time dependencies:
 ```
-sudo apt install clang clang-tools cmake ninja-build fonts-ubuntu glslang-tools patch curl wget gettext libglib2.0-bin libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev libspdlog-dev libfreetype-dev libglibmm-2.4-dev libsdbus-c++-dev libboost-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev libavdevice-dev vulkan-validationlayers
+sudo apt install clang clang-tools cmake ninja-build fonts-ubuntu glslang-tools patch curl wget gettext libglib2.0-bin libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libboost-dev libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev libavdevice-dev vulkan-validationlayers
 ```
 
 Then clone, configure and build the project:

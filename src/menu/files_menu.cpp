@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <filesystem>
 #include <functional>
+#include <numeric>
 #include <string>
 #include <unordered_set>
 #include <variant>
@@ -46,73 +47,82 @@ namespace menu {
 
         std::unordered_set<std::filesystem::path> all_files;
         for (const auto& entry : it) {
-            auto file = Gio::File::create_for_path(entry.path().string());
-            auto info = file->query_info(
-                "standard::type"                ","
-                "standard::fast-content-type"   ","
-                "standard::display-name"        ","
-                "standard::symbolic-icon"       ","
-                "standard::icon"                ","
-                "standard::is-hidden"           ","
-                "standard::is-backup"           ","
-                "thumbnail::path"               ","
-                "thumbnail::is-valid");
+            try {
+                auto file = Gio::File::create_for_path(entry.path().string());
+                auto info = file->query_info(
+                    "standard::type"                ","
+                    "standard::fast-content-type"   ","
+                    "standard::display-name"        ","
+                    "standard::symbolic-icon"       ","
+                    "standard::icon"                ","
+                    "standard::is-hidden"           ","
+                    "standard::is-backup"           ","
+                    "thumbnail::path"               ","
+                    "thumbnail::is-valid");
+                if(!info) {
+                    spdlog::warn("Failed to query info for entry: {}", entry.path().string());
+                    continue;
+                }
 
-            std::string display_name = info->get_display_name();
-            std::string content_type = info->get_attribute_string("standard::fast-content-type");
-            bool thumbnail_is_valid = info->get_attribute_boolean("thumbnail::is-valid");
-            std::string thumbnail_path = info->get_attribute_as_string("thumbnail::path");
+                std::string display_name = info->get_display_name();
+                std::string content_type = info->get_attribute_string("standard::fast-content-type");
+                bool thumbnail_is_valid = info->get_attribute_boolean("thumbnail::is-valid");
+                std::string thumbnail_path = info->get_attribute_as_string("thumbnail::path");
+                std::string extension = entry.path().extension().string();
 
-            if(!filter(*info.get())) {
-                continue;
-            }
+                if(!filter(*info.get())) {
+                    continue;
+                }
 
-            // Skip entries we already have (TODO: update icon if needed)
-            if(auto it = std::ranges::find_if(extra_data_entries, [&entry](const auto& e) {
-                return e.path == entry.path();
-            }); it != extra_data_entries.end()) {
-                it->file = file;
-                it->info = info;
+                // Skip entries we already have (TODO: update icon if needed)
+                if(auto it = std::ranges::find_if(extra_data_entries, [&entry](const auto& e) {
+                    return e.path == entry.path();
+                }); it != extra_data_entries.end()) {
+                    it->file = file;
+                    it->info = info;
+                    all_files.insert(entry.path());
+                    continue;
+                }
+
+                std::string content_type_key = content_type;
+                std::ranges::replace(content_type_key, '/', '_');
+
+                std::filesystem::path icon_file_path = config::CONFIG.asset_directory/
+                    "icons"/("icon_files_type_"+content_type_key+".png");
+                if(thumbnail_is_valid && !thumbnail_path.empty()) {
+                    icon_file_path = thumbnail_path;
+                } else if(content_type.starts_with("image/") || extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".bmp") {
+                    icon_file_path = entry.path(); // This might be incredibly inefficient, but it will work for now
+                } else if(std::filesystem::exists(icon_file_path)) {
+                    // do nothing here, we already have a specialized icon for this file type
+                } else if(auto r = utils::resolve_icon(info->get_symbolic_icon().get())) {
+                    icon_file_path = *r;
+                } else if(auto r = utils::resolve_icon(info->get_icon().get())) {
+                    icon_file_path = *r;
+                }
+
+                if(!std::filesystem::exists(icon_file_path)) {
+                    spdlog::warn("Icon file does not exist: {}", icon_file_path.string());
+                    icon_file_path = config::CONFIG.asset_directory/
+                        "icons"/(entry.is_directory() ? "icon_files_folder.png" : "icon_files_file.png");
+                }
+
+                if(entry.is_directory()) {
+                    auto menu = make_simple<files_menu>(entry.path().filename().string(), icon_file_path, loader, xmb, entry.path(), loader);
+                    entries.push_back(std::move(menu));
+                }
+                else if (entry.is_regular_file()) {
+                    auto menu = make_simple<simple_menu_entry>(entry.path().filename().string(), icon_file_path, loader);
+                    entries.push_back(std::move(menu));
+                } else {
+                    spdlog::warn("Unsupported file type: {}", entry.path().string());
+                    continue;
+                }
+                extra_data_entries.emplace_back(entry.path(), file, info);
                 all_files.insert(entry.path());
-                continue;
+            } catch(const std::exception& e) {
+                spdlog::error("Failed to process entry: {}: {}", entry.path().string(), e.what());
             }
-
-            std::string content_type_key = content_type;
-            std::ranges::replace(content_type_key, '/', '_');
-
-            std::filesystem::path icon_file_path = config::CONFIG.asset_directory/
-                "icons"/("icon_files_type_"+content_type_key+".png");
-            if(thumbnail_is_valid && !thumbnail_path.empty()) {
-                icon_file_path = thumbnail_path;
-            } else if(content_type.starts_with("image/")) {
-                icon_file_path = entry.path(); // This might be incredibly inefficient, but it will work for now
-            } else if(std::filesystem::exists(icon_file_path)) {
-                // do nothing here, we already have a specialized icon for this file type
-            } else if(auto r = utils::resolve_icon(info->get_symbolic_icon().get())) {
-                icon_file_path = *r;
-            } else if(auto r = utils::resolve_icon(info->get_icon().get())) {
-                icon_file_path = *r;
-            }
-
-            if(!std::filesystem::exists(icon_file_path)) {
-                spdlog::warn("Icon file does not exist: {}", icon_file_path.string());
-                icon_file_path = config::CONFIG.asset_directory/
-                    "icons"/(entry.is_directory() ? "icon_files_folder.png" : "icon_files_file.png");
-            }
-
-            if(entry.is_directory()) {
-                auto menu = make_simple<files_menu>(entry.path().filename().string(), icon_file_path, loader, xmb, entry.path(), loader);
-                entries.push_back(std::move(menu));
-            }
-            else if (entry.is_regular_file()) {
-                auto menu = make_simple<simple_menu_entry>(entry.path().filename().string(), icon_file_path, loader);
-                entries.push_back(std::move(menu));
-            } else {
-                spdlog::warn("Unsupported file type: {}", entry.path().string());
-                continue;
-            }
-            extra_data_entries.emplace_back(entry.path(), file, info);
-            all_files.insert(entry.path());
         }
 
         for(auto it = entries.begin(); it != entries.end();) {
@@ -212,9 +222,9 @@ namespace menu {
             if(open_infos.empty()) {
                 std::string p = path.string();
                 std::string mime_type = info->get_attribute_string("standard::fast-content-type");
-                spdlog::error("No program found for file of type \"{}\": {}", mime_type, p);
-                xmb->emplace_overlay<app::message_overlay>("No program found"_(),
-                    "No program found for file of type \"{}\": {}"_(mime_type, p),
+                spdlog::error("No machting program found for file of type \"{}\": {}", mime_type, p);
+                xmb->emplace_overlay<app::message_overlay>("No machting program found"_(),
+                    "No matching program found for file of type \"{}\": {}"_(mime_type, p),
                     std::vector<std::string>{"OK"_()});
                 return;
             }
@@ -222,7 +232,7 @@ namespace menu {
             xmb->push_overlay(open_info.create(path, loader));
         };
         if(action == action::ok) {
-            if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
+            if(info->get_file_type() == Gio::FileType::DIRECTORY) {
                 return result::unsupported;
             }
             action_open();
@@ -269,13 +279,13 @@ namespace menu {
                 action_open, action_open_external, action_view_information, action_copy, action_cut, action_delete, action_refresh
             };
             std::vector options{
-                "Open"_(),   "Open externally"_(), "View information"_(),   "Copy"_(),   "Cut"_(),   "Delete"_(),   "Refresh"_()
+                "Open"_(),   "Open using external program"_(), "View information"_(),   "Copy"_(),   "Cut"_(),   "Delete"_(),   "Refresh"_()
             };
             if(const auto& cb = xmb->get_clipboard()) {
                 if(std::holds_alternative<std::function<bool(std::filesystem::path)>>(*cb)) {
                     options.push_back("Paste here"_()); actions.emplace_back(action_paste_here);
-                    if(info->get_file_type() == Gio::FileType::FILE_TYPE_DIRECTORY) {
-                        options.push_back("Paste into"_()); actions.emplace_back(action_paste_into);
+                    if(info->get_file_type() == Gio::FileType::DIRECTORY) {
+                        options.push_back("Paste into this folder"_()); actions.emplace_back(action_paste_into);
                     }
                 }
             }
