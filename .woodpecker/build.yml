@@ -85,7 +85,6 @@ steps:
       - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-$HOSTCPU.AppImage --appimage-extract-and-run --appdir AppDir
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - install -T -D /usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop AppDir/usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop
-      - rm AppDir/usr/lib/libwayland-*
       - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-$TARGETCPU.AppImage" -O AppDir/usr/bin/appimageupdatetool
       - chmod +x AppDir/usr/bin/appimageupdatetool
       - ARCH=$TARGETCPU ./appimagetool-$HOSTCPU.AppImage --appimage-extract-and-run -u "zsync|https://woodpecker.web.garage.jcm.re/artifacts/XMB-OS/xmbshell/main/public/XMB_Shell-$TARGETCPU.AppImage.zsync" AppDir/
