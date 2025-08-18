@@ -114,7 +114,7 @@ FetchContent_MakeAvailable_ExcludeFromAll(avcpp)
 
 FetchContent_Declare(waylandpp
   GIT_REPOSITORY https://github.com/NilsBrause/waylandpp.git
-  GIT_TAG        1.0.1
+  GIT_TAG        master
   EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable_ExcludeFromAll(waylandpp)
