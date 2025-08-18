@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0097 NEW)
 
+set(CMAKE_C_FLAGS_DEBUGASAN "-g -fsanitize=address -fno-omit-frame-pointer -g" CACHE STRING "Flags used by the C compiler during AddressSanitizer builds." FORCE)
 set(CMAKE_CXX_FLAGS_DEBUGASAN "-g -fsanitize=address -fno-omit-frame-pointer -g" CACHE STRING "Flags used by the C++ compiler during AddressSanitizer builds." FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_DEBUGASAN "-fsanitize=address" CACHE STRING "Flags used for linking binaries during AddressSanitizer builds." FORCE)
-mark_as_advanced(CMAKE_CXX_FLAGS_DEBUGASAN CMAKE_EXE_LINKER_FLAGS_DEBUGASAN)
+mark_as_advanced(CMAKE_C_FLAGS_DEBUGASAN CMAKE_CXX_FLAGS_DEBUGASAN CMAKE_EXE_LINKER_FLAGS_DEBUGASAN)
 
 set(CMAKE_CXX_FLAGS_PROFILELLVM "-g -O3 -fprofile-instr-generate -fcoverage-mapping" CACHE STRING "Flags used by the C++ compiler during LLVM Profile builds." FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_PROFILELLVM "-fprofile-instr-generate -fcoverage-mapping" CACHE STRING "Flags used for linking binaries during LLVM Profile builds." FORCE)
@@ -184,6 +185,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/app/components/news_display.cppm
   src/app/components/progress_overlay.cppm
   src/app/layers/blur_layer.cppm
+  src/app/wayland/wayland_server.cppm
   src/config.cppm
   src/constants.cppm
   src/dbus.cppm
@@ -249,6 +251,7 @@ if(UNIX AND NOT APPLE)
   target_link_libraries(xmbshell PRIVATE dl)
   target_link_libraries(xmbshell PRIVATE X11)
   target_link_libraries(xmbshell PRIVATE SDBusCpp::sdbus-c++)
+  target_link_libraries(xmbshell PRIVATE waylandppModule)
 
   add_executable(wayland_server_test "test/wayland_server.cpp")
   target_link_libraries(wayland_server_test PRIVATE waylandppModule)

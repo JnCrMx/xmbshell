@@ -23,6 +23,8 @@ import xmbshell.config;
 import xmbshell.render;
 import xmbshell.utils;
 
+import :wayland_server;
+
 using namespace mfk::i18n::literals;
 
 namespace app
@@ -186,6 +188,8 @@ namespace app
         }
 
         reload_button_icons();
+
+        emplace_overlay<wayland_server>(device, allocator);
     }
 
     void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -454,9 +458,13 @@ namespace app
         bool render_menu = true;
         unsigned int overlay_begin = 0;
         bool has_overlay = !overlays.empty();
+        bool should_dim = false;
 
         if(has_overlay) {
             for(int i=static_cast<int>(overlays.size())-1; i >= 0; i--) {
+                if(!overlays[i]->is_transparent()) {
+                    should_dim = true;
+                }
                 if(overlays[i]->is_opaque()) {
                     overlay_begin = i;
                     render_menu = false;
@@ -471,7 +479,7 @@ namespace app
         double dir_progress = overlay_fade_direction == transition_direction::in ? overlay_progress : 1.0 - overlay_progress;
         bool overlay_transition = overlay_progress < 1.0;
         if(render_menu){
-            if(overlay_transition || has_overlay) {
+            if(overlay_transition || should_dim) {
                 constexpr glm::vec4 factor{0.25f, 0.25f, 0.25f, 1.0f};
                 renderer.push_color(glm::mix(glm::vec4(1.0), factor, dir_progress));
             }
@@ -493,7 +501,7 @@ namespace app
                 static_cast<float>(0.831770833f+config::CONFIG.dateTimeOffset), 0.086111111f, 0.021296296f*2.5f);
 
             news.render(renderer);
-            if(overlay_transition || has_overlay) {
+            if(overlay_transition || should_dim) {
                 renderer.pop_color();
             }
             /*if(choice_overlay || choice_overlay_progress < 1.0) {
