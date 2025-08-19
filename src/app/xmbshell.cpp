@@ -23,7 +23,9 @@ import xmbshell.config;
 import xmbshell.render;
 import xmbshell.utils;
 
+#if __linux__
 import :wayland_server;
+#endif
 
 using namespace mfk::i18n::literals;
 
@@ -189,7 +191,9 @@ namespace app
 
         reload_button_icons();
 
+#if __linux__
         emplace_overlay<wayland_server>(device, allocator);
+#endif
     }
 
     void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)

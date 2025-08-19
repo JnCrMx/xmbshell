@@ -1,5 +1,6 @@
 module;
 
+#if __linux__
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -10,8 +11,11 @@ module;
 
 #include <sys/mman.h>
 #include <unistd.h>
+#endif
 
 module xmbshell.app:wayland_server;
+
+#if __linux__
 
 import dreamrender;
 import spdlog;
@@ -455,3 +459,4 @@ private:
 };
 
 }
+#endif // __linux__
