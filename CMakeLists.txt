@@ -73,6 +73,7 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
+# Linux-only stuff
 if(UNIX AND NOT APPLE)
   FetchContent_Declare(sdbus-cpp
     GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
@@ -82,6 +83,21 @@ if(UNIX AND NOT APPLE)
   set(BUILD_DOC OFF CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable_ExcludeFromAll(sdbus-cpp)
   add_library(SDBusCpp::sdbus-c++ ALIAS sdbus-c++)
+
+  FetchContent_Declare(waylandpp
+    GIT_REPOSITORY https://github.com/NilsBrause/waylandpp.git
+    GIT_TAG        master
+    EXCLUDE_FROM_ALL
+  )
+  FetchContent_MakeAvailable_ExcludeFromAll(waylandpp)
+  add_library(waylandpp::wayland-server++ ALIAS wayland-server++)
+  add_library(waylandpp::wayland-server-extra++ ALIAS wayland-server-extra++)
+
+  add_library(waylandppModule STATIC)
+  target_sources(waylandppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/waylandpp.cppm)
+  target_compile_features(waylandppModule PUBLIC cxx_std_23)
+  target_link_libraries(waylandppModule PUBLIC waylandpp::wayland-server++ waylandpp::wayland-server-extra++)
+  target_compile_options(waylandppModule PRIVATE -pthread)
 endif()
 
 FetchContent_Declare(dreamrender
@@ -112,15 +128,6 @@ set(AV_ENABLE_STATIC ON CACHE BOOL "" FORCE)
 set(AV_ENABLE_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable_ExcludeFromAll(avcpp)
 
-FetchContent_Declare(waylandpp
-  GIT_REPOSITORY https://github.com/NilsBrause/waylandpp.git
-  GIT_TAG        master
-  EXCLUDE_FROM_ALL
-)
-FetchContent_MakeAvailable_ExcludeFromAll(waylandpp)
-add_library(waylandpp::wayland-server++ ALIAS wayland-server++)
-add_library(waylandpp::wayland-server-extra++ ALIAS wayland-server-extra++)
-
 add_library(glibmmModule STATIC)
 target_sources(glibmmModule PUBLIC FILE_SET CXX_MODULES FILES third_party/glibmm.cppm)
 target_compile_features(glibmmModule PUBLIC cxx_std_20)
@@ -150,12 +157,6 @@ target_sources(avcppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/avcpp.c
 target_compile_features(avcppModule PUBLIC cxx_std_23)
 target_link_libraries(avcppModule PUBLIC avcpp::avcpp)
 target_compile_options(avcppModule PRIVATE -pthread)
-
-add_library(waylandppModule STATIC)
-target_sources(waylandppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/waylandpp.cppm)
-target_compile_features(waylandppModule PUBLIC cxx_std_23)
-target_link_libraries(waylandppModule PUBLIC waylandpp::wayland-server++ waylandpp::wayland-server-extra++)
-target_compile_options(waylandppModule PRIVATE -pthread)
 
 set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
