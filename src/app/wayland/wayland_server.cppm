@@ -74,6 +74,13 @@ struct shm_buffer {
 struct surface {
     std::shared_ptr<shm_buffer> buffer;
     std::shared_ptr<dreamrender::texture> texture;
+
+    // pending state
+    struct {
+        std::shared_ptr<shm_buffer> buffer;
+        std::vector<vk::Rect2D> damages;
+        std::vector<wayland::server::callback_t> frame_callbacks;
+    } pending;
 };
 struct xdg_surface {
     wayland::server::surface_t surface;
@@ -155,50 +162,63 @@ public:
                 spdlog::trace("[Compositor {}] surface created: {}", compositor.get_id(), surface.get_id());
                 surface.user_data() = wl::surface{};
 
-                surface.on_commit() = [surface]() {
+                surface.on_commit() = [this, surface]() mutable {
                     spdlog::trace("[Surface {}] committed", surface.get_id());
+                    auto& user_data = surface.user_data().get<wl::surface>();
+
+                    if(user_data.pending.buffer && user_data.pending.buffer != user_data.buffer) {
+                        if(user_data.buffer) {
+                            user_data.buffer->wl_object.release();
+                        }
+                        user_data.buffer = user_data.pending.buffer;
+                        if(!user_data.texture ||
+                            user_data.texture->width != user_data.buffer->width ||
+                            user_data.texture->height != user_data.buffer->height)
+                        {
+                            spdlog::debug("[Surface {}] creating new texture for buffer: {} with size {}x{}",
+                                surface.get_id(), user_data.buffer->wl_object.get_id(),
+                                user_data.buffer->width, user_data.buffer->height);
+                            user_data.texture = std::make_shared<dreamrender::texture>(device, allocator,
+                                user_data.buffer->width, user_data.buffer->height, vk::ImageUsageFlagBits::eSampled, vk::Format::eR8G8B8A8Unorm);
+                        }
+                    }
+
+                    std::ranges::transform(user_data.pending.damages, std::back_inserter(damaged_surfaces),
+                        [surface](const vk::Rect2D& damage) {
+                            return wl::buffer_damage{
+                                .surface=surface,
+                                .x=damage.offset.x, .y=damage.offset.y,
+                                .width=static_cast<int32_t>(damage.extent.width), .height=static_cast<int32_t>(damage.extent.height)
+                            };
+                        });
+                    std::ranges::copy(user_data.pending.frame_callbacks, std::back_inserter(frame_callbacks));
+
+                    user_data.pending = {};
                 };
                 surface.on_attach() = [this, surface](wayland::server::buffer_t buffer, int32_t x, int32_t y) mutable {
                     spdlog::trace("[Surface {}] attached buffer: {} at {}, {}", surface.get_id(), buffer.get_id(), x, y);
+                    if(x != 0 || y != 0) {
+                        surface.post_invalid_offset("attaching buffer with non-zero offset is not supported");
+                        return;
+                    }
+
                     auto& user_data = surface.user_data().get<wl::surface>();
-                    if(user_data.buffer) {
-                        user_data.buffer->wl_object.release();
-                    }
-                    user_data.buffer = buffer.user_data().get<std::shared_ptr<wl::shm_buffer>>();
-                    if(!user_data.texture ||
-                        user_data.texture->width != user_data.buffer->width ||
-                        user_data.texture->height != user_data.buffer->height)
-                    {
-                        spdlog::debug("[Surface {}] creating new texture for buffer: {} with size {}x{}",
-                            surface.get_id(), user_data.buffer->wl_object.get_id(),
-                            user_data.buffer->width, user_data.buffer->height);
-                        user_data.texture = std::make_shared<dreamrender::texture>(device, allocator,
-                            user_data.buffer->width, user_data.buffer->height, vk::ImageUsageFlagBits::eSampled, vk::Format::eR8G8B8A8Unorm);
-                    }
+                    user_data.pending.buffer = buffer.user_data().get<std::shared_ptr<wl::shm_buffer>>();
                 };
                 surface.on_damage() = [this, surface](int32_t x, int32_t y, int32_t width, int32_t height) mutable {
                     spdlog::trace("[Surface {}] damaged at ({}, {}) with size {}x{}", surface.get_id(), x, y, width, height);
-                    damaged_surfaces.push_back({
-                        .surface = surface,
-                        .x = x,
-                        .y = y,
-                        .width = width,
-                        .height = height
-                    });
+                    auto& user_data = surface.user_data().get<wl::surface>();
+                    user_data.pending.damages.push_back(vk::Rect2D{vk::Offset2D{x, y}, vk::Extent2D{static_cast<uint32_t>(width), static_cast<uint32_t>(height)}});
                 };
                 surface.on_damage_buffer() = [this, surface](int32_t x, int32_t y, int32_t width, int32_t height) mutable {
                     spdlog::trace("[Surface {}] damaged buffer at ({}, {}) with size {}x{}", surface.get_id(), x, y, width, height);
-                    damaged_surfaces.push_back({
-                        .surface = surface,
-                        .x = x,
-                        .y = y,
-                        .width = width,
-                        .height = height
-                    });
+                    auto& user_data = surface.user_data().get<wl::surface>();
+                    user_data.pending.damages.push_back(vk::Rect2D{vk::Offset2D{x, y}, vk::Extent2D{static_cast<uint32_t>(width), static_cast<uint32_t>(height)}});
                 };
                 surface.on_frame() = [this, surface](wayland::server::callback_t callback) mutable {
                     spdlog::trace("[Surface {}] frame callback set: {}", surface.get_id(), callback.get_id());
-                    frame_callbacks.push_back(callback);
+                    auto& user_data = surface.user_data().get<wl::surface>();
+                    user_data.pending.frame_callbacks.push_back(callback);
                 };
                 surface.on_destroy() = [surface]() {
                     spdlog::trace("[Surface {}] destroyed", surface.get_id());
