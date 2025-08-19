@@ -169,7 +169,7 @@ public:
                         user_data.texture->width != user_data.buffer->width ||
                         user_data.texture->height != user_data.buffer->height)
                     {
-                        spdlog::trace("[Surface {}] creating new texture for buffer: {} with size {}x{}",
+                        spdlog::debug("[Surface {}] creating new texture for buffer: {} with size {}x{}",
                             surface.get_id(), user_data.buffer->wl_object.get_id(),
                             user_data.buffer->width, user_data.buffer->height);
                         user_data.texture = std::make_shared<dreamrender::texture>(device, allocator,
@@ -242,27 +242,31 @@ public:
             };
         };
         server_display.on_client_created() = [this](wayland::server::client_t& client) {
-            spdlog::trace("[New Client] Client connected: {}", client.get_fd());
+            spdlog::debug("[New Client] Client connected: {}", client.get_fd());
             client.on_destroy() = [this, fd = client.get_fd()]() {
-                spdlog::trace("[Client {}] disconnected", fd);
+                if(server_display.get_client_list().empty()) {
+                    spdlog::debug("[Client {}] disconnected during server destruction, skipping cleanup", fd);
+                    return;
+                }
+                spdlog::debug("[Client {}] disconnected", fd);
                 {
                     auto it = std::ranges::remove_if(damaged_surfaces,
                         [fd](const wl::buffer_damage& e) {
-                            return e.surface.get_client().get_fd() == fd;
+                            return !e.surface.proxy_has_object() || e.surface.get_client().get_fd() == fd;
                         });
                     damaged_surfaces.erase(it.begin(), it.end());
                 }
                 {
                     auto it = std::ranges::remove_if(toplevels,
                         [fd](const wayland::server::xdg_toplevel_t& toplevel) {
-                            return toplevel.get_client().get_fd() == fd;
+                            return !toplevel.proxy_has_object() || toplevel.get_client().get_fd() == fd;
                         });
                     toplevels.erase(it.begin(), it.end());
                 }
             };
         };
         server_display.on_destroy() = [this]() {
-            spdlog::trace("[Wayland Server] Display destroyed");
+            spdlog::debug("[Wayland Server] Display destroyed");
             damaged_surfaces.clear();
             toplevels.clear();
         };
