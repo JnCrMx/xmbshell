@@ -74,6 +74,7 @@ struct shm_buffer {
 struct surface {
     std::shared_ptr<shm_buffer> buffer;
     std::shared_ptr<dreamrender::texture> texture;
+    bool texture_undefined = true; // indicates that the texture is in VK_IMAGE_LAYOUT_UNDEFINED rather than VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 
     // pending state
     struct {
@@ -82,6 +83,10 @@ struct surface {
         std::vector<wayland::server::callback_t> frame_callbacks;
     } pending;
 };
+struct surface_damages {
+    wayland::server::surface_t surface;
+    std::vector<vk::Rect2D> damages;
+};
 struct xdg_surface {
     wayland::server::surface_t surface;
 };
@@ -89,13 +94,6 @@ struct xdg_toplevel {
     wayland::server::xdg_surface_t xdg_surface;
 
     std::string title;
-};
-struct buffer_damage {
-    wayland::server::surface_t surface;
-    int32_t x;
-    int32_t y;
-    int32_t width;
-    int32_t height;
 };
 
 }
@@ -180,17 +178,15 @@ public:
                                 user_data.buffer->width, user_data.buffer->height);
                             user_data.texture = std::make_shared<dreamrender::texture>(device, allocator,
                                 user_data.buffer->width, user_data.buffer->height, vk::ImageUsageFlagBits::eSampled, vk::Format::eR8G8B8A8Unorm);
+                            user_data.texture_undefined = true;
                         }
                     }
-
-                    std::ranges::transform(user_data.pending.damages, std::back_inserter(damaged_surfaces),
-                        [surface](const vk::Rect2D& damage) {
-                            return wl::buffer_damage{
-                                .surface=surface,
-                                .x=damage.offset.x, .y=damage.offset.y,
-                                .width=static_cast<int32_t>(damage.extent.width), .height=static_cast<int32_t>(damage.extent.height)
-                            };
+                    if(!user_data.pending.damages.empty()) {
+                        damaged_surfaces.push_back(wl::surface_damages{
+                            .surface = surface,
+                            .damages = std::move(user_data.pending.damages)
                         });
+                    }
                     std::ranges::copy(user_data.pending.frame_callbacks, std::back_inserter(frame_callbacks));
 
                     user_data.pending = {};
@@ -207,13 +203,27 @@ public:
                 };
                 surface.on_damage() = [this, surface](int32_t x, int32_t y, int32_t width, int32_t height) mutable {
                     spdlog::trace("[Surface {}] damaged at ({}, {}) with size {}x{}", surface.get_id(), x, y, width, height);
+                    if(x < 0 || y < 0) {
+                        spdlog::warn("[Surface {}] damage called with negative coordinates ({}, {})", surface.get_id(), x, y);
+                        width = std::max(0, width + x);
+                        height = std::max(0, height + y);
+                        x = std::max(0, x);
+                        y = std::max(0, y);
+                    }
                     auto& user_data = surface.user_data().get<wl::surface>();
-                    user_data.pending.damages.push_back(vk::Rect2D{vk::Offset2D{x, y}, vk::Extent2D{static_cast<uint32_t>(width), static_cast<uint32_t>(height)}});
+                    user_data.pending.damages.emplace_back(vk::Offset2D{x, y}, vk::Extent2D{static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
                 };
                 surface.on_damage_buffer() = [this, surface](int32_t x, int32_t y, int32_t width, int32_t height) mutable {
                     spdlog::trace("[Surface {}] damaged buffer at ({}, {}) with size {}x{}", surface.get_id(), x, y, width, height);
+                    if(x < 0 || y < 0) {
+                        spdlog::warn("[Surface {}] damage_buffer called with negative coordinates ({}, {})", surface.get_id(), x, y);
+                        width = std::max(0, width + x);
+                        height = std::max(0, height + y);
+                        x = std::max(0, x);
+                        y = std::max(0, y);
+                    }
                     auto& user_data = surface.user_data().get<wl::surface>();
-                    user_data.pending.damages.push_back(vk::Rect2D{vk::Offset2D{x, y}, vk::Extent2D{static_cast<uint32_t>(width), static_cast<uint32_t>(height)}});
+                    user_data.pending.damages.emplace_back(vk::Offset2D{x, y}, vk::Extent2D{static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
                 };
                 surface.on_frame() = [this, surface](wayland::server::callback_t callback) mutable {
                     spdlog::trace("[Surface {}] frame callback set: {}", surface.get_id(), callback.get_id());
@@ -271,7 +281,7 @@ public:
                 spdlog::debug("[Client {}] disconnected", fd);
                 {
                     auto it = std::ranges::remove_if(damaged_surfaces,
-                        [fd](const wl::buffer_damage& e) {
+                        [fd](const wl::surface_damages& e) {
                             return !e.surface.proxy_has_object() || e.surface.get_client().get_fd() == fd;
                         });
                     damaged_surfaces.erase(it.begin(), it.end());
@@ -297,57 +307,71 @@ public:
             return;
         }
 
+        // TODO: batch all required image transitions into a single pipeline barrier
         vk::DeviceSize upload_buffer_offset = 0;
         int i{};
         for(i=0; i<damaged_surfaces.size(); ++i) {
-            auto& damage = damaged_surfaces[i];
-            auto& surface = damage.surface;
-            if(damage.x < 0 || damage.y < 0) {
-                spdlog::warn("Invalid damage coordinates: ({}, {}) for surface {}", damage.x, damage.y, surface.get_id());
-                continue;
-            }
+            auto& damaged_surface = damaged_surfaces[i];
+            auto& surface = damaged_surface.surface;
+
             auto& user_data = surface.user_data().get<wl::surface>();
             if(!user_data.buffer || !user_data.texture) {
                 continue;
             }
-            size_t buffer_size = user_data.buffer->stride * (damage.height-1) + damage.width * 4;
-            size_t buffer_offset = user_data.buffer->offset + damage.y * user_data.buffer->stride + damage.x * 4;
 
-            if(upload_buffer_offset + buffer_size > upload_buffer_size) {
-                break;
-            }
-            if(buffer_offset + buffer_size > user_data.buffer->pool->size) {
-                spdlog::warn("Damaged buffer size {} and total offset {} exceeds SHM pool size {} ({}x{} stride {})",
-                    buffer_size, buffer_offset, user_data.buffer->pool->size,
-                    user_data.buffer->width, user_data.buffer->height, user_data.buffer->stride);
-                buffer_size = user_data.buffer->pool->size - buffer_offset;
-            }
-
-            // Update the texture with the buffer data
-            vk::BufferImageCopy region{};
-            region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-            region.imageSubresource.layerCount = 1;
-            region.imageExtent.width = damage.width;
-            region.imageExtent.height = damage.height;
-            region.imageExtent.depth = 1;
-            region.imageOffset.x = damage.x;
-            region.imageOffset.y = damage.y;
-            region.imageOffset.z = 0;
-            region.bufferOffset = upload_buffer_offset;
-            region.bufferRowLength = user_data.buffer->stride / 4;
-
+            vk::ImageLayout current_layout = user_data.texture_undefined ? vk::ImageLayout::eUndefined : vk::ImageLayout::eShaderReadOnlyOptimal;
             cmd.pipelineBarrier(
                 vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer,
                 {}, {}, {}, vk::ImageMemoryBarrier{
                     {}, vk::AccessFlagBits::eTransferWrite,
-                    vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+                    current_layout, vk::ImageLayout::eTransferDstOptimal,
                     vk::QueueFamilyIgnored, vk::QueueFamilyIgnored,
                     user_data.texture->image, vk::ImageSubresourceRange{
                         vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1
                     }
                 });
-            cmd.copyBufferToImage(upload_buffer.get(), user_data.texture->image,
-                vk::ImageLayout::eTransferDstOptimal, region);
+            user_data.texture_undefined = false;
+
+            int j{};
+            for(j=0; j<damaged_surface.damages.size(); j++) {
+                auto& damage = damaged_surface.damages[j];
+                size_t buffer_size = user_data.buffer->stride * (damage.extent.height-1) + damage.extent.width * 4;
+                size_t buffer_offset = user_data.buffer->offset + damage.offset.y * user_data.buffer->stride + damage.offset.x * 4;
+
+                if(upload_buffer_offset + buffer_size > upload_buffer_size) {
+                    break;
+                }
+                if(buffer_offset + buffer_size > user_data.buffer->pool->size) {
+                    spdlog::warn("Damaged buffer size {} and total offset {} exceeds SHM pool size {} ({}x{} stride {})",
+                        buffer_size, buffer_offset, user_data.buffer->pool->size,
+                        user_data.buffer->width, user_data.buffer->height, user_data.buffer->stride);
+                    buffer_size = user_data.buffer->pool->size - buffer_offset;
+                }
+
+                // Update the texture with the buffer data
+                vk::BufferImageCopy region{};
+                region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+                region.imageSubresource.layerCount = 1;
+                region.imageExtent.width = damage.extent.width;
+                region.imageExtent.height = damage.extent.height;
+                region.imageExtent.depth = 1;
+                region.imageOffset.x = damage.offset.x;
+                region.imageOffset.y = damage.offset.y;
+                region.imageOffset.z = 0;
+                region.bufferOffset = upload_buffer_offset;
+                region.bufferRowLength = user_data.buffer->stride / 4;
+
+                cmd.copyBufferToImage(upload_buffer.get(), user_data.texture->image,
+                    vk::ImageLayout::eTransferDstOptimal, region);
+
+                allocator.copyMemoryToAllocation(
+                    static_cast<char*>(user_data.buffer->pool->ptr) + buffer_offset,
+                    upload_buffer_allocation.get(),
+                    upload_buffer_offset,
+                    buffer_size
+                );
+                upload_buffer_offset += buffer_size;
+            }
             cmd.pipelineBarrier(
                 vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
                 {}, {}, {}, vk::ImageMemoryBarrier{
@@ -359,16 +383,17 @@ public:
                     }
                 });
 
-            allocator.copyMemoryToAllocation(
-                static_cast<char*>(user_data.buffer->pool->ptr) + buffer_offset,
-                upload_buffer_allocation.get(),
-                upload_buffer_offset,
-                buffer_size
-            );
-            upload_buffer_offset += buffer_size;
+            damaged_surface.damages.erase(damaged_surface.damages.begin(), damaged_surface.damages.begin() + j);
+            if(!damaged_surface.damages.empty()) {
+                spdlog::warn("Not all damages were processed for surface {}: {} remaining", surface.get_id(), damaged_surface.damages.size());
+                break;
+            }
         };
         // erase only the surfaces that we managed to fit into the upload buffer
         damaged_surfaces.erase(damaged_surfaces.begin(), damaged_surfaces.begin() + i);
+        if(!damaged_surfaces.empty()) {
+            spdlog::warn("Not all damaged surfaces were processed, {} remaining", damaged_surfaces.size());
+        }
     }
     void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override {
         for(auto& xdg_toplevel : toplevels) {
@@ -421,7 +446,7 @@ private:
     wayland::server::global_xdg_wm_base_t global_xdg_wm_base{server_display};
 
     wayland::server::event_loop_t event_loop = server_display.get_event_loop();
-    std::vector<wl::buffer_damage> damaged_surfaces;
+    std::vector<wl::surface_damages> damaged_surfaces;
     std::vector<wayland::server::xdg_toplevel_t> toplevels;
 
     std::chrono::time_point<std::chrono::steady_clock, std::chrono::microseconds> start_time =
