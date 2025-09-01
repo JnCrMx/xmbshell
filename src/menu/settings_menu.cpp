@@ -311,6 +311,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         constexpr char sdbus_cpp[] = {
             #embed "_deps/sdbus-cpp-src/COPYING"
         };
+        constexpr char waylandpp[] = {
+            #embed "_deps/waylandpp-src/LICENSE"
+        };
 #endif
 #if _WIN32
         constexpr char glibmm[] = {
@@ -442,6 +445,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
 #if __linux__
             std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("waylandpp", "https://github.com/NilsBrause/waylandpp", std::string_view(licenses::waylandpp, sizeof(licenses::waylandpp))),
 #endif
             std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", std::string_view(licenses::argparse, sizeof(licenses::argparse))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("avcpp", "https://github.com/h4tr3d/avcpp", std::string_view(licenses::avcpp, sizeof(licenses::avcpp))),
