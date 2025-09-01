@@ -1,0 +1,29 @@
+The following files are adapted from RetroArch (https://github.com/libretro/RetroArch):
+- shaders/wave.vert from gfx/drivers/vulkan_shaders/pipeline_ribbon.vert
+- shaders/wave.frag from gfx/drivers/vulkan_shaders/pipeline_ribbon.frag
+
+These files are therefore covered by the following copyright notice (found in retroarch.c):
+
+> RetroArch - A frontend for libretro.
+> Copyright (C) 2010-2014 - Hans-Kristian Arntzen
+> Copyright (C) 2011-2021 - Daniel De Matteis
+> Copyright (C) 2012-2015 - Michael Lelli
+> Copyright (C) 2014-2017 - Jean-Andr  Santoni
+> Copyright (C) 2016-2019 - Brad Parker
+>
+> RetroArch is free software: you can redistribute it and/or modify it under the terms
+> of the GNU General Public License as published by the Free Software Found-
+> ation, either version 3 of the License, or (at your option) any later version.
+>
+> RetroArch is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+> without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+> PURPOSE.  See the GNU General Public License for more details.
+>
+> You should have received a copy of the GNU General Public License along with RetroArch.
+> If not, see <http://www.gnu.org/licenses/>.
+
+To comply with this license, XMBShell is also available under the GNU General Public License version 3.
+The full license text of this license is provided in the "LICENSE" file or the "XMBShell" entry in the Licenses menu.
+
+If you think that this is insufficient to comply with the GPLv3,
+please just let me know, so I can address the issue as soon as possible.

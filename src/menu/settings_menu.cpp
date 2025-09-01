@@ -1,3 +1,19 @@
+/* XMBShell, a console-like desktop shell
+ * Copyright (C) 2025 - JCM
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 module;
 
 #include <array>
@@ -244,10 +260,35 @@ namespace menu {
         });
     }
 
+    constexpr std::string_view copyright_notice = R"(XMBShell, a console-like desktop shell
+Copyright (C) 2025 - JCM
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+)";
     namespace licenses {
         #pragma clang diagnostic push
         #pragma clang diagnostic ignored "-Wc23-extensions"
         // NOLINTBEGIN(*-avoid-c-arrays)
+        constexpr char xmbshell[] = {
+            #embed "LICENSE"
+        };
+        constexpr char retroarch[] = {
+            #embed "LICENSE.RetroArch"
+        };
+        constexpr char dreamrender[] = {
+            #embed "_deps/dreamrender-src/LICENSE"
+        };
         constexpr char i18n_cpp[] = {
             #embed "_deps/i18n++-src/LICENSE.md"
         };
@@ -395,6 +436,9 @@ namespace menu {
 
         std::array licenses = {
             // NOLINTBEGIN(*-array-to-pointer-decay)
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("XMBShell", "https://github.com/JnCrMx/xmbshell", std::string_view(licenses::xmbshell, sizeof(licenses::xmbshell))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("RetroArch", "https://github.com/libretro/RetroArch", std::string_view(licenses::retroarch, sizeof(licenses::retroarch))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("dreamrender", "https://github.com/JnCrMx/dreamrender", std::string_view(licenses::dreamrender, sizeof(licenses::dreamrender))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
 #if __linux__
             std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
@@ -430,5 +474,9 @@ namespace menu {
         entries.push_back(make_simple<simple_menu>("Licenses"_(), asset_dir/"icons/icon_licenses.png", loader,
             std::move(license_entries)
         ));
+        entries.push_back(make_simple<action_menu_entry>("About XMBShell"_(), asset_dir/"icons/icon_licenses.png", loader, [xmb](){
+            xmb->emplace_overlay<programs::text_viewer>("XMBShell Copyright Notice"_(), copyright_notice);
+            return result::success;
+        }));
     }
 }
