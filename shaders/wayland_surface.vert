@@ -14,30 +14,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-module;
+#version 450
 
-export module xmbshell.render:shaders;
+layout(location = 0) out vec2 texCoord;
 
-import vulkan_hpp;
+layout(push_constant) uniform SurfaceParams
+{
+    mat4 matrix;
+    vec4 color;
+    bool is_opaque;
+} params;
 
-export namespace render::shaders {
-
-namespace blur {
-    vk::UniqueShaderModule comp(vk::Device device);
-}
-
-namespace wave_renderer {
-    vk::UniqueShaderModule vert(vk::Device device);
-    vk::UniqueShaderModule frag(vk::Device device);
-}
-
-namespace wayland_surface {
-    vk::UniqueShaderModule vert(vk::Device device);
-    vk::UniqueShaderModule frag(vk::Device device);
-}
-
-namespace yuv420p {
-    vk::UniqueShaderModule decode_comp(vk::Device device);
-}
-
+void main()
+{
+    // vertex array for a square as a triangle strip
+    const vec2 positions[4] = vec2[4](
+        vec2( 0.0,  0.0),
+        vec2( 2.0,  0.0),
+        vec2( 0.0,  2.0),
+        vec2( 2.0,  2.0)
+    );
+    const vec2 texCoords[4] = vec2[4](
+        vec2(0, 0),
+        vec2(1, 0),
+        vec2(0, 1),
+        vec2(1, 1)
+    );
+    vec4 pos = vec4(positions[gl_VertexIndex], 0.0f, 1.0f);
+    gl_Position = params.matrix * pos;
+    texCoord = texCoords[gl_VertexIndex];
 }

@@ -16,6 +16,8 @@
  */
 module;
 
+#include <vector>
+
 export module xmbshell.app:component;
 
 import dreamrender;
@@ -29,6 +31,9 @@ class xmbshell;
 export class component {
     public:
         virtual ~component() = default;
+        virtual void preload(dreamrender::resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses, vk::SampleCountFlagBits sampleCount, vk::PipelineCache pipelineCache, app::xmbshell* xmb) {};
+        virtual void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews, app::xmbshell* xmb) {};
+        virtual void init(app::xmbshell* xmb) {};
         virtual void prerender(vk::CommandBuffer cmd, int frame, app::xmbshell* xmb) {};
         virtual void render(dreamrender::gui_renderer& renderer, app::xmbshell* xmb) = 0;
         virtual result tick(app::xmbshell* xmb) { return result::success; }

@@ -208,7 +208,7 @@ namespace app
         reload_button_icons();
 
 #if __linux__
-        emplace_overlay<wayland_server>(device, allocator);
+        emplace_overlay<wayland_server>();
 #endif
     }
 

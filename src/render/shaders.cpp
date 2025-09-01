@@ -30,7 +30,7 @@ namespace blur {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wc23-extensions"
     constexpr char comp_array[] = {
-    #embed "shaders/blur.comp.spv"
+        #embed "shaders/blur.comp.spv"
     };
     #pragma clang diagnostic pop
 
@@ -45,10 +45,32 @@ namespace wave_renderer {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wc23-extensions"
     constexpr char vert_array[] = {
-    #embed "shaders/wave.vert.spv"
+        #embed "shaders/wave.vert.spv"
     };
     constexpr char frag_array[] = {
-    #embed "shaders/wave.frag.spv"
+        #embed "shaders/wave.frag.spv"
+    };
+    #pragma clang diagnostic pop
+
+    constexpr std::array vert_shader = dreamrender::convert<std::to_array(vert_array), uint32_t>();
+    constexpr std::array frag_shader = dreamrender::convert<std::to_array(frag_array), uint32_t>();
+
+    vk::UniqueShaderModule vert(vk::Device device) {
+        return dreamrender::createShader(device, vert_shader);
+    }
+    vk::UniqueShaderModule frag(vk::Device device) {
+        return dreamrender::createShader(device, frag_shader);
+    }
+}
+
+namespace wayland_surface {
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc23-extensions"
+    constexpr char vert_array[] = {
+        #embed "shaders/wayland_surface.vert.spv"
+    };
+    constexpr char frag_array[] = {
+        #embed "shaders/wayland_surface.frag.spv"
     };
     #pragma clang diagnostic pop
 
@@ -67,7 +89,7 @@ namespace yuv420p {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wc23-extensions"
     constexpr char decode_comp_array[] = {
-    #embed "shaders/yuv420p_decode.comp.spv"
+        #embed "shaders/yuv420p_decode.comp.spv"
     };
     #pragma clang diagnostic pop
 

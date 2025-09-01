@@ -14,30 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-module;
+#version 450
 
-export module xmbshell.render:shaders;
+layout(binding = 0) uniform sampler2D tex;
 
-import vulkan_hpp;
+layout(location = 0) in vec2 inTexCoord;
+layout(location = 0) out vec4 outColor;
 
-export namespace render::shaders {
+layout(push_constant) uniform SurfaceParams
+{
+    mat4 matrix;
+    vec4 color;
+    bool is_opaque;
+} params;
 
-namespace blur {
-    vk::UniqueShaderModule comp(vk::Device device);
-}
-
-namespace wave_renderer {
-    vk::UniqueShaderModule vert(vk::Device device);
-    vk::UniqueShaderModule frag(vk::Device device);
-}
-
-namespace wayland_surface {
-    vk::UniqueShaderModule vert(vk::Device device);
-    vk::UniqueShaderModule frag(vk::Device device);
-}
-
-namespace yuv420p {
-    vk::UniqueShaderModule decode_comp(vk::Device device);
-}
-
+void main()
+{
+	outColor = texture(tex, inTexCoord) * params.color;
+    outColor.a = params.is_opaque ? 1.0 : outColor.a;
 }

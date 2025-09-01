@@ -34,10 +34,12 @@ module xmbshell.app:wayland_server;
 #if __linux__
 
 import dreamrender;
+import glm;
 import spdlog;
 import vma;
 import vulkan_hpp;
 import waylandpp;
+import xmbshell.render;
 import :component;
 
 namespace wl {
@@ -50,12 +52,17 @@ struct shm_pool {
     shm_pool(int fd, uint32_t size)
         : fd(fd), size(size)
     {
-        ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); // NOLINT(cppcoreguidelines-prefer-member-initializer)
         if(ptr == MAP_FAILED) {
             throw std::runtime_error("Failed to mmap SHM pool");
         }
         close(fd);
     }
+    shm_pool(const shm_pool&) = delete;
+    shm_pool(shm_pool&&) = delete;
+
+    shm_pool& operator=(const shm_pool&) = delete;
+    shm_pool& operator=(shm_pool&&) = delete;
 
     ~shm_pool() {
         if(ptr != MAP_FAILED) {
@@ -64,7 +71,7 @@ struct shm_pool {
     }
 
     void resize(uint32_t new_size) {
-        ptr = mremap(ptr, size, new_size, MREMAP_MAYMOVE);
+        ptr = mremap(ptr, size, new_size, MREMAP_MAYMOVE); // NOLINT(cppcoreguidelines-pro-type-vararg)
         if(ptr == MAP_FAILED) {
             throw std::runtime_error("Failed to remap SHM pool");
         }
@@ -96,6 +103,9 @@ struct surface {
     std::shared_ptr<dreamrender::texture> texture;
     bool texture_undefined = true; // indicates that the texture is in VK_IMAGE_LAYOUT_UNDEFINED rather than VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 
+    // TODO: prevent early destruction of descriptor set while it's still in use by the GPU
+    std::shared_ptr<vk::UniqueDescriptorSet> descriptor_set;
+
     // pending state
     struct {
         std::shared_ptr<shm_buffer> buffer;
@@ -121,16 +131,99 @@ struct xdg_toplevel {
 namespace app {
 
 export class wayland_server : public component {
+    struct SurfaceParams {
+        glm::mat4 matrix;
+        glm::vec4 color;
+        bool is_opaque;
+    };
+
 public:
-    wayland_server(vk::Device d, vma::Allocator a, const std::string socket_name = "xmbshell") : device(d), allocator(a) {
-        std::tie(upload_buffer, upload_buffer_allocation) = allocator.createBufferUnique(
-            vk::BufferCreateInfo{{}, upload_buffer_size, vk::BufferUsageFlagBits::eTransferSrc},
-            vma::AllocationCreateInfo{vma::AllocationCreateFlagBits::eHostAccessSequentialWrite, vma::MemoryUsage::eCpuToGpu,
-                vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent}
-        );
-
+    wayland_server(const std::string socket_name = "xmbshell") {
         server_display.add_socket(socket_name);
+    }
 
+    void preload(dreamrender::resource_loader* loader, const std::vector<vk::RenderPass>& renderPasses, vk::SampleCountFlagBits sampleCount, vk::PipelineCache pipelineCache, app::xmbshell* xmb) override {
+        device = loader->getDevice();
+        allocator = loader->getAllocator();
+
+        using dreamrender::debugName;
+        {
+            std::tie(upload_buffer, upload_buffer_allocation) = allocator.createBufferUnique(
+                vk::BufferCreateInfo{{}, upload_buffer_size, vk::BufferUsageFlagBits::eTransferSrc},
+                vma::AllocationCreateInfo{vma::AllocationCreateFlagBits::eHostAccessSequentialWrite, vma::MemoryUsage::eCpuToGpu,
+                    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent}
+            );
+            debugName(device, upload_buffer.get(), "Wayland Server Upload Buffer");
+        }
+        {
+            vk::SamplerCreateInfo sampler_info({}, vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
+                vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat,
+                0.0f, false, 0.0f, false, vk::CompareOp::eNever, 0.0f, 0.0f, vk::BorderColor::eFloatTransparentBlack, false);
+            sampler = device.createSamplerUnique(sampler_info);
+            debugName(device, sampler.get(), "Wayland Server Image Sampler");
+        }
+        {
+            std::array<vk::DescriptorSetLayoutBinding, 1> bindings = {
+                vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment)
+            };
+            vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingInfo({});
+            vk::DescriptorSetLayoutCreateInfo layout_info({}, bindings, &bindingInfo);
+            descriptor_set_layout = device.createDescriptorSetLayoutUnique(layout_info);
+            debugName(device, descriptor_set_layout.get(), "Wayland Server Descriptor Set Layout");
+        }
+        {
+            std::array<vk::PushConstantRange, 1> push_constant_ranges = {
+                vk::PushConstantRange(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(SurfaceParams)),
+            };
+            vk::PipelineLayoutCreateInfo layout_info({}, descriptor_set_layout.get(), push_constant_ranges);
+            pipeline_layout = device.createPipelineLayoutUnique(layout_info);
+            debugName(device, pipeline_layout.get(), "Wayland Server Pipeline Layout");
+        }
+        {
+            vk::UniqueShaderModule vertexShader = render::shaders::wayland_surface::vert(device);
+            vk::UniqueShaderModule fragmentShader = render::shaders::wayland_surface::frag(device);
+            std::array<vk::PipelineShaderStageCreateInfo, 2> shaders = {
+                vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, vertexShader.get(), "main"),
+                vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, fragmentShader.get(), "main")
+            };
+
+            vk::PipelineVertexInputStateCreateInfo vertex_input{};
+            vk::PipelineInputAssemblyStateCreateInfo input_assembly({}, vk::PrimitiveTopology::eTriangleStrip);
+            vk::PipelineTessellationStateCreateInfo tesselation({}, {});
+
+            vk::Viewport v{};
+            vk::Rect2D s{};
+            vk::PipelineViewportStateCreateInfo viewport({}, v, s);
+
+            vk::PipelineRasterizationStateCreateInfo rasterization({}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone, vk::FrontFace::eCounterClockwise, false, 0.0f, 0.0f, 0.0f, 1.0f);
+            vk::PipelineMultisampleStateCreateInfo multisample({}, sampleCount);
+            vk::PipelineDepthStencilStateCreateInfo depthStencil({}, false, false);
+
+            vk::PipelineColorBlendAttachmentState attachment(true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+                vk::BlendFactor::eOne, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+                vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+            vk::PipelineColorBlendStateCreateInfo colorBlend({}, false, vk::LogicOp::eClear, attachment);
+
+            std::array<vk::DynamicState, 2> dynamicStates{vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+            vk::PipelineDynamicStateCreateInfo dynamic({}, dynamicStates);
+
+            vk::GraphicsPipelineCreateInfo info({},
+                shaders, &vertex_input, &input_assembly, &tesselation, &viewport,
+                &rasterization, &multisample, &depthStencil, &colorBlend, &dynamic,
+                pipeline_layout.get(), renderPasses[0], 0, {}, {});
+            pipelines = dreamrender::createPipelines(device, pipelineCache, info, renderPasses, "Wayland Server Pipeline");
+        }
+        {
+            std::array<vk::DescriptorPoolSize, 1> sizes = {
+                vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, 1000)
+            };
+            vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, 1000, sizes);
+            descriptor_pool = device.createDescriptorPoolUnique(pool_info);
+            debugName(device, descriptor_pool.get(), "Wayland Server Descriptor Pool");
+        }
+    }
+
+    void init(app::xmbshell* xmb) override {
         global_shm.on_bind() = [](const wayland::server::client_t& client, wayland::server::shm_t shm) {
             spdlog::trace("[Client {}] SHM bound: {}", client.get_fd(), shm.get_id());
             shm.format(wayland::server::shm_format::argb8888);
@@ -199,6 +292,13 @@ public:
                             user_data.texture = std::make_shared<dreamrender::texture>(device, allocator,
                                 user_data.buffer->width, user_data.buffer->height, vk::ImageUsageFlagBits::eSampled, vk::Format::eR8G8B8A8Unorm);
                             user_data.texture_undefined = true;
+
+                            vk::DescriptorSetAllocateInfo alloc_info(descriptor_pool.get(), descriptor_set_layout.get());
+                            user_data.descriptor_set = std::make_shared<vk::UniqueDescriptorSet>(std::move(device.allocateDescriptorSetsUnique(alloc_info).front()));
+
+                            vk::DescriptorImageInfo image_info(sampler.get(), user_data.texture->imageView.get(), vk::ImageLayout::eShaderReadOnlyOptimal);
+                            vk::WriteDescriptorSet write_descriptor_set(user_data.descriptor_set->get(), 0, 0, vk::DescriptorType::eCombinedImageSampler, image_info);
+                            device.updateDescriptorSets(write_descriptor_set, {});
                         }
                     }
                     if(!user_data.pending.damages.empty()) {
@@ -416,17 +516,45 @@ public:
         }
     }
     void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override {
+        if(toplevels.empty()) {
+            return;
+        }
+
+        vk::CommandBuffer cmd = renderer.get_command_buffer();
+        vk::RenderPass render_pass = renderer.get_render_pass();
+
+        cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipelines[render_pass].get());
+
         for(auto& xdg_toplevel : toplevels) {
             auto& xdg_toplevel_data = xdg_toplevel.user_data().get<wl::xdg_toplevel>();
 
             auto& xdg_surface_data = xdg_toplevel_data.xdg_surface.user_data().get<wl::xdg_surface>();
             auto& surface_data = xdg_surface_data.surface.user_data().get<wl::surface>();
 
-            if(surface_data.texture) {
-                renderer.draw_image_sized(*surface_data.texture->imageView, 0, 0, surface_data.texture->width, surface_data.texture->height);
-            } else {
-                spdlog::warn("No texture available for surface associated with toplevel: {}", xdg_toplevel.get_id());
+            if(!surface_data.buffer || !surface_data.texture || !surface_data.descriptor_set) {
+                continue;
             }
+
+            double x = 0;
+            double y = 0;
+            int width = surface_data.texture->width;
+            int height = surface_data.texture->height;
+
+            double scaleX = static_cast<double>(width) / renderer.frame_size.width;
+            double scaleY = static_cast<double>(height) / renderer.frame_size.height;
+
+            glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
+
+            SurfaceParams params{};
+            params.matrix = glm::mat4(1.0f);
+            params.matrix = glm::translate(params.matrix, glm::vec3(pos, 0.0f));
+            params.matrix = glm::scale(params.matrix, glm::vec3(scaleX, scaleY, 1.0f));
+            params.color = glm::vec4(1.0f);
+            params.is_opaque = surface_data.buffer->format == wayland::server::shm_format::xrgb8888;
+
+            cmd.pushConstants(pipeline_layout.get(), vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(SurfaceParams), &params);
+            cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout.get(), 0, 1, &surface_data.descriptor_set->get(), 0, nullptr);
+            cmd.draw(4, 1, 0, 0);
         }
     }
     result tick(app::xmbshell* xmb) override {
@@ -457,6 +585,12 @@ private:
     constexpr static vk::DeviceSize upload_buffer_size = 16 * 1024 * 1024; // 16 MiB
     vma::UniqueAllocation upload_buffer_allocation;
     vma::UniqueBuffer upload_buffer;
+
+    vk::UniqueSampler sampler;
+    vk::UniqueDescriptorSetLayout descriptor_set_layout;
+    vk::UniqueDescriptorPool descriptor_pool;
+    vk::UniquePipelineLayout pipeline_layout;
+    dreamrender::UniquePipelineMap pipelines;
 
     wayland::server::display_t server_display;
     wayland::server::global_compositor_t global_compositor{server_display};

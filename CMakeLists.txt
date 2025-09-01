@@ -210,6 +210,8 @@ set(XMBSHELL_SHADERS
   shaders/blur.comp
   shaders/wave.vert
   shaders/wave.frag
+  shaders/wayland_surface.vert
+  shaders/wayland_surface.frag
   shaders/yuv420p_decode.comp
 )
 

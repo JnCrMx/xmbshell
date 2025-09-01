@@ -132,6 +132,10 @@ namespace app
                 auto ptr = component.get();
                 overlays.emplace_back(std::move(component));
 
+                ptr->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get(), this);
+                ptr->prepare(swapchainImages, win->swapchainImageViewsRaw, this);
+                ptr->init(this);
+
                 if(ptr->do_fade_in()) {
                     overlay_fade_direction = transition_direction::in;
                     overlay_fade_time = std::chrono::system_clock::now();
@@ -146,6 +150,10 @@ namespace app
                 auto p = std::make_unique<T>(std::forward<Args>(args)...);
                 auto ptr = p.get();
                 overlays.emplace_back(std::move(p));
+
+                ptr->preload(loader, {shellRenderPass.get()}, win->config.sampleCount, win->pipelineCache.get(), this);
+                ptr->prepare(swapchainImages, win->swapchainImageViewsRaw, this);
+                ptr->init(this);
 
                 if(ptr->do_fade_in()) {
                     overlay_fade_direction = transition_direction::in;
