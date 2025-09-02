@@ -47,6 +47,7 @@ steps:
         ln -sf /usr/bin/clang-19 /usr/bin/cc &&
         ln -sf /usr/bin/clang++-19 /usr/bin/c++ &&
         ln -sf /usr/bin/ld.lld-19 /usr/bin/ld
+      - .woodpecker/build-wayland-scanner.sh
       - .woodpecker/download_unlicensed.sh
       - BUILD_VERSION=$(git describe --tags --always)
       - mkdir -p build
@@ -59,6 +60,7 @@ steps:
         -DBUILD_VERSION=$BUILD_VERSION
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=${TARGETARCH}
         -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}
+        -DWAYLAND_SCANNERPP=/usr/local/bin/wayland-scanner++
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}-${TARGETARCH}.log
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}-${TARGETARCH}.log
       - cd build

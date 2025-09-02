@@ -26,6 +26,7 @@ option(SEPARATE_DEBUG_INFO "Generate separate debug info files" OFF)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(BUILD_SHARED_LIBS OFF)
 add_compile_options(-fPIC)
 add_compile_options(-Wno-nullability-completeness)
 
