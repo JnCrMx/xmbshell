@@ -206,10 +206,6 @@ namespace app
         }
 
         reload_button_icons();
-
-#if __linux__
-        emplace_overlay<wayland_server>();
-#endif
     }
 
     void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -261,6 +257,10 @@ namespace app
         image_render->prepare(swapchainViews.size());
         simple_render->prepare(swapchainViews.size());
         wave_render->prepare(swapchainViews.size());
+
+#if __linux__
+        emplace_overlay<wayland_server>();
+#endif
     }
 
     void xmbshell::render(int frame, vk::Semaphore imageAvailable, vk::Semaphore renderFinished, vk::Fence fence)

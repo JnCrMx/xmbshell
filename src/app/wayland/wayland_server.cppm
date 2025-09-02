@@ -98,6 +98,10 @@ struct shm_buffer {
         }
     }
 };
+struct viewport {
+    double sx, sy, sw, sh; // source rectangle
+    int32_t dw, dh; // destination size
+};
 struct surface {
     std::shared_ptr<shm_buffer> buffer;
     std::shared_ptr<dreamrender::texture> texture;
@@ -106,11 +110,14 @@ struct surface {
     // TODO: prevent early destruction of descriptor set while it's still in use by the GPU
     std::shared_ptr<vk::UniqueDescriptorSet> descriptor_set;
 
+    std::optional<wl::viewport> viewport;
+
     // pending state
     struct {
         std::shared_ptr<shm_buffer> buffer;
         std::vector<vk::Rect2D> damages;
         std::vector<wayland::server::callback_t> frame_callbacks;
+        std::optional<wl::viewport> viewport;
     } pending;
 };
 struct surface_damages {
@@ -133,6 +140,7 @@ namespace app {
 export class wayland_server : public component {
     struct SurfaceParams {
         glm::mat4 matrix;
+        glm::mat4 texture_matrix;
         glm::vec4 color;
         bool is_opaque;
     };
@@ -308,8 +316,10 @@ public:
                         });
                     }
                     std::ranges::copy(user_data.pending.frame_callbacks, std::back_inserter(frame_callbacks));
+                    user_data.viewport = user_data.pending.viewport;
 
                     user_data.pending = {};
+                    user_data.pending.viewport = user_data.viewport; // keep the current viewport as pending by default
                 };
                 surface.on_attach() = [this, surface](wayland::server::buffer_t buffer, int32_t x, int32_t y) mutable {
                     spdlog::trace("[Surface {}] attached buffer: {} at {}, {}", surface.get_id(), buffer.get_id(), x, y);
@@ -356,6 +366,57 @@ public:
             };
             compositor.on_destroy() = [compositor]() mutable {
                 spdlog::trace("[Compositor {}] destroyed", compositor.get_id());
+            };
+        };
+        global_viewporter.on_bind() = [](const wayland::server::client_t& client, wayland::server::viewporter_t viewporter) {
+            spdlog::trace("[Client {}] viewporter bound: {}", client.get_fd(), viewporter.get_id());
+
+            viewporter.on_get_viewport() = [viewporter](wayland::server::viewport_t viewport, wayland::server::surface_t surface) {
+                spdlog::trace("[Viewporter {}] viewport created: {} for surface {}", viewporter.get_id(), viewport.get_id(), surface.get_id());
+
+                auto& surface_data = surface.user_data().get<wl::surface>();
+                surface_data.pending.viewport = wl::viewport{
+                    .sx=0, .sy=0,
+                    .sw=static_cast<double>(surface_data.buffer ? surface_data.buffer->width : 0),
+                    .sh=static_cast<double>(surface_data.buffer ? surface_data.buffer->height : 0),
+                    .dw=surface_data.buffer ? surface_data.buffer->width : 0,
+                    .dh=surface_data.buffer ? surface_data.buffer->height : 0
+                };
+
+                viewport.on_set_source() = [viewport, surface](double x, double y, double width, double height) mutable {
+                    spdlog::trace("[Viewport {}] source set to ({}, {}) with size {}x{}", viewport.get_id(), x, y, width, height);
+                    if(width <= 0 || height <= 0) {
+                        viewport.post_bad_value("source width and height must be positive");
+                    }
+                    if(x < 0 || y < 0 /*check width and height*/) {
+                        viewport.post_out_of_buffer("source x and y must be non-negative");
+                    }
+
+                    auto& surface_data = surface.user_data().get<wl::surface>();
+                    surface_data.pending.viewport->sx = x;
+                    surface_data.pending.viewport->sy = y;
+                    surface_data.pending.viewport->sw = width;
+                    surface_data.pending.viewport->sh = height;
+                };
+                viewport.on_set_destination() = [viewport, surface](int width, int height) mutable {
+                    spdlog::trace("[Viewport {}] destination set to size {}x{}", viewport.get_id(), width, height);
+                    if(width <= 0 || height <= 0) {
+                        viewport.post_bad_value("destination width and height must be positive");
+                    }
+
+                    auto& surface_data = surface.user_data().get<wl::surface>();
+                    surface_data.pending.viewport->dw = width;
+                    surface_data.pending.viewport->dh = height;
+                };
+                viewport.on_destroy() = [viewport, surface]() mutable {
+                    spdlog::trace("[Viewport {}] destroyed", viewport.get_id());
+
+                    auto& surface_data = surface.user_data().get<wl::surface>();
+                    surface_data.pending.viewport.reset();
+                };
+            };
+            viewporter.on_destroy() = [viewporter]() {
+                spdlog::trace("[Viewporter {}] destroyed", viewporter.get_id());
             };
         };
         global_xdg_wm_base.on_bind() = [this](const wayland::server::client_t& client, wayland::server::xdg_wm_base_t xdg_wm_base) {
@@ -515,7 +576,13 @@ public:
             spdlog::warn("Not all damaged surfaces were processed, {} remaining", damaged_surfaces.size());
         }
     }
+    void prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews, app::xmbshell* xmb) override {
+        used_resources.resize(swapchainImages.size());
+    };
     void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override {
+        auto& resources = used_resources[renderer.get_frame()];
+        resources.clear();
+
         if(toplevels.empty()) {
             return;
         }
@@ -537,11 +604,13 @@ public:
 
             double x = 0;
             double y = 0;
-            int width = surface_data.texture->width;
-            int height = surface_data.texture->height;
+            int src_width = surface_data.texture->width;
+            int src_height = surface_data.texture->height;
+            int dst_width = surface_data.viewport ? surface_data.viewport->dw : src_width;
+            int dst_height = surface_data.viewport ? surface_data.viewport->dh : src_height;
 
-            double scaleX = static_cast<double>(width) / renderer.frame_size.width;
-            double scaleY = static_cast<double>(height) / renderer.frame_size.height;
+            double scaleX = static_cast<double>(dst_width) / renderer.frame_size.width;
+            double scaleY = static_cast<double>(dst_height) / renderer.frame_size.height;
 
             glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
 
@@ -549,12 +618,17 @@ public:
             params.matrix = glm::mat4(1.0f);
             params.matrix = glm::translate(params.matrix, glm::vec3(pos, 0.0f));
             params.matrix = glm::scale(params.matrix, glm::vec3(scaleX, scaleY, 1.0f));
+            params.texture_matrix = glm::mat4(1.0f);
             params.color = glm::vec4(1.0f);
             params.is_opaque = surface_data.buffer->format == wayland::server::shm_format::xrgb8888;
 
             cmd.pushConstants(pipeline_layout.get(), vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(SurfaceParams), &params);
             cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout.get(), 0, 1, &surface_data.descriptor_set->get(), 0, nullptr);
             cmd.draw(4, 1, 0, 0);
+
+            resources.push_back(surface_data.buffer);
+            resources.push_back(surface_data.texture);
+            resources.push_back(surface_data.descriptor_set);
         }
     }
     result tick(app::xmbshell* xmb) override {
@@ -592,8 +666,11 @@ private:
     vk::UniquePipelineLayout pipeline_layout;
     dreamrender::UniquePipelineMap pipelines;
 
+    std::vector<std::vector<std::shared_ptr<void>>> used_resources;
+
     wayland::server::display_t server_display;
     wayland::server::global_compositor_t global_compositor{server_display};
+    wayland::server::global_viewporter_t global_viewporter{server_display};
     wayland::server::global_data_device_manager_t global_data_device_manager{server_display};
     wayland::server::global_output_t global_output{server_display};
     wayland::server::global_shm_t global_shm{server_display};

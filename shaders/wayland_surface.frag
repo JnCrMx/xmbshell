@@ -24,6 +24,7 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform SurfaceParams
 {
     mat4 matrix;
+    mat4 texture_matrix;
     vec4 color;
     bool is_opaque;
 } params;

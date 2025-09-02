@@ -21,6 +21,7 @@ layout(location = 0) out vec2 texCoord;
 layout(push_constant) uniform SurfaceParams
 {
     mat4 matrix;
+    mat4 texture_matrix;
     vec4 color;
     bool is_opaque;
 } params;
@@ -42,5 +43,5 @@ void main()
     );
     vec4 pos = vec4(positions[gl_VertexIndex], 0.0f, 1.0f);
     gl_Position = params.matrix * pos;
-    texCoord = texCoords[gl_VertexIndex];
+    texCoord = (params.texture_matrix * vec4(texCoords[gl_VertexIndex], 0.0f, 1.0f)).xy;
 }
