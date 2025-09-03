@@ -66,4 +66,12 @@ export namespace av {
     using av::Errors;
     using av::error2string;
     using av::make_ffmpeg_error;
+
+    using ::avcodec_license;
+    using ::avdevice_license;
+    using ::avfilter_license;
+    using ::avformat_license;
+    using ::avutil_license;
+    using ::swresample_license;
+    using ::swscale_license;
 }

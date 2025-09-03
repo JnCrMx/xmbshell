@@ -33,6 +33,7 @@ module;
 
 module xmbshell.app;
 
+import avcpp;
 import spdlog;
 import glibmm;
 import giomm;
@@ -298,8 +299,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         constexpr char avcpp[] = {
             #embed "_deps/avcpp-src/LICENSE-bsd.txt"
         };
+        static const std::string ffmpeg = []() -> std::string {
+            return std::format(
+                "libavcodec: {}\n"
+                "libavdevice: {}\n"
+                "libavfilter: {}\n"
+                "libavformat: {}\n"
+                "libavutil: {}\n"
+                "libswresample: {}\n"
+                "libswscale: {}\n"
+                "\n"
+                "Visit https://ffmpeg.org/legal.html for details.\n",
+                av::avcodec_license(),
+                av::avdevice_license(),
+                av::avfilter_license(),
+                av::avformat_license(),
+                av::avutil_license(),
+                av::swresample_license(),
+                av::swscale_license()
+            );
+        }();
         constexpr char vulkanmemoryallocator_hpp[] = {
             #embed "_deps/vulkanmemoryallocator-hpp-src/LICENSE"
+        };
+        constexpr char vulkanmemoryallocator[] = {
+            #embed "_deps/vulkanmemoryallocator-hpp-src/VulkanMemoryAllocator/LICENSE.txt"
         };
         constexpr char vulkan_hpp[] = {
             #embed "_deps/vulkan-hpp-src/LICENSE.txt"
@@ -439,19 +463,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             std::make_tuple<std::string_view, std::string_view, std::string_view>("XMBShell", "https://github.com/JnCrMx/xmbshell", std::string_view(licenses::xmbshell, sizeof(licenses::xmbshell))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("RetroArch", "https://github.com/libretro/RetroArch", std::string_view(licenses::retroarch, sizeof(licenses::retroarch))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("dreamrender", "https://github.com/JnCrMx/dreamrender", std::string_view(licenses::dreamrender, sizeof(licenses::dreamrender))),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n-cpp", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("i18n++", "https://github.com/JnCrMx/i18n-cpp", std::string_view(licenses::i18n_cpp, sizeof(licenses::i18n_cpp))),
 #if __linux__
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-cpp", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("sdbus-c++", "https://github.com/Kistler-Group/sdbus-cpp", std::string_view(licenses::sdbus_cpp, sizeof(licenses::sdbus_cpp))),
 #endif
             std::make_tuple<std::string_view, std::string_view, std::string_view>("argparse", "https://github.com/p-ranav/argparse", std::string_view(licenses::argparse, sizeof(licenses::argparse))),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("avcpp", "https://github.com/h4tr3d/avcpp", std::string_view(licenses::avcpp, sizeof(licenses::avcpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("AvCpp", "https://github.com/h4tr3d/avcpp", std::string_view(licenses::avcpp, sizeof(licenses::avcpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("FFmpeg", "https://ffmpeg.org/", std::string_view(licenses::ffmpeg)),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("glibmm", "https://gitlab.gnome.org/GNOME/glibmm", std::string_view(licenses::glibmm, sizeof(licenses::glibmm))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("Vulkan-Hpp", "https://github.com/KhronosGroup/Vulkan-Hpp", std::string_view(licenses::vulkan_hpp, sizeof(licenses::vulkan_hpp))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("spdlog", "https://github.com/gabime/spdlog", std::string_view(licenses::spdlog, sizeof(licenses::spdlog))),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("SDL2", "https://github.com/libsdl-org/SDL",std::string_view(licenses::sdl2, sizeof(licenses::sdl2))),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("FreeType", "https://gitlab.freedesktop.org/freetype/freetype", std::string_view(licenses::freetype, sizeof(licenses::freetype))),
-            std::make_tuple<std::string_view, std::string_view, std::string_view>("glm", "https://github.com/g-truc/glm", std::string_view(licenses::glm, sizeof(licenses::glm))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("SDL2", "https://libsdl.org/",std::string_view(licenses::sdl2, sizeof(licenses::sdl2))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("FreeType", "https://freetype.org/", std::string_view(licenses::freetype, sizeof(licenses::freetype))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("glm", "https://glm.g-truc.net/", std::string_view(licenses::glm, sizeof(licenses::glm))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator-Hpp", "https://github.com/YaaZ/VulkanMemoryAllocator-Hpp", std::string_view(licenses::vulkanmemoryallocator_hpp, sizeof(licenses::vulkanmemoryallocator_hpp))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator", "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator", std::string_view(licenses::vulkanmemoryallocator, sizeof(licenses::vulkanmemoryallocator))),
             // NOLINTEND(*-array-to-pointer-decay)
         };
         std::vector<std::unique_ptr<menu_entry>> license_entries;
