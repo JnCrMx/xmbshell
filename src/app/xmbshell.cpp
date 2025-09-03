@@ -261,6 +261,7 @@ namespace app
 
         vk::CommandBuffer commandBuffer = commandBuffers[frame];
         auto now = std::chrono::system_clock::now();
+        auto local_now = get_local_time();
 
         commandBuffer.begin(vk::CommandBufferBeginInfo());
         for(auto& overlay : std::views::reverse(overlays)) {
@@ -268,13 +269,13 @@ namespace app
         }
         {
             vk::ClearValue color(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
-            if(config::CONFIG.backgroundType == config::config::background_type::color) {
-                color = vk::ClearColorValue(std::array<float, 4>{
-                    config::CONFIG.backgroundColor.r,
-                    config::CONFIG.backgroundColor.g,
-                    config::CONFIG.backgroundColor.b,
-                    1.0f
-                });
+            if(config::CONFIG.backgroundType == config::config::background_type::color ||
+                config::CONFIG.backgroundType == config::config::background_type::wave)
+            {
+                auto c = std::visit([&](auto&& c){
+                    return c.get(local_now);
+                }, config::CONFIG.backgroundColor);
+                color = vk::ClearColorValue(std::array<float, 4>{c.r, c.g, c.b, 1.0f});
             }
             if(ingame_mode) {
                 color = vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 0.5f});
@@ -290,7 +291,9 @@ namespace app
 
             if(!ingame_mode) {
                 if(config::CONFIG.backgroundType == config::config::background_type::wave) {
-                    wave_render->waveColor = config::CONFIG.waveColor;
+                    wave_render->waveColor = std::visit([&](auto&& c){
+                        return c.get(local_now);
+                    }, config::CONFIG.waveColor);
                     wave_render->render(commandBuffer, frame, backgroundRenderPass.get());
                 }
                 else if(config::CONFIG.backgroundType == config::config::background_type::image) {
@@ -493,18 +496,7 @@ namespace app
             }
             menu.render(renderer);
 
-#if __cpp_lib_chrono >= 201907L || defined(__GLIBCXX__)
-            static const std::chrono::time_zone* timezone = [](){
-                auto tz = std::chrono::current_zone();
-                auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
-                auto local = std::chrono::zoned_time(tz, system);
-                spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
-                return tz;
-            }();
-            auto local_now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
-#else
-            auto local_now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
-#endif
+            auto local_now = get_local_time();
             renderer.draw_text(std::vformat("{:"+config::CONFIG.dateTimeFormat+"}", std::make_format_args(local_now)),
                 static_cast<float>(0.831770833f+config::CONFIG.dateTimeOffset), 0.086111111f, 0.021296296f*2.5f);
 

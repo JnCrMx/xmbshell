@@ -7,7 +7,10 @@
             "name": "Debug",
             "program": "${workspaceFolder}/build/xmbshell",
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "XMB_ASSET_DIR": "${workspaceFolder}",
+                "GSETTINGS_SCHEMA_DIR": "${workspaceFolder}/schemas",            }
         }
     ]
 }

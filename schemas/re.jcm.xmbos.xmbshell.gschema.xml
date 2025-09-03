@@ -66,7 +66,7 @@
             </choices>
         </key>
         <key name='background-color' type='s'>
-            <default>'#22093d'</default>
+            <default>'month*time'</default>
             <summary>Background color</summary>
             <description>
                 Color of the background.
@@ -80,7 +80,7 @@
             </description>
         </key>
         <key name='wave-color' type='s'>
-            <default>'#f9f9f9'</default>
+            <default>'month'</default>
             <summary>Wave color</summary>
             <description>
                 Color of the background wave.
