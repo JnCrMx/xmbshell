@@ -53,3 +53,35 @@ Finally, run the app directly from the build directory using the following comma
 ```
 GSETTINGS_SCHEMA_DIR="$PWD/schemas:$GSETTINGS_SCHEMA_DIR" XMB_ASSET_DIR=. ./build/xmbshell
 ```
+
+## Acknowledgements
+- [OpenXMB](https://github.com/phenom64/OpenXMB), a very cool fork on XMBShell, from which I ported features back to this repository and copied quite a bit of code.
+- [RetroArch](https://github.com/libretro/RetroArch), from which I took the XMB wave shader.
+- [i18n++](https://github.com/zauguin/i18n-cpp) for internationalization (forked with some fixes [here](https://github.com/JnCrMx/i18n-cpp))
+- [sdbus-c++](https://github.com/Kistler-Group/sdbus-cpp) for D-Bus integration
+- [argparse](https://github.com/p-ranav/argparse) for argument parsing
+- [AvCpp](https://github.com/h4tr3d/avcpp) and [FFmpeg](https://www.ffmpeg.org/) for video decoding
+- [glibmm](https://gitlab.gnome.org/GNOME/glibmm) for GSetting and desktop integration
+- [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) for C++ Vulkan bindings
+- [spdlog](https://github.com/gabime/spdlog) for easy and pretty logging
+- [SDL2](https://libsdl.org/) for (controller) input and window system integration
+- [FreeType](https://freetype.org/) for font rendering
+- [glm](https://glm.g-truc.net/) for vector and matrix math operations
+- [VulkanMemoryAllocator-Hpp](https://github.com/YaaZ/VulkanMemoryAllocator-Hpp) and [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) for easy and efficient Vulkan memory allocations
+
+## License
+XMBShell, a console-like desktop shell
+Copyright (C) 2025 - JCM
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.

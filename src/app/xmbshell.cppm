@@ -34,6 +34,7 @@ import xmbshell.utils;
 import dreamrender;
 import glm;
 import sdl2;
+import spdlog;
 import vulkan_hpp;
 
 import :component;
@@ -180,6 +181,22 @@ namespace app
                 this->clipboard = std::move(clipboard);
             }
             const std::optional<clipboard>& get_clipboard() const { return clipboard; }
+
+            auto get_local_time() const {
+#if __cpp_lib_chrono >= 201907L || defined(__GLIBCXX__)
+                static const std::chrono::time_zone* timezone = [](){
+                    auto tz = std::chrono::current_zone();
+                    auto system = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+                    auto local = std::chrono::zoned_time(tz, system);
+                    spdlog::debug("{}", std::format("Timezone: {}, System Time: {}, Local Time: {}", tz->name(), system, local));
+                    return tz;
+                }();
+                auto now = std::chrono::zoned_time(timezone, std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+                return now.get_local_time();
+#else
+                return std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+#endif
+            }
         private:
             friend class blur_layer;
 

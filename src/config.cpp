@@ -23,6 +23,7 @@ module;
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <variant>
 #include <version>
 
 module xmbshell.config;
@@ -59,6 +60,27 @@ std::optional<glm::vec3> parse_color(std::string_view hex) {
         static_cast<float>(parseHex(hex.substr(3, 2)).value_or(0)) / 255.0f,
         static_cast<float>(parseHex(hex.substr(5, 2)).value_or(0)) / 255.0f
     );
+}
+std::optional<config::color_scheme> parse_color_scheme(std::string_view hex) {
+    bool time_dim = hex.ends_with("*time");
+    if(time_dim) {
+        hex.remove_suffix(5);
+    }
+
+    std::variant<config::simple_color, config::month_dependent_color> color;
+    if(hex == "month") {
+        color = config::month_dependent_color{};
+    } else {
+        auto c = parse_color(hex);
+        if(c) {
+            color = config::simple_color{*c};
+        } else {
+            return std::nullopt;
+        }
+    }
+    config::color_scheme scheme = time_dim ? config::color_scheme{config::time_dimming_color{std::move(color)}} :
+        std::visit([](auto&& arg) -> config::color_scheme { return arg; }, color);
+    return scheme;
 }
 
 void config::on_update(const Glib::ustring& key) {
@@ -168,30 +190,30 @@ void config::setBackgroundType(const std::string& type) {
     setBackgroundType(std::string_view(type));
 }
 
-void config::setBackgroundColor(glm::vec3 color) {
+void config::setBackgroundColor(color_scheme color) {
     backgroundColor = color;
 }
 void config::setBackgroundColor(std::string_view hex) {
-    auto color = parse_color(hex);
+    auto color = parse_color_scheme(hex);
     if(color) {
         backgroundColor = *color;
     } else {
-        spdlog::error("Ignoring invalid hex background-color: {}", hex);
+        spdlog::error("Ignoring invalid background-color: {}", hex);
     }
 }
 void config::setBackgroundColor(const std::string& hex) {
     setBackgroundColor(std::string_view(hex));
 }
 
-void config::setWaveColor(glm::vec3 color) {
+void config::setWaveColor(color_scheme color) {
     waveColor = color;
 }
 void config::setWaveColor(std::string_view hex) {
-    auto color = parse_color(hex);
+    auto color = parse_color_scheme(hex);
     if(color) {
         waveColor = *color;
     } else {
-        spdlog::error("Ignoring invalid hex wave-color: {}", hex);
+        spdlog::error("Ignoring invalid wave-color: {}", hex);
     }
 }
 void config::setWaveColor(const std::string& hex) {
