@@ -363,6 +363,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             #embed "/usr/share/doc/libglm-dev/copyright"
         };
 #endif
+        constexpr char input_prompts_by_kenney[] = {
+            #embed "icons/icon_button_kenney_license.txt"
+        };
         // NOLINTEND(*-avoid-c-arrays)
         #pragma clang diagnostic pop
     }
@@ -478,6 +481,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             std::make_tuple<std::string_view, std::string_view, std::string_view>("glm", "https://glm.g-truc.net/", std::string_view(licenses::glm, sizeof(licenses::glm))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator-Hpp", "https://github.com/YaaZ/VulkanMemoryAllocator-Hpp", std::string_view(licenses::vulkanmemoryallocator_hpp, sizeof(licenses::vulkanmemoryallocator_hpp))),
             std::make_tuple<std::string_view, std::string_view, std::string_view>("VulkanMemoryAllocator", "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator", std::string_view(licenses::vulkanmemoryallocator, sizeof(licenses::vulkanmemoryallocator))),
+            std::make_tuple<std::string_view, std::string_view, std::string_view>("Input Prompts by Kenney", "https://kenney.nl/assets/input-prompts", std::string_view(licenses::input_prompts_by_kenney, sizeof(licenses::input_prompts_by_kenney))),
             // NOLINTEND(*-array-to-pointer-decay)
         };
         std::vector<std::unique_ptr<menu_entry>> license_entries;
