@@ -413,7 +413,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             std::array{
                 entry_bool(loader, xmb, "Show FPS"_(), "", "re.jcm.xmbos.xmbshell.render", "show-fps"),
                 entry_bool(loader, xmb, "Show Memory Usage"_(), "", "re.jcm.xmbos.xmbshell.render", "show-mem"),
-#ifndef NDEBUG
                 make_simple<action_menu_entry>("Toggle Background Blur"_(), asset_dir/"icons/icon_settings_toggle-background-blur.png", loader, [xmb](){
                     spdlog::info("Toggling background blur");
                     xmb->set_blur_background(!xmb->get_blur_background());
@@ -424,7 +423,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     xmb->set_ingame_mode(!xmb->get_ingame_mode());
                     return result::success;
                 }),
-#endif
             }
         ));
 #if __linux__
