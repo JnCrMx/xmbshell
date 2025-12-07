@@ -138,7 +138,7 @@ export namespace config
                     int b = (hours + 1) % 24;
                     float f = time_of_day.minutes().count() / 60.0f;
                     float brightness_factor = glm::mix(brightness[a], brightness[b], f);
-                    return baseColor * brightness_factor;
+                    return baseColor * (brightness_factor / 2.0f);
                 }
             };
             using color_scheme = std::variant<simple_color, month_dependent_color, time_dimming_color>;
