@@ -137,7 +137,7 @@ struct xdg_toplevel {
 
 namespace app {
 
-export class wayland_server : public component {
+export class wayland_server : public component, public action_receiver {
     struct SurfaceParams {
         glm::mat4 matrix;
         glm::mat4 texture_matrix;
@@ -419,6 +419,27 @@ public:
                 spdlog::trace("[Viewporter {}] destroyed", viewporter.get_id());
             };
         };
+        global_seat.on_bind() = [](const wayland::server::client_t& client, wayland::server::seat_t seat) {
+            spdlog::trace("[Client {}] seat bound: {}", client.get_fd(), seat.get_id());
+            seat.name("default");
+            seat.capabilities(wayland::server::seat_capability::pointer | wayland::server::seat_capability::keyboard);
+
+            seat.on_get_pointer() = [seat](wayland::server::pointer_t pointer) {
+                spdlog::trace("[Seat {}] pointer created: {}", seat.get_id(), pointer.get_id());
+                pointer.on_destroy() = [pointer]() {
+                    spdlog::trace("[Pointer {}] destroyed", pointer.get_id());
+                };
+            };
+            seat.on_get_keyboard() = [seat](wayland::server::keyboard_t keyboard) {
+                spdlog::trace("[Seat {}] keyboard created: {}", seat.get_id(), keyboard.get_id());
+                keyboard.on_destroy() = [keyboard]() {
+                    spdlog::trace("[Keyboard {}] destroyed", keyboard.get_id());
+                };
+            };
+            seat.on_destroy() = [seat]() {
+                spdlog::trace("[Seat {}] destroyed", seat.get_id());
+            };
+        };
         global_xdg_wm_base.on_bind() = [this](const wayland::server::client_t& client, wayland::server::xdg_wm_base_t xdg_wm_base) {
             spdlog::trace("[Client {}] xdg_wm_base bound: {}", client.get_fd(), xdg_wm_base.get_id());
             xdg_wm_base.on_get_xdg_surface() = [this, xdg_wm_base](wayland::server::xdg_surface_t xdg_surface, wayland::server::surface_t surface) {
@@ -450,6 +471,24 @@ public:
             };
             xdg_wm_base.on_destroy() = [=]() {
                 spdlog::trace("[XDG WM Base {}] destroyed", xdg_wm_base.get_id());
+            };
+        };
+        global_xwayland_shell_v1.on_bind() = [](const wayland::server::client_t& client, wayland::server::xwayland_shell_v1_t xwayland_shell) {
+            spdlog::trace("[Client {}] xwayland_shell_v1 bound: {}", client.get_fd(), xwayland_shell.get_id());
+            xwayland_shell.on_get_xwayland_surface() = [=](wayland::server::xwayland_surface_v1_t xwayland_surface, wayland::server::surface_t surface) {
+                spdlog::trace("[XWayland Shell V1 {}] xwayland_surface created: {} for surface {}", xwayland_shell.get_id(), xwayland_surface.get_id(), surface.get_id());
+                xwayland_surface.user_data() = surface;
+
+                xwayland_surface.on_set_serial() = [xwayland_surface](uint32_t serial_lo, uint32_t serial_hi) mutable {
+                    spdlog::trace("[XWayland Surface V1 {}] serial set to: {:x}:{:x}", xwayland_surface.get_id(), serial_lo, serial_hi);
+                };
+
+                xwayland_surface.on_destroy() = [=]() {
+                    spdlog::trace("[XWayland Surface V1 {}] destroyed", xwayland_surface.get_id());
+                };
+            };
+            xwayland_shell.on_destroy() = [=]() {
+                spdlog::trace("[XWayland Shell V1 {}] destroyed", xwayland_shell.get_id());
             };
         };
         server_display.on_client_created() = [this](wayland::server::client_t& client) {
@@ -674,7 +713,9 @@ private:
     wayland::server::global_data_device_manager_t global_data_device_manager{server_display};
     wayland::server::global_output_t global_output{server_display};
     wayland::server::global_shm_t global_shm{server_display};
+    wayland::server::global_seat_t global_seat{server_display};
     wayland::server::global_xdg_wm_base_t global_xdg_wm_base{server_display};
+    wayland::server::global_xwayland_shell_v1_t global_xwayland_shell_v1{server_display};
 
     wayland::server::event_loop_t event_loop = server_display.get_event_loop();
     std::vector<wl::surface_damages> damaged_surfaces;

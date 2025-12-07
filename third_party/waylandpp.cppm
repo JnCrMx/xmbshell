@@ -19,6 +19,7 @@ module;
 #include <wayland-server.hpp>
 #include <wayland-server-protocol.hpp>
 #include <wayland-server-protocol-extra.hpp>
+#include <wayland-server-protocol-staging.hpp>
 
 export module waylandpp;
 
@@ -36,15 +37,21 @@ export namespace wayland::server {
     using wayland::server::global_compositor_t;
     using wayland::server::global_data_device_manager_t;
     using wayland::server::global_output_t;
+    using wayland::server::global_seat_t;
     using wayland::server::global_shm_t;
     using wayland::server::global_viewporter_t;
     using wayland::server::global_xdg_wm_base_t;
+    using wayland::server::global_xwayland_shell_v1_t;
+    using wayland::server::keyboard_t;
     using wayland::server::output_mode;
     using wayland::server::output_subpixel;
     using wayland::server::output_t;
     using wayland::server::output_transform;
+    using wayland::server::pointer_t;
     using wayland::server::region_t;
     using wayland::server::resource_t;
+    using wayland::server::seat_capability;
+    using wayland::server::seat_t;
     using wayland::server::shm_format;
     using wayland::server::shm_pool_t;
     using wayland::server::shm_t;
@@ -54,4 +61,6 @@ export namespace wayland::server {
     using wayland::server::xdg_surface_t;
     using wayland::server::xdg_toplevel_t;
     using wayland::server::xdg_wm_base_t;
+    using wayland::server::xwayland_shell_v1_t;
+    using wayland::server::xwayland_surface_v1_t;
 }

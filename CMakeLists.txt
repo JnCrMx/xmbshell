@@ -93,11 +93,12 @@ if(UNIX AND NOT APPLE)
   FetchContent_MakeAvailable_ExcludeFromAll(waylandpp)
   add_library(waylandpp::wayland-server++ ALIAS wayland-server++)
   add_library(waylandpp::wayland-server-extra++ ALIAS wayland-server-extra++)
+  add_library(waylandpp::wayland-server-staging++ ALIAS wayland-server-staging++)
 
   add_library(waylandppModule STATIC)
   target_sources(waylandppModule PUBLIC FILE_SET CXX_MODULES FILES third_party/waylandpp.cppm)
   target_compile_features(waylandppModule PUBLIC cxx_std_23)
-  target_link_libraries(waylandppModule PUBLIC waylandpp::wayland-server++ waylandpp::wayland-server-extra++)
+  target_link_libraries(waylandppModule PUBLIC waylandpp::wayland-server++ waylandpp::wayland-server-extra++ waylandpp::wayland-server-staging++)
   target_compile_options(waylandppModule PRIVATE -pthread)
 endif()
 
