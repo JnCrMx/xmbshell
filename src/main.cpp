@@ -46,6 +46,10 @@ std::string find_visualid() {
     if (!XMatchVisualInfo(display.get(), DefaultScreen(display.get()), 32, TrueColor, &visualInfo)) {
         throw std::runtime_error("Failed to find visual info");
     }
+    spdlog::debug("Found transparent X11 visual: visualid={:#x}, screen={}, depth={}, red_mask={:b}, green_mask={:b}, blue_mask={:b}, colormap_size={}, bits_per_rgb={}",
+        visualInfo.visualid, visualInfo.screen, visualInfo.depth,
+        visualInfo.red_mask, visualInfo.green_mask, visualInfo.blue_mask,
+        visualInfo.colormap_size, visualInfo.bits_per_rgb);
     return std::to_string(visualInfo.visualid);
 }
 #endif
