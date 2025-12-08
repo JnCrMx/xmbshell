@@ -79,7 +79,18 @@ namespace app
             void reload_fonts();
             void reload_button_icons();
 
-            void dispatch(action action);
+            void dispatch(const event& event);
+
+            template<typename T, typename... Args>
+            void dispatch(action a, Args&&... args) {
+                dispatch(event{a, T{std::forward<Args>(args)...}});
+            }
+
+            [[deprecated("Use dispatch(event) or dispatch<T>(action, ...) instead")]]
+            void dispatch(action a) {
+                dispatch(event{a, std::monostate{}});
+            }
+
             void handle(result result);
 
             std::string get_controller_type() const;

@@ -19,6 +19,7 @@ module;
 #include <cassert>
 #include <filesystem>
 #include <future>
+#include <variant>
 
 export module xmbshell.app:image_viewer;
 
@@ -34,7 +35,7 @@ namespace programs {
 
 using namespace app;
 
-export class image_viewer : private base_viewer, public component, public action_receiver, public joystick_receiver, public mouse_receiver {
+export class image_viewer : private base_viewer, public component, public action_receiver {
     public:
         image_viewer(std::filesystem::path path, dreamrender::resource_loader& loader) : path(std::move(path)) {
             texture = std::make_shared<dreamrender::texture>(loader.getDevice(), loader.getAllocator());
@@ -74,12 +75,14 @@ export class image_viewer : private base_viewer, public component, public action
             return result::failure;
         }
 
-        result on_joystick(unsigned int index, float x, float y) override {
-            return base_viewer::on_joystick(index, x, y);
-        }
-
-        result on_mouse_move(float x, float y) override {
-            return base_viewer::on_mouse_move(x, y);
+        result on_event(const event& event) override {
+            if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+                return base_viewer::on_joystick(d->index, d->x, d->y);
+            }
+            if(auto* d = std::get_if<events::mouse_move>(&event.data)) {
+                return base_viewer::on_mouse_move(d->x, d->y);
+            }
+            return on_action(event.action);
         }
 
         [[nodiscard]] bool is_opaque() const override {

@@ -159,7 +159,7 @@ class mapped_memory {
 };
 #endif
 
-export class text_viewer : public component, public action_receiver, public joystick_receiver, public mouse_receiver {
+export class text_viewer : public component, public action_receiver {
     public:
         text_viewer(const std::filesystem::path& path, dreamrender::resource_loader& loader) : title(path.string()), src(mapped_memory(path)) {
             text = std::string_view{std::span<const char>{std::get<mapped_memory>(src)}};

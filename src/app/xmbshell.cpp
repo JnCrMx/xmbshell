@@ -608,7 +608,9 @@ namespace app
                 auto time_since_input = std::chrono::duration<double>(std::chrono::system_clock::now() - last_controller_axis_input_time[i]);
                 if(time_since_input > controller_axis_input_duration) {
                     auto [controller, dir] = *last_controller_axis_input[i];
-                    dispatch(dir);
+                    dispatch<events::joystick_axis>(dir, i,
+                        controller_axis_position[i].x,
+                        controller_axis_position[i].y);
                     last_controller_axis_input_time[i] = std::chrono::system_clock::now();
                 }
             }
@@ -631,7 +633,7 @@ namespace app
         }
     }
 
-    void xmbshell::dispatch(action action) {
+    void xmbshell::dispatch(const event& event) {
         if(background_only) {
             return;
         }
@@ -639,7 +641,7 @@ namespace app
         for(int i=static_cast<int>(overlays.size())-1; i >= 0; i--) {
             auto& e = overlays[i];
             if(auto* recv = dynamic_cast<action_receiver*>(e.get())) {
-                result res = recv->on_action(action);
+                result res = recv->on_event(event);
                 if(res & result::close) {
                     remove_overlay(i);
                     i--;
@@ -651,7 +653,7 @@ namespace app
             }
         }
 
-        handle(menu.on_action(action));
+        handle(menu.on_action(event.action));
     }
     void xmbshell::handle(result result) {
         if(result & result::error_rumble) {
@@ -670,36 +672,40 @@ namespace app
 
     void xmbshell::key_up(sdl::Keysym key)
     {
-        spdlog::trace("Key up: {}", key.sym);
+        spdlog::trace("Key up: {}, {}", key.sym, std::to_underlying(key.scancode));
+        dispatch<events::key_up>(action::none, key);
     }
     void xmbshell::key_down(sdl::Keysym key)
     {
-        spdlog::trace("Key down: {}", key.sym);
+        spdlog::trace("Key down: {}, {}", key.sym, std::to_underlying(key.scancode));
+
         switch(key.sym) {
             case SDLK_LEFT:
-                dispatch(action::left);
+                dispatch<events::key_down>(action::left, key);
                 break;
             case SDLK_RIGHT:
-                dispatch(action::right);
+                dispatch<events::key_down>(action::right, key);
                 break;
             case SDLK_UP:
-                dispatch(action::up);
+                dispatch<events::key_down>(action::up, key);
                 break;
             case SDLK_DOWN:
-                dispatch(action::down);
+                dispatch<events::key_down>(action::down, key);
                 break;
             case SDLK_RETURN:
-                dispatch(action::ok);
+                dispatch<events::key_down>(action::ok, key);
                 break;
             case SDLK_ESCAPE:
-                dispatch(action::cancel);
+                dispatch<events::key_down>(action::cancel, key);
                 break;
             case SDLK_TAB:
-                dispatch(action::options);
+                dispatch<events::key_down>(action::options, key);
                 break;
             case SDLK_CAPSLOCK:
-                dispatch(action::extra);
+                dispatch<events::key_down>(action::extra, key);
                 break;
+            default:
+                dispatch<events::key_down>(action::none, key);
         }
     }
 
@@ -721,28 +727,42 @@ namespace app
         last_controller_button_input = std::make_tuple(controller, button);
         last_controller_button_input_time = std::chrono::system_clock::now();
 
-        if(button == sdl::GameControllerButtonValues::DPAD_LEFT) {
-            dispatch(action::left);
-        } else if(button == sdl::GameControllerButtonValues::DPAD_RIGHT) {
-            dispatch(action::right);
-        } else if(button == sdl::GameControllerButtonValues::DPAD_UP) {
-            dispatch(action::up);
-        } else if(button == sdl::GameControllerButtonValues::DPAD_DOWN) {
-            dispatch(action::down);
-        } else if(button == sdl::GameControllerButtonValues::A) {
-            dispatch(action::ok);
-        } else if(button == sdl::GameControllerButtonValues::B) {
-            dispatch(action::cancel);
-        } else if(button == sdl::GameControllerButtonValues::Y) {
-            dispatch(action::options);
-        } else if(button == sdl::GameControllerButtonValues::X) {
-            dispatch(action::extra);
+        switch (button) {
+            case sdl::GameControllerButtonValues::DPAD_LEFT:
+                dispatch<events::controller_button_down>(action::left, button);
+                break;
+            case sdl::GameControllerButtonValues::DPAD_RIGHT:
+                dispatch<events::controller_button_down>(action::right, button);
+                break;
+            case sdl::GameControllerButtonValues::DPAD_UP:
+                dispatch<events::controller_button_down>(action::up, button);
+                break;
+            case sdl::GameControllerButtonValues::DPAD_DOWN:
+                dispatch<events::controller_button_down>(action::down, button);
+                break;
+            case sdl::GameControllerButtonValues::A:
+                dispatch<events::controller_button_down>(action::ok, button);
+                break;
+            case sdl::GameControllerButtonValues::B:
+                dispatch<events::controller_button_down>(action::cancel, button);
+                break;
+            case sdl::GameControllerButtonValues::Y:
+                dispatch<events::controller_button_down>(action::options, button);
+                break;
+            case sdl::GameControllerButtonValues::X:
+                dispatch<events::controller_button_down>(action::extra, button);
+                break;
+            default:
+                dispatch<events::controller_button_down>(action::none, button);
+                break;
         }
     }
     void xmbshell::button_up(sdl::GameController* controller, sdl::GameControllerButton button)
     {
         spdlog::trace("Button up: {}", fmt::underlying(button));
         last_controller_button_input = std::nullopt;
+
+        dispatch<events::controller_button_up>(action::none, button);
     }
     void xmbshell::axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value)
     {
@@ -770,24 +790,15 @@ namespace app
             default:
                 break;
         }
-        for(int i=static_cast<int>(overlays.size())-1; i >= 0; i--) {
-            auto& e = overlays[i];
-            if(auto* recv = dynamic_cast<joystick_receiver*>(e.get())) {
-                result res = recv->on_joystick(stick_index,
-                    controller_axis_position[stick_index].x,
-                    controller_axis_position[stick_index].y);
-                if(res & result::close) {
-                    remove_overlay(i);
-                    i--;
-                }
-                handle(res);
-                if(res != result::unsupported) {
-                    return;
-                }
-            }
-        }
+
+        const auto default_dispatch = [&]() {
+            dispatch<events::joystick_axis>(action::none, stick_index,
+                controller_axis_position[stick_index].x,
+                controller_axis_position[stick_index].y);
+        };
 
         if(!config::CONFIG.controllerAnalogStick) {
+            default_dispatch();
             return;
         }
 
@@ -796,16 +807,23 @@ namespace app
             if(std::abs(value) < controller_axis_input_threshold) {
                 last_controller_axis_input[index] = std::nullopt;
                 last_controller_axis_input_time[index] = std::chrono::system_clock::now();
+
+                default_dispatch();
                 return;
             }
             action dir = axis == sdl::GameControllerAxisValues::LEFTX  ? (value > 0 ? action::right : action::left)
                 : (value > 0 ? action::down : action::up);
             if(last_controller_axis_input[index] && std::get<1>(*last_controller_axis_input[index]) == dir) {
+                default_dispatch();
                 return;
             }
-            dispatch(dir);
+            dispatch<events::joystick_axis>(dir, index,
+                controller_axis_position[index].x,
+                controller_axis_position[index].y);
             last_controller_axis_input[index] = std::make_tuple(controller, dir);
             last_controller_axis_input_time[index] = std::chrono::system_clock::now();
+        } else {
+            default_dispatch();
         }
     }
 }

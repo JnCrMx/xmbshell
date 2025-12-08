@@ -27,6 +27,7 @@ module;
 export module xmbshell.utils;
 
 import giomm;
+import sdl2;
 
 export enum class result {
     unsupported  = (1<<0),
@@ -59,28 +60,60 @@ export enum class action {
 
     _length,
 };
+
+export namespace events {
+    struct controller_button_down {
+        int button;
+
+        controller_button_down(sdl::GameControllerButton b) : button(std::to_underlying(b)) {}
+    };
+    struct controller_button_up {
+        int button;
+
+        controller_button_up(sdl::GameControllerButton b) : button(std::to_underlying(b)) {}
+    };
+    struct joystick_axis {
+        unsigned int index;
+        float x;
+        float y;
+    };
+    struct mouse_move {
+        float x;
+        float y;
+    };
+    struct mouse_scroll {
+        float x;
+    };
+    struct key_down {
+        unsigned int keycode;
+
+        key_down(const sdl::Keysym& sym) : keycode(std::to_underlying(sym.scancode)) {}
+    };
+    struct key_up {
+        unsigned int keycode;
+
+        key_up(const sdl::Keysym& sym) : keycode(std::to_underlying(sym.scancode)) {}
+    };
+}
+
+export struct event {
+    action action;
+
+    std::variant<std::monostate,
+                 events::controller_button_down, events::controller_button_up,
+                 events::joystick_axis,
+                 events::mouse_move, events::mouse_scroll,
+                 events::key_down, events::key_up> data;
+};
+
 export class action_receiver {
     public:
         virtual ~action_receiver() = default;
         virtual result on_action(action action) {
             return result::unsupported;
         }
-};
-export class joystick_receiver {
-    public:
-        virtual ~joystick_receiver() = default;
-        virtual result on_joystick(unsigned int index, float x, float y) {
-            return result::unsupported;
-        }
-};
-export class mouse_receiver {
-    public:
-        virtual ~mouse_receiver() = default;
-        virtual result on_mouse_move(float x, float y) {
-            return result::unsupported;
-        }
-        virtual result on_mouse_scroll(float x) {
-            return result::unsupported;
+        virtual result on_event(const event& event) {
+            return on_action(event.action);
         }
 };
 

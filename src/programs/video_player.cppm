@@ -19,6 +19,7 @@ module;
 #include <cassert>
 #include <filesystem>
 #include <future>
+#include <variant>
 #include <vector>
 #include <libavutil/pixfmt.h>
 
@@ -44,7 +45,7 @@ namespace programs {
 using namespace app;
 using namespace mfk::i18n::literals;
 
-export class video_player : private base_viewer, public component, public action_receiver, public joystick_receiver, public mouse_receiver {
+export class video_player : private base_viewer, public component, public action_receiver {
     constexpr static auto preferred_format = AV_PIX_FMT_RGBA;
     public:
         video_player(std::filesystem::path path, dreamrender::resource_loader& loader) :
@@ -419,12 +420,14 @@ export class video_player : private base_viewer, public component, public action
             return result::failure;
         }
 
-        result on_joystick(unsigned int index, float x, float y) override {
-            return base_viewer::on_joystick(index, x, y);
-        }
-
-        result on_mouse_move(float x, float y) override {
-            return base_viewer::on_mouse_move(x, y);
+        result on_event(const event& event) override {
+            if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+                return base_viewer::on_joystick(d->index, d->x, d->y);
+            }
+            if(auto* d = std::get_if<events::mouse_move>(&event.data)) {
+                return base_viewer::on_mouse_move(d->x, d->y);
+            }
+            return on_action(event.action);
         }
 
         [[nodiscard]] bool is_opaque() const override {
