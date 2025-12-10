@@ -368,6 +368,14 @@ export class video_player : private base_viewer, public component, public action
                 return;
             }
 
+            render_controller_buttons(xmb, renderer, 0.5f, 0.95f, std::array{
+                std::pair{action::ok, state == play_state::playing ? std::string_view{"Pause"_} : std::string_view{"Play"_}},
+                std::pair{action::up, std::string_view{"Zoom In"_}},
+                std::pair{action::down, std::string_view{"Zoom Out"_}},
+                std::pair{action::extra, std::string_view{"Reset"_}},
+                std::pair{action::cancel, std::string_view{"Close"_}},
+            });
+
             constexpr float size = 0.8;
             base_viewer::render(decoded_view.get(), size, renderer);
 
@@ -383,13 +391,13 @@ export class video_player : private base_viewer, public component, public action
                     std::array{glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec2{0.0f, 0.5f}, glm::vec2{0.0f, 0.5f}},
                     {0.5f, 0.5f, 0.5f, 0.5f}
                 };
-                renderer.draw_rect(glm::vec2(0.1f, 0.95f), glm::vec2(0.8f, 0.01f), glm::vec4(0.2f, 0.2f, 0.2f, 1.0f), border_radius);
-                renderer.draw_rect(glm::vec2(0.1f, 0.95f), glm::vec2(0.8f, 0.01f), glm::vec4(0.1f, 0.1f, 0.1f, 1.0f), blur);
+                renderer.draw_rect(glm::vec2(0.1f, 0.9125f), glm::vec2(0.8f, 0.01f), glm::vec4(0.2f, 0.2f, 0.2f, 1.0f), border_radius);
+                renderer.draw_rect(glm::vec2(0.1f, 0.9125f), glm::vec2(0.8f, 0.01f), glm::vec4(0.1f, 0.1f, 0.1f, 1.0f), blur);
 
                 constexpr glm::vec2 padding = glm::vec2{0.001f, 0.001f};
-                renderer.draw_rect(glm::vec2(0.1f, 0.95f)+padding, glm::vec2(progress*0.8f, 0.01f)-2.0f*padding,
+                renderer.draw_rect(glm::vec2(0.1f, 0.9125f)+padding, glm::vec2(progress*0.8f, 0.01f)-2.0f*padding,
                     glm::vec4(0x83/255.0f, 0x8d/255.0f, 0x22/255.0f, 1.0f), border_radius); // #838d22
-                renderer.draw_rect(glm::vec2(0.1f, 0.95f)+padding, glm::vec2(progress*0.8f, 0.01f)-2.0f*padding,
+                renderer.draw_rect(glm::vec2(0.1f, 0.9125f)+padding, glm::vec2(progress*0.8f, 0.01f)-2.0f*padding,
                     glm::vec4(1.0f, 1.0f, 1.0f, 0.1f), blur);
             }
         }

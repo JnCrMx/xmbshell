@@ -25,6 +25,7 @@ export module xmbshell.app:image_viewer;
 
 import dreamrender;
 import glm;
+import i18n;
 import spdlog;
 import xmbshell.utils;
 import :component;
@@ -34,6 +35,7 @@ import :base_viewer;
 namespace programs {
 
 using namespace app;
+using namespace mfk::i18n::literals;
 
 export class image_viewer : private base_viewer, public component, public action_receiver {
     public:
@@ -59,7 +61,14 @@ export class image_viewer : private base_viewer, public component, public action
             if(!texture->loaded) {
                 return;
             }
-            constexpr float size = 0.9;
+            render_controller_buttons(xmb, renderer, 0.5f, 0.95f, std::array{
+                std::pair{action::up, std::string_view{"Zoom In"_}},
+                std::pair{action::down, std::string_view{"Zoom Out"_}},
+                std::pair{action::extra, std::string_view{"Reset"_}},
+                std::pair{action::cancel, std::string_view{"Close"_}},
+            });
+
+            constexpr float size = 0.875;
             base_viewer::render(texture->imageView.get(), size, renderer);
         }
         result on_action(action action) override {

@@ -143,6 +143,7 @@ target_compile_options(avcppModule PRIVATE -pthread)
 
 set(XMBSHELL_SOURCES
   src/app/xmbshell.cpp
+  src/app/component.cpp
   src/app/components/choice_overlay.cpp
   src/app/components/main_menu.cpp
   src/app/components/message_overlay.cpp

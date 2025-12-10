@@ -34,6 +34,7 @@ export module xmbshell.app:text_viewer;
 
 import dreamrender;
 import glm;
+import i18n;
 import spdlog;
 import vulkan_hpp;
 import xmbshell.constants;
@@ -44,6 +45,7 @@ import :programs;
 namespace programs {
 
 using namespace app;
+using namespace mfk::i18n::literals;
 
 #if __linux__
 class mapped_memory {
@@ -183,6 +185,13 @@ export class text_viewer : public component, public action_receiver {
             constexpr float y = (1.0f - height) / 2;
             const double offset_x = 0.01;
             const double offset_y = 0.01 * renderer.aspect_ratio;
+
+            render_controller_buttons(xmb, renderer, 0.5f, 0.95f, std::array{
+                std::pair{action::ok, std::string_view{"Open Link"_}},
+                std::pair{action::up, std::string_view{"Scoll Up"_}},
+                std::pair{action::down, std::string_view{"Scroll Down"_}},
+                std::pair{action::cancel, std::string_view{"Close"_}}
+            });
 
             renderer.draw_rect(glm::vec2{x - offset_x, y - offset_y}, glm::vec2{width + 2*offset_x, height + 2*offset_y},
                 glm::vec4{0.1f, 0.1f, 0.1f, 0.5f});
