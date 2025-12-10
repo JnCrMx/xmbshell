@@ -35,6 +35,7 @@ export class component {
         [[nodiscard]] virtual bool is_opaque() const { return true; }
         [[nodiscard]] virtual bool do_fade_in() const { return false; }
         [[nodiscard]] virtual bool do_fade_out() const { return false; }
+        [[nodiscard]] virtual bool enable_cursor() const { return false; }
 };
 
 }

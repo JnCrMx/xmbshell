@@ -202,6 +202,9 @@ namespace app
         }
 
         reload_button_icons();
+
+        cursorTexture = std::make_unique<texture>(device, allocator);
+        loader->loadTexture(cursorTexture.get(), config::CONFIG.asset_directory/"icons/icon_cursor.png");
     }
 
     void xmbshell::prepare(std::vector<vk::Image> swapchainImages, std::vector<vk::ImageView> swapchainViews)
@@ -514,6 +517,7 @@ namespace app
             }*/
         }
 
+        bool enable_cursor = false;
         for(unsigned int i=overlay_begin; i < overlays.size(); i++) {
             // TODO: support darkening overlays on top of overlays (i.e. a choice_overlay over a message_overlay)
             if(i == overlays.size()-1 && overlay_transition) {
@@ -523,6 +527,7 @@ namespace app
             } else {
                 overlays[i]->render(renderer, this);
             }
+            enable_cursor = overlays[i]->enable_cursor(); // only the topmost overlay controls the visibility of the cursor
         }
         if(overlay_transition && overlay_fade_direction == transition_direction::out && old_overlay) {
             renderer.push_color(glm::mix(glm::vec4(0.0), glm::vec4(1.0), dir_progress));
@@ -530,6 +535,10 @@ namespace app
             renderer.pop_color();
         } else if(old_overlay) {
             old_overlay.reset();
+        }
+
+        if(enable_cursor) {
+            renderer.draw_image(*cursorTexture, cursorPosition.x, cursorPosition.y, 0.1f, 0.1f);
         }
 
         float debug_y = 0.0;
@@ -631,6 +640,7 @@ namespace app
             }
             handle(res);
         }
+        tick_cursor();
     }
 
     void xmbshell::dispatch(const event& event) {
@@ -640,6 +650,12 @@ namespace app
 
         for(int i=static_cast<int>(overlays.size())-1; i >= 0; i--) {
             auto& e = overlays[i];
+            if(e->enable_cursor()) {
+                if(handle_cursor(event)) {
+                    return;
+                }
+            }
+
             if(auto* recv = dynamic_cast<action_receiver*>(e.get())) {
                 result res = recv->on_event(event);
                 if(res & result::close) {
@@ -825,5 +841,29 @@ namespace app
         } else {
             default_dispatch();
         }
+    }
+
+    void xmbshell::tick_cursor()
+    {
+        cursorPosition = glm::clamp(cursorPosition + cursorJoyStickDelta, 0.0f, 1.0f);
+    }
+    bool xmbshell::handle_cursor(const event& event)
+    {
+        if(auto* d = std::get_if<events::mouse_move>(&event.data)) {
+            cursorPosition = glm::vec2{d->x, d->y};
+            return true;
+        } else if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+            if(d->index == events::logical_joystick_index::right) {
+                cursorJoyStickDelta = glm::vec2(d->x, d->y)/50.0f;
+                if(std::abs(d->x) < 0.1f) {
+                    cursorJoyStickDelta.x = 0.0f;
+                }
+                if(std::abs(d->y) < 0.1f) {
+                    cursorJoyStickDelta.y = 0.0f;
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -36,6 +36,7 @@ import dreamrender;
 import glm;
 import spdlog;
 import vulkan_hpp;
+import xmbshell.constants;
 import xmbshell.utils;
 import :component;
 import :programs;
@@ -197,7 +198,16 @@ export class text_viewer : public component, public action_receiver {
             renderer.reset_clip();
         }
 
-        result on_action(action action) override {
+        result tick(xmbshell*) override {
+            if(line_movement != 0) {
+                current_line = std::clamp(static_cast<int>(current_line) + line_movement, 0, static_cast<int>(lines) - rendered_lines);
+                calculate_offsets();
+            }
+            return result::success;
+        }
+
+        result on_event(const event& event) override {
+            auto action = event.action;
             if(action == action::cancel) {
                 return result::close;
             } else if(action == action::up) {
@@ -212,9 +222,22 @@ export class text_viewer : public component, public action_receiver {
                     calculate_offsets();
                 }
                 return result::success;
+            } else if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+                if(d->index == events::logical_joystick_index::left) {
+                    if(std::abs(d->y) > constants::controller_axis_input_threshold_f) {
+                        line_movement = d->y * 2;
+                    } else {
+                        line_movement = 0;
+                    }
+                    return result::success;
+                }
             }
             return result::failure;
         };
+
+        bool enable_cursor() const override {
+            return true;
+        }
     private:
         static constexpr float width = 0.6f;
         static constexpr float height = 0.6f;
@@ -226,6 +249,7 @@ export class text_viewer : public component, public action_receiver {
         std::string_view text;
         unsigned int current_line = 0;
         unsigned int lines = 0;
+        int line_movement = 0;
 
         unsigned int begin_offset = 0;
         unsigned int end_offset = 0;

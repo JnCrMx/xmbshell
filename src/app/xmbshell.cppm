@@ -235,6 +235,12 @@ namespace app
 
             sdl::mix::unique_chunk ok_sound;
 
+            glm::vec2 cursorPosition{0.5f, 0.5f};
+            glm::vec2 cursorJoyStickDelta = {0.0f, 0.0f};
+            std::unique_ptr<texture> cursorTexture;
+            void tick_cursor();
+            bool handle_cursor(const event& event);
+
             bool fixed_components_loaded = false;
             void preload_fixed_components();
 
