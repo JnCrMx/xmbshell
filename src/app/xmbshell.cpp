@@ -538,7 +538,11 @@ namespace app
         }
 
         if(enable_cursor) {
-            renderer.draw_image(*cursorTexture, cursorPosition.x, cursorPosition.y, 0.1f, 0.1f);
+            constexpr float cursorSize = 0.1f;
+            renderer.draw_image(*cursorTexture,
+                cursorPosition.x - (cursorSize/2.0f)/renderer.aspect_ratio,
+                cursorPosition.y - cursorSize/2.0f,
+                cursorSize, cursorSize);
         }
 
         float debug_y = 0.0;
@@ -841,6 +845,14 @@ namespace app
         } else {
             default_dispatch();
         }
+    }
+    void xmbshell::mouse_move(int32_t x, int32_t y, int32_t xrel, int32_t yrel)
+    {
+        float fx = static_cast<float>(x) / static_cast<float>(win->swapchainExtent.width);
+        float fy = static_cast<float>(y) / static_cast<float>(win->swapchainExtent.height);
+        float fxrel = static_cast<float>(xrel) / static_cast<float>(win->swapchainExtent.width);
+        float fyrel = static_cast<float>(yrel) / static_cast<float>(win->swapchainExtent.height);
+        dispatch<events::mouse_move>(action::none, fx, fy, fxrel, fyrel);
     }
 
     void xmbshell::tick_cursor()

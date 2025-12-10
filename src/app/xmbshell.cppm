@@ -57,7 +57,7 @@ namespace app
     };
 
     using namespace dreamrender;
-    export class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler
+    export class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler, public input::mouse_handler
     {
         public:
             xmbshell(window* window);
@@ -75,6 +75,7 @@ namespace app
             void button_down(sdl::GameController* controller, sdl::GameControllerButton button) override;
             void button_up(sdl::GameController* controller, sdl::GameControllerButton button) override;
             void axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) override;
+            void mouse_move(int32_t x, int32_t y, int32_t xrel, int32_t yrel) override;
 
             void reload_background();
             void reload_fonts();

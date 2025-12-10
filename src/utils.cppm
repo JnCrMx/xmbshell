@@ -112,6 +112,8 @@ export namespace events {
     struct mouse_move {
         float x;
         float y;
+        float xrel;
+        float yrel;
     };
     struct mouse_scroll {
         float x;

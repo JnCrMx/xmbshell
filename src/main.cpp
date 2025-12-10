@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     if(program.get<bool>("--background-only")) {
         shell->set_background_only(true);
     }
-    window.set_phase(shell, shell, shell); // window takes ownership of shell
+    window.set_phase(shell, shell, shell, shell); // window takes ownership of shell
 
     std::unique_ptr<dbus::dbus_server> server;
     try {
