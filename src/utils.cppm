@@ -21,6 +21,7 @@ module;
 #include <future>
 #include <source_location>
 #include <utility>
+#include <variant>
 
 #include <glm/glm.hpp>
 
@@ -62,20 +63,51 @@ export enum class action {
 };
 
 export namespace events {
+    enum class logical_controller_button {
+        invalid = sdl::GameControllerButtonValues::INVALID,
+        a = sdl::GameControllerButtonValues::A,
+        b = sdl::GameControllerButtonValues::B,
+        x = sdl::GameControllerButtonValues::X,
+        y = sdl::GameControllerButtonValues::Y,
+        back = sdl::GameControllerButtonValues::BACK,
+        guide = sdl::GameControllerButtonValues::GUIDE,
+        start = sdl::GameControllerButtonValues::START,
+        leftstick = sdl::GameControllerButtonValues::LEFTSTICK,
+        rightstick = sdl::GameControllerButtonValues::RIGHTSTICK,
+        leftshoulder = sdl::GameControllerButtonValues::LEFTSHOULDER,
+        rightshoulder = sdl::GameControllerButtonValues::RIGHTSHOULDER,
+        dpad_up = sdl::GameControllerButtonValues::DPAD_UP,
+        dpad_down = sdl::GameControllerButtonValues::DPAD_DOWN,
+        dpad_left = sdl::GameControllerButtonValues::DPAD_LEFT,
+        dpad_right = sdl::GameControllerButtonValues::DPAD_RIGHT,
+        misc1 = sdl::GameControllerButtonValues::MISC1,
+        paddle1 = sdl::GameControllerButtonValues::PADDLE1,
+        paddle2 = sdl::GameControllerButtonValues::PADDLE2,
+        paddle3 = sdl::GameControllerButtonValues::PADDLE3,
+        paddle4 = sdl::GameControllerButtonValues::PADDLE4,
+        touchpad = sdl::GameControllerButtonValues::TOUCHPAD,
+    };
     struct controller_button_down {
-        int button;
+        logical_controller_button button;
 
-        controller_button_down(sdl::GameControllerButton b) : button(std::to_underlying(b)) {}
+        controller_button_down(sdl::GameControllerButton b) : button(static_cast<logical_controller_button>(std::to_underlying(b))) {}
     };
     struct controller_button_up {
-        int button;
+        logical_controller_button button;
 
-        controller_button_up(sdl::GameControllerButton b) : button(std::to_underlying(b)) {}
+        controller_button_up(sdl::GameControllerButton b) : button(static_cast<logical_controller_button>(std::to_underlying(b))) {}
+    };
+
+    enum class logical_joystick_index {
+        left = 0,
+        right = 1
     };
     struct joystick_axis {
-        unsigned int index;
+        logical_joystick_index index;
         float x;
         float y;
+
+        joystick_axis(unsigned int index, float x, float y) : index(static_cast<logical_joystick_index>(index)), x(x), y(y) {}
     };
     struct mouse_move {
         float x;

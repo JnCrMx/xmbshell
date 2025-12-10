@@ -29,6 +29,7 @@ module;
 
 export module xmbshell.app:main;
 
+import xmbshell.constants;
 import xmbshell.render;
 import xmbshell.utils;
 import dreamrender;
@@ -240,7 +241,7 @@ namespace app
             void render_gui(gui_renderer& renderer);
 
             // input handling
-            constexpr static int controller_axis_input_threshold = 10000;
+            constexpr static int controller_axis_input_threshold = constants::controller_axis_input_threshold;
             std::array<glm::vec2, 2> controller_axis_position;
             std::array<time_point, 2> last_controller_axis_input_time;
             std::array<std::optional<std::tuple<sdl::GameController*, action>>, 2> last_controller_axis_input;

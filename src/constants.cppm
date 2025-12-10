@@ -17,6 +17,7 @@
 module;
 
 #include <cstdint>
+#include <limits>
 
 export module xmbshell.constants;
 
@@ -39,4 +40,7 @@ export namespace constants
 
     constexpr auto fallback_datetime_format = "%m/%d %H:%M";
     constexpr auto pipeline_cache_file = "pipeline_cache.bin";
+
+    constexpr int controller_axis_input_threshold = 10000;
+    constexpr float controller_axis_input_threshold_f = static_cast<float>(controller_axis_input_threshold) / std::numeric_limits<int16_t>::max();
 }

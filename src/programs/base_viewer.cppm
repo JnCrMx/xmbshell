@@ -78,8 +78,8 @@ export class base_viewer {
             return result::unsupported;
         }
 
-        result on_joystick(unsigned int index, float x, float y) {
-            if(index == 1) {
+        result on_joystick(events::logical_joystick_index index, float x, float y) {
+            if(index == events::logical_joystick_index::left) {
                 move_delta_pos = -glm::vec2(x, y)/25.0f;
                 if(std::abs(x) < 0.1f) {
                     move_delta_pos.x = 0.0f;
