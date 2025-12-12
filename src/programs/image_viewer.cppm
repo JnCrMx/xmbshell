@@ -85,10 +85,10 @@ export class image_viewer : private base_viewer, public component, public action
         }
 
         result on_event(const event& event) override {
-            if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+            if(auto* d = event.get<events::joystick_axis>()) {
                 return base_viewer::on_joystick(d->index, d->x, d->y);
             }
-            if(auto* d = std::get_if<events::mouse_move>(&event.data)) {
+            if(auto* d = event.get<events::mouse_move>()) {
                 return base_viewer::on_mouse_move(d->x, d->y);
             }
             return on_action(event.action);

@@ -538,7 +538,7 @@ namespace app
         }
 
         if(enable_cursor) {
-            constexpr float cursorSize = 0.1f;
+            constexpr float cursorSize = 0.05f;
             renderer.draw_image(*cursorTexture,
                 cursorPosition.x - (cursorSize/2.0f)/renderer.aspect_ratio,
                 cursorPosition.y - cursorSize/2.0f,
@@ -857,14 +857,19 @@ namespace app
 
     void xmbshell::tick_cursor()
     {
+        if(cursorJoyStickDelta.x == 0.0f && cursorJoyStickDelta.y == 0.0f) {
+            return;
+        }
         cursorPosition = glm::clamp(cursorPosition + cursorJoyStickDelta, 0.0f, 1.0f);
+        dispatch<events::cursor_move>(action::none, cursorPosition.x, cursorPosition.y);
     }
     bool xmbshell::handle_cursor(const event& event)
     {
-        if(auto* d = std::get_if<events::mouse_move>(&event.data)) {
+        if(auto* d = event.get<events::mouse_move>()) {
             cursorPosition = glm::vec2{d->x, d->y};
+            dispatch<events::cursor_move>(action::none, cursorPosition.x, cursorPosition.y);
             return true;
-        } else if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+        } else if(auto* d = event.get<events::joystick_axis>()) {
             if(d->index == events::logical_joystick_index::right) {
                 cursorJoyStickDelta = glm::vec2(d->x, d->y)/50.0f;
                 if(std::abs(d->x) < 0.1f) {

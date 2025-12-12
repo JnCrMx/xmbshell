@@ -118,6 +118,21 @@ export namespace events {
     struct mouse_scroll {
         float x;
     };
+
+    enum class logical_mouse_button {
+        left,
+        middle,
+        right,
+        x1,
+        x2
+    };
+    struct mouse_button_down {
+        logical_mouse_button button;
+    };
+    struct mouse_button_up {
+        logical_mouse_button button;
+    };
+
     struct key_down {
         unsigned int keycode;
 
@@ -141,10 +156,33 @@ export struct event {
     std::variant<std::monostate,
                  events::controller_button_down, events::controller_button_up,
                  events::joystick_axis,
-                 events::mouse_move, events::mouse_scroll,
+                 events::mouse_move, events::mouse_scroll, events::mouse_button_down, events::mouse_button_up,
                  events::key_down, events::key_up,
                  events::cursor_move
                 > data;
+
+    template<typename T>
+    bool is() const {
+        return std::holds_alternative<T>(data);
+    }
+
+    template<typename T>
+    T* get() {
+        return std::get_if<T>(&data);
+    }
+
+    template<typename T>
+    const T* get() const {
+        return std::get_if<T>(&data);
+    }
+
+    template<typename T, typename Pred>
+    bool test(Pred pred, bool default_value = false) const {
+        if(auto* d = std::get_if<T>(&data)) {
+            return pred(*d);
+        }
+        return default_value;
+    }
 };
 
 export class action_receiver {

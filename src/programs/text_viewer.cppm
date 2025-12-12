@@ -221,8 +221,8 @@ export class text_viewer : public component, public action_receiver {
                     float hl = renderer.measure_text(h.dest, font_size).x;
                     float hw = (h.hovered ? 3.0 : 1.0) / renderer.frame_size.height;
                     renderer.draw_rect(glm::vec2{hx, hy}, glm::vec2{hl, hw});
-                    h.screen_pos = glm::vec2{hx, hy};
-                    h.screen_size = glm::vec2{hl, font_size / 2};
+                    h.screen_pos = glm::vec2{hx, hy - font_size/2};
+                    h.screen_size = glm::vec2{hl, font_size/2};
                 }
             }
             renderer.reset_clip();
@@ -253,7 +253,7 @@ export class text_viewer : public component, public action_receiver {
                     update();
                 }
                 return result::success;
-            } else if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
+            } else if(auto* d = event.get<events::joystick_axis>()) {
                 if(d->index == events::logical_joystick_index::left) {
                     if(std::abs(d->y) > constants::controller_axis_input_threshold_f) {
                         line_movement = d->y * 2;
@@ -262,8 +262,28 @@ export class text_viewer : public component, public action_receiver {
                     }
                     return result::success;
                 }
-            } else if(auto* d = std::get_if<events::cursor_move>(&event.data)) {
-
+            } else if(auto* d = event.get<events::cursor_move>()) {
+                for(auto& h : hyperlinks) {
+                    if(d->x >= h.screen_pos.x && d->x <= h.screen_pos.x + h.screen_size.x &&
+                       d->y >= h.screen_pos.y && d->y <= h.screen_pos.y + h.screen_size.y) {
+                        h.hovered = true;
+                    } else {
+                        h.hovered = false;
+                    }
+                }
+            } else if(action == action::ok ||
+                event.test<events::mouse_button_up>(
+                    [](const events::mouse_button_up& d){return d.button == events::logical_mouse_button::left;}
+                ))
+            {
+                for(const auto& h : hyperlinks) {
+                    if(h.hovered) {
+                        spdlog::debug("Opening hyperlink: {}", h.dest);
+                        Gio::AppInfo::launch_default_for_uri(std::string{h.dest});
+                        break;
+                    }
+                }
+                return result::success;
             }
             return result::failure;
         };
