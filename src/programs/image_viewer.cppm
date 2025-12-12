@@ -19,11 +19,13 @@ module;
 #include <cassert>
 #include <filesystem>
 #include <future>
+#include <variant>
 
 export module xmbshell.app:image_viewer;
 
 import dreamrender;
 import glm;
+import i18n;
 import spdlog;
 import xmbshell.utils;
 import :component;
@@ -33,8 +35,9 @@ import :base_viewer;
 namespace programs {
 
 using namespace app;
+using namespace mfk::i18n::literals;
 
-export class image_viewer : private base_viewer, public component, public action_receiver, public joystick_receiver, public mouse_receiver {
+export class image_viewer : private base_viewer, public component, public action_receiver {
     public:
         image_viewer(std::filesystem::path path, dreamrender::resource_loader& loader) : path(std::move(path)) {
             texture = std::make_shared<dreamrender::texture>(loader.getDevice(), loader.getAllocator());
@@ -58,7 +61,14 @@ export class image_viewer : private base_viewer, public component, public action
             if(!texture->loaded) {
                 return;
             }
-            constexpr float size = 0.9;
+            render_controller_buttons(xmb, renderer, 0.5f, 0.95f, std::array{
+                std::pair{action::up, std::string_view{"Zoom In"_}},
+                std::pair{action::down, std::string_view{"Zoom Out"_}},
+                std::pair{action::extra, std::string_view{"Reset"_}},
+                std::pair{action::cancel, std::string_view{"Close"_}},
+            });
+
+            constexpr float size = 0.875;
             base_viewer::render(texture->imageView.get(), size, renderer);
         }
         result on_action(action action) override {
@@ -74,12 +84,14 @@ export class image_viewer : private base_viewer, public component, public action
             return result::failure;
         }
 
-        result on_joystick(unsigned int index, float x, float y) override {
-            return base_viewer::on_joystick(index, x, y);
-        }
-
-        result on_mouse_move(float x, float y) override {
-            return base_viewer::on_mouse_move(x, y);
+        result on_event(const event& event) override {
+            if(auto* d = event.get<events::joystick_axis>()) {
+                return base_viewer::on_joystick(d->index, d->x, d->y);
+            }
+            if(auto* d = event.get<events::mouse_move>()) {
+                return base_viewer::on_mouse_move(d->x, d->y);
+            }
+            return on_action(event.action);
         }
 
         [[nodiscard]] bool is_opaque() const override {

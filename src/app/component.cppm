@@ -16,7 +16,9 @@
  */
 module;
 
-#include <vector>
+#include <span>
+#include <string_view>
+#include <utility>
 
 export module xmbshell.app:component;
 
@@ -41,6 +43,9 @@ export class component {
         [[nodiscard]] virtual bool is_transparent() const { return false; }
         [[nodiscard]] virtual bool do_fade_in() const { return false; }
         [[nodiscard]] virtual bool do_fade_out() const { return false; }
+        [[nodiscard]] virtual bool enable_cursor() const { return false; }
+    protected:
+        void render_controller_buttons(app::xmbshell* xmb, dreamrender::gui_renderer& renderer, float x, float y, std::span<const std::pair<action, std::string_view>> buttons) const;
 };
 
 }

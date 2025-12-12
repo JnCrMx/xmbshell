@@ -46,6 +46,10 @@ std::string find_visualid() {
     if (!XMatchVisualInfo(display.get(), DefaultScreen(display.get()), 32, TrueColor, &visualInfo)) {
         throw std::runtime_error("Failed to find visual info");
     }
+    spdlog::debug("Found transparent X11 visual: visualid={:#x}, screen={}, depth={}, red_mask={:b}, green_mask={:b}, blue_mask={:b}, colormap_size={}, bits_per_rgb={}",
+        visualInfo.visualid, visualInfo.screen, visualInfo.depth,
+        visualInfo.red_mask, visualInfo.green_mask, visualInfo.blue_mask,
+        visualInfo.colormap_size, visualInfo.bits_per_rgb);
     return std::to_string(visualInfo.visualid);
 }
 #endif
@@ -179,7 +183,7 @@ int main(int argc, char *argv[])
     if(program.get<bool>("--background-only")) {
         shell->set_background_only(true);
     }
-    window.set_phase(shell, shell, shell); // window takes ownership of shell
+    window.set_phase(shell, shell, shell, shell); // window takes ownership of shell
 
     std::unique_ptr<dbus::dbus_server> server;
     try {

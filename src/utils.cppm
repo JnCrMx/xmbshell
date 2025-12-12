@@ -21,12 +21,14 @@ module;
 #include <future>
 #include <source_location>
 #include <utility>
+#include <variant>
 
 #include <glm/glm.hpp>
 
 export module xmbshell.utils;
 
 import giomm;
+import sdl2;
 
 export enum class result {
     unsupported  = (1<<0),
@@ -59,28 +61,138 @@ export enum class action {
 
     _length,
 };
+
+export namespace events {
+    enum class logical_controller_button {
+        invalid = sdl::GameControllerButtonValues::INVALID,
+        a = sdl::GameControllerButtonValues::A,
+        b = sdl::GameControllerButtonValues::B,
+        x = sdl::GameControllerButtonValues::X,
+        y = sdl::GameControllerButtonValues::Y,
+        back = sdl::GameControllerButtonValues::BACK,
+        guide = sdl::GameControllerButtonValues::GUIDE,
+        start = sdl::GameControllerButtonValues::START,
+        leftstick = sdl::GameControllerButtonValues::LEFTSTICK,
+        rightstick = sdl::GameControllerButtonValues::RIGHTSTICK,
+        leftshoulder = sdl::GameControllerButtonValues::LEFTSHOULDER,
+        rightshoulder = sdl::GameControllerButtonValues::RIGHTSHOULDER,
+        dpad_up = sdl::GameControllerButtonValues::DPAD_UP,
+        dpad_down = sdl::GameControllerButtonValues::DPAD_DOWN,
+        dpad_left = sdl::GameControllerButtonValues::DPAD_LEFT,
+        dpad_right = sdl::GameControllerButtonValues::DPAD_RIGHT,
+        misc1 = sdl::GameControllerButtonValues::MISC1,
+        paddle1 = sdl::GameControllerButtonValues::PADDLE1,
+        paddle2 = sdl::GameControllerButtonValues::PADDLE2,
+        paddle3 = sdl::GameControllerButtonValues::PADDLE3,
+        paddle4 = sdl::GameControllerButtonValues::PADDLE4,
+        touchpad = sdl::GameControllerButtonValues::TOUCHPAD,
+    };
+    struct controller_button_down {
+        logical_controller_button button;
+
+        controller_button_down(sdl::GameControllerButton b) : button(static_cast<logical_controller_button>(std::to_underlying(b))) {}
+    };
+    struct controller_button_up {
+        logical_controller_button button;
+
+        controller_button_up(sdl::GameControllerButton b) : button(static_cast<logical_controller_button>(std::to_underlying(b))) {}
+    };
+
+    enum class logical_joystick_index {
+        left = 0,
+        right = 1
+    };
+    struct joystick_axis {
+        logical_joystick_index index;
+        float x;
+        float y;
+
+        joystick_axis(unsigned int index, float x, float y) : index(static_cast<logical_joystick_index>(index)), x(x), y(y) {}
+    };
+    struct mouse_move {
+        float x;
+        float y;
+        float xrel;
+        float yrel;
+    };
+    struct mouse_scroll {
+        float x;
+    };
+
+    enum class logical_mouse_button {
+        left,
+        middle,
+        right,
+        x1,
+        x2
+    };
+    struct mouse_button_down {
+        logical_mouse_button button;
+    };
+    struct mouse_button_up {
+        logical_mouse_button button;
+    };
+
+    struct key_down {
+        unsigned int keycode;
+
+        key_down(const sdl::Keysym& sym) : keycode(std::to_underlying(sym.scancode)) {}
+    };
+    struct key_up {
+        unsigned int keycode;
+
+        key_up(const sdl::Keysym& sym) : keycode(std::to_underlying(sym.scancode)) {}
+    };
+
+    struct cursor_move {
+        float x;
+        float y;
+    };
+}
+
+export struct event {
+    action action;
+
+    std::variant<std::monostate,
+                 events::controller_button_down, events::controller_button_up,
+                 events::joystick_axis,
+                 events::mouse_move, events::mouse_scroll, events::mouse_button_down, events::mouse_button_up,
+                 events::key_down, events::key_up,
+                 events::cursor_move
+                > data;
+
+    template<typename T>
+    bool is() const {
+        return std::holds_alternative<T>(data);
+    }
+
+    template<typename T>
+    T* get() {
+        return std::get_if<T>(&data);
+    }
+
+    template<typename T>
+    const T* get() const {
+        return std::get_if<T>(&data);
+    }
+
+    template<typename T, typename Pred>
+    bool test(Pred pred, bool default_value = false) const {
+        if(auto* d = std::get_if<T>(&data)) {
+            return pred(*d);
+        }
+        return default_value;
+    }
+};
+
 export class action_receiver {
     public:
         virtual ~action_receiver() = default;
         virtual result on_action(action action) {
             return result::unsupported;
         }
-};
-export class joystick_receiver {
-    public:
-        virtual ~joystick_receiver() = default;
-        virtual result on_joystick(unsigned int index, float x, float y) {
-            return result::unsupported;
-        }
-};
-export class mouse_receiver {
-    public:
-        virtual ~mouse_receiver() = default;
-        virtual result on_mouse_move(float x, float y) {
-            return result::unsupported;
-        }
-        virtual result on_mouse_scroll(float x) {
-            return result::unsupported;
+        virtual result on_event(const event& event) {
+            return on_action(event.action);
         }
 };
 

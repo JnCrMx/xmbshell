@@ -56,8 +56,11 @@ result choice_overlay::on_action(action action) {
             return select_relative(action::up) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
         case action::down:
             return select_relative(action::down) ? result::success | result::ok_sound : result::unsupported | result::error_rumble;
-        default:
+        case action::left:
+        case action::right:
             return result::unsupported | result::error_rumble;
+        default:
+            return result::unsupported;
     }
 }
 

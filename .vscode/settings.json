@@ -6,9 +6,12 @@
     },
     "clangd.arguments": [
         "--clang-tidy",
-        "--header-insertion=never"
+        "--header-insertion=never",
+        "--pch-storage=disk",
+        "--background-index"
     ],
     "cmake.additionalKits": [
         "${workspaceFolder}/cmake/kits.json"
-    ]
+    ],
+    "clangd.path": "clangd-20"
 }

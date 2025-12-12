@@ -29,6 +29,7 @@ module;
 
 export module xmbshell.app:main;
 
+import xmbshell.constants;
 import xmbshell.render;
 import xmbshell.utils;
 import dreamrender;
@@ -56,7 +57,7 @@ namespace app
     };
 
     using namespace dreamrender;
-    export class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler
+    export class xmbshell : public phase, public input::keyboard_handler, public input::controller_handler, public input::mouse_handler
     {
         public:
             xmbshell(window* window);
@@ -74,12 +75,24 @@ namespace app
             void button_down(sdl::GameController* controller, sdl::GameControllerButton button) override;
             void button_up(sdl::GameController* controller, sdl::GameControllerButton button) override;
             void axis_motion(sdl::GameController* controller, sdl::GameControllerAxis axis, int16_t value) override;
+            void mouse_move(int32_t x, int32_t y, int32_t xrel, int32_t yrel) override;
 
             void reload_background();
             void reload_fonts();
             void reload_button_icons();
 
-            void dispatch(action action);
+            void dispatch(const event& event);
+
+            template<typename T, typename... Args>
+            void dispatch(action a, Args&&... args) {
+                dispatch(event{a, T{std::forward<Args>(args)...}});
+            }
+
+            [[deprecated("Use dispatch(event) or dispatch<T>(action, ...) instead")]]
+            void dispatch(action a) {
+                dispatch(event{a, std::monostate{}});
+            }
+
             void handle(result result);
 
             std::string get_controller_type() const;
@@ -231,13 +244,19 @@ namespace app
 
             sdl::mix::unique_chunk ok_sound;
 
+            glm::vec2 cursorPosition{0.5f, 0.5f};
+            glm::vec2 cursorJoyStickDelta = {0.0f, 0.0f};
+            std::unique_ptr<texture> cursorTexture;
+            void tick_cursor();
+            bool handle_cursor(const event& event);
+
             bool fixed_components_loaded = false;
             void preload_fixed_components();
 
             void render_gui(gui_renderer& renderer);
 
             // input handling
-            constexpr static int controller_axis_input_threshold = 10000;
+            constexpr static int controller_axis_input_threshold = constants::controller_axis_input_threshold;
             std::array<glm::vec2, 2> controller_axis_position;
             std::array<time_point, 2> last_controller_axis_input_time;
             std::array<std::optional<std::tuple<sdl::GameController*, action>>, 2> last_controller_axis_input;
