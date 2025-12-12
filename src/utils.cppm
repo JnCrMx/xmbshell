@@ -128,6 +128,11 @@ export namespace events {
 
         key_up(const sdl::Keysym& sym) : keycode(std::to_underlying(sym.scancode)) {}
     };
+
+    struct cursor_move {
+        float x;
+        float y;
+    };
 }
 
 export struct event {
@@ -137,7 +142,9 @@ export struct event {
                  events::controller_button_down, events::controller_button_up,
                  events::joystick_axis,
                  events::mouse_move, events::mouse_scroll,
-                 events::key_down, events::key_up> data;
+                 events::key_down, events::key_up,
+                 events::cursor_move
+                > data;
 };
 
 export class action_receiver {

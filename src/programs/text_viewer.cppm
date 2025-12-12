@@ -21,6 +21,7 @@ module;
 #include <cstring>
 #include <filesystem>
 #include <variant>
+#include <vector>
 #include <span>
 #include <utility>
 
@@ -162,22 +163,33 @@ class mapped_memory {
 };
 #endif
 
+struct hyperlink {
+    std::size_t pos{};
+    std::size_t len{};
+    std::size_t line{};
+    std::size_t col{};
+    std::string_view dest{};
+    mutable glm::vec2 screen_pos;
+    mutable glm::vec2 screen_size;
+    bool hovered = false;
+};
+
 export class text_viewer : public component, public action_receiver {
     public:
         text_viewer(const std::filesystem::path& path, dreamrender::resource_loader& loader) : title(path.string()), src(mapped_memory(path)) {
             text = std::string_view{std::span<const char>{std::get<mapped_memory>(src)}};
             lines = std::ranges::count(text, '\n') + 1;
-            calculate_offsets();
+            update();
         }
         text_viewer(std::string title, std::string data) : title(std::move(title)), src(std::move(data)) {
             text = std::get<std::string>(src);
             lines = std::ranges::count(text, '\n') + 1;
-            calculate_offsets();
+            update();
         }
         text_viewer(std::string title, std::string_view data) : title(std::move(title)), src(data) {
             text = std::get<std::string_view>(src);
             lines = std::ranges::count(text, '\n') + 1;
-            calculate_offsets();
+            update();
         }
 
         void render(dreamrender::gui_renderer& renderer, class xmbshell* xmb) override {
@@ -203,6 +215,15 @@ export class text_viewer : public component, public action_receiver {
             if(!text.empty()) {
                 std::string_view part = text.substr(begin_offset, end_offset - begin_offset);
                 renderer.draw_text(part, x, y, font_size);
+                for(const auto& h : hyperlinks) {
+                    float hy = y + (h.line+1) * font_size/2.0f;
+                    float hx = x + renderer.measure_text(part.substr(h.pos - h.col, h.col), font_size).x;
+                    float hl = renderer.measure_text(h.dest, font_size).x;
+                    float hw = (h.hovered ? 3.0 : 1.0) / renderer.frame_size.height;
+                    renderer.draw_rect(glm::vec2{hx, hy}, glm::vec2{hl, hw});
+                    h.screen_pos = glm::vec2{hx, hy};
+                    h.screen_size = glm::vec2{hl, font_size / 2};
+                }
             }
             renderer.reset_clip();
         }
@@ -210,8 +231,9 @@ export class text_viewer : public component, public action_receiver {
         result tick(xmbshell*) override {
             if(line_movement != 0) {
                 current_line = std::clamp(static_cast<int>(current_line) + line_movement, 0, static_cast<int>(lines) - rendered_lines);
-                calculate_offsets();
+                update();
             }
+
             return result::success;
         }
 
@@ -222,13 +244,13 @@ export class text_viewer : public component, public action_receiver {
             } else if(action == action::up) {
                 if(current_line > 0) {
                     current_line -= 1;
-                    calculate_offsets();
+                    update();
                 }
                 return result::success;
             } else if(action == action::down) {
                 if(current_line + rendered_lines < lines) {
                     current_line += 1;
-                    calculate_offsets();
+                    update();
                 }
                 return result::success;
             } else if(auto* d = std::get_if<events::joystick_axis>(&event.data)) {
@@ -240,6 +262,8 @@ export class text_viewer : public component, public action_receiver {
                     }
                     return result::success;
                 }
+            } else if(auto* d = std::get_if<events::cursor_move>(&event.data)) {
+
             }
             return result::failure;
         };
@@ -259,10 +283,15 @@ export class text_viewer : public component, public action_receiver {
         unsigned int current_line = 0;
         unsigned int lines = 0;
         int line_movement = 0;
+        std::vector<hyperlink> hyperlinks;
 
         unsigned int begin_offset = 0;
         unsigned int end_offset = 0;
 
+        void update() {
+            calculate_offsets();
+            find_hyperlinks();
+        }
         void calculate_offsets() {
             begin_offset = 0;
             end_offset = 0;
@@ -282,6 +311,40 @@ export class text_viewer : public component, public action_receiver {
             }
             if(end_offset <= begin_offset) {
                 end_offset = text.size();
+            }
+        }
+        void find_hyperlinks() {
+            hyperlinks.clear();
+            if(text.empty()) {
+                return;
+            }
+            std::string_view part = text.substr(begin_offset, end_offset - begin_offset);
+            std::size_t line = 0;
+            std::size_t col = 0;
+            for(std::size_t i = 0; i < part.size() - std::char_traits<char>::length("http://"); i++) {
+                char c = part[i];
+                if(c == '\n') {
+                    line++;
+                    col = 0;
+                    continue;
+                }
+
+                std::string_view atpos = part.substr(i);
+                if(atpos.starts_with("http://") || atpos.starts_with("https://")) {
+                    auto& h = hyperlinks.emplace_back();
+                    h.pos = i;
+                    h.line = line;
+                    h.col = col;
+
+                    auto end = std::ranges::find_if_not(atpos, [](char c){
+                        return std::isalnum(c) || std::string_view{"-._~:/?'[]@!$&'*+,;%="}.contains(c);
+                    });
+                    h.len = end - atpos.begin();
+                    h.dest = atpos.substr(0, h.len);
+                    spdlog::trace("Found hyperlink: \"{}\" beginning at position {} in line {} and column {}", h.dest, h.pos, h.line, h.col);
+                }
+
+                col++;
             }
         }
 };
