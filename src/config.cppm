@@ -192,8 +192,8 @@ export namespace config
 
             bool controllerRumble = true;
             bool controllerAnalogStick = true;
-
             std::string controllerType;
+            double controllerCursorSpeed = 1.0f;
 
             void load();
             void reload();

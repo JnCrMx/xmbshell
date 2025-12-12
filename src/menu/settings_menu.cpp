@@ -18,6 +18,7 @@ module;
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <format>
 #include <functional>
@@ -260,6 +261,31 @@ namespace menu {
             return result::success;
         });
     }
+    std::unique_ptr<action_menu_entry> entry_double(dreamrender::resource_loader& loader, app::xmbshell* xmb,
+        std::string name, std::string description, const std::string& schema, const std::string& key, double min, double max, double step = 1)
+    {
+        return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, min, max, step](){
+            auto settings = Gio::Settings::create(schema);
+            double value = settings->get_double(key);
+            std::vector<std::string> choices;
+            for(double i = min; i <= (max + step - std::numeric_limits<double>::epsilon()); i += step) {
+                choices.push_back(std::to_string(i));
+            }
+            int current_choice = static_cast<int>(std::round((value - min)/step));
+            if(current_choice < 0 || current_choice >= choices.size()) {
+                current_choice = 0;
+            }
+            xmb->emplace_overlay<app::choice_overlay>(
+                choices, static_cast<unsigned int>(current_choice),
+                [settings, schema, key, min, step](unsigned int choice) {
+                    double value = static_cast<double>(choice)*step + min;
+                    settings->set_double(key, value);
+                    settings->apply();
+                }
+            );
+            return result::success;
+        });
+    }
 
     constexpr std::string_view copyright_notice = R"(XMBShell, a console-like desktop shell
 Copyright (C) 2025 - JCM
@@ -407,6 +433,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 }),
                 entry_bool(loader, xmb, "Controller Rumble"_(), "Enable controller rumble as feedback for actions"_(), "re.jcm.xmbos.xmbshell", "controller-rumble"),
                 entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "Allow navigating all menus using the analog stick in addition to the D-Pad"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
+                entry_double(loader, xmb, "Cursor Speed"_(), "Set how fast the cursor moves when controlled by an analog stick"_(), "re.jcm.xmbos.xmbshell", "controller-cursor-speed", 0.1f, 5.0f, 0.1f),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Debug Settings"_(), asset_dir/"icons/icon_settings_debug.png", loader,

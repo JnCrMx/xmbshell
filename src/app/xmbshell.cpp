@@ -871,7 +871,7 @@ namespace app
             return true;
         } else if(auto* d = event.get<events::joystick_axis>()) {
             if(d->index == events::logical_joystick_index::right) {
-                cursorJoyStickDelta = glm::vec2(d->x, d->y)/50.0f;
+                cursorJoyStickDelta = (glm::vec2(d->x, d->y) / 100.0f) * static_cast<float>(config::CONFIG.controllerCursorSpeed);
                 if(std::abs(d->x) < 0.1f) {
                     cursorJoyStickDelta.x = 0.0f;
                 }

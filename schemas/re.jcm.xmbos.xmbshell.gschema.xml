@@ -53,6 +53,13 @@
                 <choice value='ouya'/>
             </choices>
         </key>
+        <key name='controller-cursor-speed' type='d'>
+            <default>1.0</default>
+            <summary>Controller Cursor Speed Modifier</summary>
+            <description>
+                Controls the movement speed of the cursor when it is controlled by an analog stick.
+            </description>
+        </key>
         <key name='background-type' type='s'>
             <default>'wave'</default>
             <summary>Background type</summary>
