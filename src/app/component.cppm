@@ -19,6 +19,7 @@ module;
 #include <span>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 export module xmbshell.app:component;
 

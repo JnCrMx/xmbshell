@@ -736,6 +736,12 @@ namespace app
             case SDLK_CAPSLOCK:
                 dispatch<events::key_down>(action::extra, key);
                 break;
+            case SDLK_PAGEUP:
+                dispatch<events::key_down>(action::previous, key);
+                break;
+            case SDLK_PAGEDOWN:
+                dispatch<events::key_down>(action::next, key);
+                break;
             default:
                 dispatch<events::key_down>(action::none, key);
         }
@@ -783,6 +789,12 @@ namespace app
                 break;
             case sdl::GameControllerButtonValues::X:
                 dispatch<events::controller_button_down>(action::extra, button);
+                break;
+            case sdl::GameControllerButtonValues::LEFTSHOULDER:
+                dispatch<events::controller_button_down>(action::previous, button);
+                break;
+            case sdl::GameControllerButtonValues::RIGHTSHOULDER:
+                dispatch<events::controller_button_down>(action::next, button);
                 break;
             default:
                 dispatch<events::controller_button_down>(action::none, button);

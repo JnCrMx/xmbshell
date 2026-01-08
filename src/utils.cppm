@@ -58,6 +58,8 @@ export enum class action {
     cancel = 6,
     options = 7,
     extra = 8,
+    previous = 9,
+    next = 10,
 
     _length,
 };

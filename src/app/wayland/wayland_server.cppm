@@ -23,6 +23,7 @@ module;
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <sys/mman.h>
@@ -35,6 +36,7 @@ module xmbshell.app:wayland_server;
 
 import dreamrender;
 import glm;
+import i18n;
 import spdlog;
 import vma;
 import vulkan_hpp;
@@ -131,9 +133,20 @@ struct xdg_toplevel {
     wayland::server::xdg_surface_t xdg_surface;
 
     std::string title;
+
+    wayland::server::surface_t& get_surface() {
+        return xdg_surface.user_data().get<wl::xdg_surface>().surface;
+    }
+};
+
+struct client {
+    int fd;
+    wayland::server::output_t output;
 };
 
 }
+
+using namespace mfk::i18n::literals;
 
 namespace app {
 
@@ -262,12 +275,14 @@ public:
                 spdlog::trace("[SHM {}] destroyed", shm.get_id());
             };
         };
-        global_output.on_bind() = [](const wayland::server::client_t& client, wayland::server::output_t output) {
+        global_output.on_bind() = [this](const wayland::server::client_t& client, wayland::server::output_t output) {
             spdlog::trace("[Client {}] output bound: {}", client.get_fd(), output.get_id());
             output.geometry(0, 0, 0, 0, wayland::server::output_subpixel::none, "Generic", "Generic Monitor", wayland::server::output_transform::normal);
             output.scale(1);
             output.mode(wayland::server::output_mode::current, 1920, 1080, 60);
             output.done();
+
+            clients[client.get_fd()].output = output;
         };
         global_compositor.on_bind() = [this](const wayland::server::client_t& client, wayland::server::compositor_t compositor) {
             spdlog::trace("[Client {}] compositor bound: {}", client.get_fd(), compositor.get_id());
@@ -310,6 +325,7 @@ public:
                         }
                     }
                     if(!user_data.pending.damages.empty()) {
+                        spdlog::trace("[Surface {}] has pending damages", surface.get_id());
                         damaged_surfaces.push_back(wl::surface_damages{
                             .surface = surface,
                             .damages = std::move(user_data.pending.damages)
@@ -419,16 +435,17 @@ public:
                 spdlog::trace("[Viewporter {}] destroyed", viewporter.get_id());
             };
         };
-        global_seat.on_bind() = [](const wayland::server::client_t& client, wayland::server::seat_t seat) {
+        global_seat.on_bind() = [this](const wayland::server::client_t& client, wayland::server::seat_t seat) {
             spdlog::trace("[Client {}] seat bound: {}", client.get_fd(), seat.get_id());
             seat.name("default");
             seat.capabilities(wayland::server::seat_capability::pointer | wayland::server::seat_capability::keyboard);
 
-            seat.on_get_pointer() = [seat](wayland::server::pointer_t pointer) {
+            seat.on_get_pointer() = [this, seat](wayland::server::pointer_t pointer) {
                 spdlog::trace("[Seat {}] pointer created: {}", seat.get_id(), pointer.get_id());
                 pointer.on_destroy() = [pointer]() {
                     spdlog::trace("[Pointer {}] destroyed", pointer.get_id());
                 };
+                input_pointers.push_back(pointer);
             };
             seat.on_get_keyboard() = [seat](wayland::server::keyboard_t keyboard) {
                 spdlog::trace("[Seat {}] keyboard created: {}", seat.get_id(), keyboard.get_id());
@@ -442,14 +459,16 @@ public:
         };
         global_xdg_wm_base.on_bind() = [this](const wayland::server::client_t& client, wayland::server::xdg_wm_base_t xdg_wm_base) {
             spdlog::trace("[Client {}] xdg_wm_base bound: {}", client.get_fd(), xdg_wm_base.get_id());
-            xdg_wm_base.on_get_xdg_surface() = [this, xdg_wm_base](wayland::server::xdg_surface_t xdg_surface, wayland::server::surface_t surface) {
+            xdg_wm_base.on_get_xdg_surface() = [this, client, xdg_wm_base](wayland::server::xdg_surface_t xdg_surface, wayland::server::surface_t surface) {
                 spdlog::trace("[XDG WM Base {}] xdg_surface created: {} for surface {}", xdg_wm_base.get_id(), xdg_surface.get_id(), surface.get_id());
                 xdg_surface.user_data() = wl::xdg_surface{surface};
 
-                xdg_surface.on_get_toplevel() = [this, xdg_surface](wayland::server::xdg_toplevel_t xdg_toplevel) {
+                xdg_surface.on_get_toplevel() = [this, client, xdg_surface](wayland::server::xdg_toplevel_t xdg_toplevel) {
                     spdlog::trace("[XDG Surface {}] toplevel created: {}", xdg_surface.get_id(), xdg_toplevel.get_id());
                     xdg_toplevel.user_data() = wl::xdg_toplevel{.xdg_surface = xdg_surface};
                     toplevels.push_back(xdg_toplevel);
+
+                    //xdg_toplevel.user_data().get<wl::xdg_toplevel>().get_surface().enter(clients[client.get_fd()].output, false);
 
                     xdg_toplevel.on_set_title() = [xdg_toplevel](const std::string& title) mutable {
                         spdlog::trace("[XDG Toplevel {}] title set to: {}", xdg_toplevel.get_id(), title);
@@ -493,12 +512,16 @@ public:
         };
         server_display.on_client_created() = [this](wayland::server::client_t& client) {
             spdlog::debug("[New Client] Client connected: {}", client.get_fd());
+            clients[client.get_fd()] = {.fd = client.get_fd()};
+
             client.on_destroy() = [this, fd = client.get_fd()]() {
                 if(server_display.get_client_list().empty()) {
                     spdlog::debug("[Client {}] disconnected during server destruction, skipping cleanup", fd);
                     return;
                 }
                 spdlog::debug("[Client {}] disconnected", fd);
+
+                clients.erase(fd);
                 {
                     auto it = std::ranges::remove_if(damaged_surfaces,
                         [fd](const wl::surface_damages& e) {
@@ -536,6 +559,7 @@ public:
 
             auto& user_data = surface.user_data().get<wl::surface>();
             if(!user_data.buffer || !user_data.texture) {
+                spdlog::warn("[Surface {}] damage but not buffer bound or no texture created", surface.get_id());
                 continue;
             }
 
@@ -641,8 +665,6 @@ public:
                 continue;
             }
 
-            double x = 0;
-            double y = 0;
             int src_width = surface_data.texture->width;
             int src_height = surface_data.texture->height;
             int dst_width = surface_data.viewport ? surface_data.viewport->dw : src_width;
@@ -651,7 +673,7 @@ public:
             double scaleX = static_cast<double>(dst_width) / renderer.frame_size.width;
             double scaleY = static_cast<double>(dst_height) / renderer.frame_size.height;
 
-            glm::vec2 pos = glm::vec2(x, y)*2.0f - glm::vec2(1.0f);
+            glm::vec2 pos = -glm::vec2(scaleX, scaleY);
 
             SurfaceParams params{};
             params.matrix = glm::mat4(1.0f);
@@ -669,6 +691,14 @@ public:
             resources.push_back(surface_data.texture);
             resources.push_back(surface_data.descriptor_set);
         }
+
+        render_controller_buttons(xmb, renderer, 0.5f, 0.95f, std::array{
+            std::pair{toplevels.size() > 1 ? action::previous : action::none, std::string_view{"Previous window"_}},
+            std::pair{toplevels.size() > 1 ? action::next : action::none, std::string_view{"Next window"_}},
+            std::pair{action::cancel, std::string_view{"Minimize window"_}},
+            std::pair{action::options, std::string_view{"Options"_}},
+            std::pair{action::extra, std::string_view{"Close window"_}},
+        });
     }
     result tick(app::xmbshell* xmb) override {
         std::chrono::time_point<std::chrono::steady_clock, std::chrono::microseconds> current_time =
@@ -679,10 +709,31 @@ public:
         }
         frame_callbacks.clear();
 
-        event_loop.dispatch(1);
+        event_loop.dispatch(0);
         server_display.flush_clients();
 
         return result::success;
+    }
+
+    result on_event(const event& event) override {
+        if(!focused_toplevel) {
+            return result::unsupported;
+        }
+
+        if(auto* d = event.get<events::cursor_move>()) {
+            for(auto& p : input_pointers) {
+                if(p.get_client() != focused_toplevel.get_client()) {
+                    continue;
+                }
+
+                auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+                p.enter(0, toplevels.at(0).user_data().get<wl::xdg_toplevel>().xdg_surface.user_data().get<wl::xdg_surface>().surface, d->x*1920, d->y*1080);
+                p.frame();
+                p.motion(now, d->x*1920, d->y*1080);
+                p.frame();
+            }
+        }
+        return result::unsupported;
     }
 
     bool is_opaque() const override {
@@ -690,6 +741,10 @@ public:
     }
     bool is_transparent() const override {
         return true;
+    }
+
+    bool enable_cursor() const override {
+        return !toplevels.empty();
     }
 private:
     vk::Device device;
@@ -718,8 +773,12 @@ private:
     wayland::server::global_xwayland_shell_v1_t global_xwayland_shell_v1{server_display};
 
     wayland::server::event_loop_t event_loop = server_display.get_event_loop();
+
+    std::unordered_map<int, wl::client> clients;
     std::vector<wl::surface_damages> damaged_surfaces;
     std::vector<wayland::server::xdg_toplevel_t> toplevels;
+    std::vector<wayland::server::pointer_t> input_pointers;
+    wayland::server::xdg_toplevel_t focused_toplevel;
 
     std::chrono::time_point<std::chrono::steady_clock, std::chrono::microseconds> start_time =
         std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
