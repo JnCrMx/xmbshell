@@ -23,6 +23,7 @@ module;
 
 export module xmbshell.app:menu_base;
 import dreamrender;
+import glm;
 import xmbshell.utils;
 
 export namespace menu {
@@ -31,12 +32,16 @@ class menu_entry {
     public:
         virtual ~menu_entry() = default;
 
-        virtual std::string_view get_name() const = 0;
-        virtual std::string_view get_description() const = 0;
-        virtual const dreamrender::texture& get_icon() const = 0;
         virtual result activate(action action) {
             return result::unsupported;
         }
+        virtual void draw_icon(dreamrender::gui_renderer& renderer, float x, float y, float w, float h) const = 0;
+        virtual void draw_name(dreamrender::gui_renderer& renderer, float x, float y, float size,
+            const glm::vec4& color = glm::vec4(1.0f), bool centerH = false, bool centerV = false) const = 0;
+        virtual void draw_description(dreamrender::gui_renderer& renderer, float x, float y, float size,
+            const glm::vec4& color = glm::vec4(1.0f), bool centerH = false, bool centerV = false) const = 0;
+        virtual glm::vec2 measure_name(dreamrender::gui_renderer& renderer, float size) const = 0;
+        virtual glm::vec2 measure_description(dreamrender::gui_renderer& renderer, float size) const = 0;
 };
 
 class menu : public menu_entry {
@@ -62,7 +67,35 @@ class menu : public menu_entry {
 };
 
 template<typename T>
-class simple : public T {
+class default_rendered : public T {
+    public:
+        virtual const dreamrender::texture& get_icon() const = 0;
+        virtual std::string_view get_name() const = 0;
+        virtual std::string_view get_description() const = 0;
+
+        void draw_icon(dreamrender::gui_renderer& renderer, float x, float y, float w, float h) const override {
+            renderer.draw_image_a(get_icon(), x, y, w, h);
+        }
+        void draw_name(dreamrender::gui_renderer& renderer, float x, float y, float size,
+            const glm::vec4& color = glm::vec4(1.0f), bool centerH = false, bool centerV = false) const override
+        {
+            renderer.draw_text(get_name(), x, y, size, color, centerH, centerV);
+        }
+        void draw_description(dreamrender::gui_renderer& renderer, float x, float y, float size,
+            const glm::vec4& color = glm::vec4(1.0f), bool centerH = false, bool centerV = false) const override
+        {
+            renderer.draw_text(get_description(), x, y, size, color, centerH, centerV);
+        }
+        glm::vec2 measure_name(dreamrender::gui_renderer& renderer, float size) const override {
+            return renderer.measure_text(get_name(), size);
+        }
+        glm::vec2 measure_description(dreamrender::gui_renderer& renderer, float size) const override {
+            return renderer.measure_text(get_description(), size);
+        }
+};
+
+template<typename T>
+class simple : public default_rendered<T> {
     public:
         using icon_type = dreamrender::texture;
 
@@ -89,7 +122,7 @@ class simple : public T {
 };
 
 template<typename T>
-class simple_shared : public T {
+class simple_shared : public default_rendered<T> {
     public:
         using icon_type = std::shared_ptr<dreamrender::texture>;
 

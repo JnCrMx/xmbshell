@@ -279,9 +279,9 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         }
 
         auto& menu = menus[i];
-        renderer.draw_image_a(menu->get_icon(), x, base_pos.y, base_size, base_size);
+        menu->draw_icon(renderer, x, base_pos.y, base_size, base_size);
         if(i == selected) {
-            renderer.draw_text(menu->get_name(), x+(base_size*0.5f)/renderer.aspect_ratio, base_pos.y+base_size, base_size*0.4f, glm::vec4(1, 1, 1, 1), true);
+            menu->draw_name(renderer, x+(base_size*0.5f)/renderer.aspect_ratio, base_pos.y+base_size, base_size*0.4f, glm::vec4(1, 1, 1, 1), true);
         }
         x += (base_size*1.5f)/renderer.aspect_ratio;
     }
@@ -314,9 +314,9 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
         }
         for(int i=selected_submenu-1; i >= 0 && y >= -base_size*0.65f; i--) {
             auto& submenu = menu->get_submenu(i);
-            renderer.draw_image_a(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
+            submenu.draw_icon(renderer, x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
             if(!in_submenu_now)
-                renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+(base_size*0.3f), base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
+                submenu.draw_name(renderer, x+(base_size*1.5f)/renderer.aspect_ratio, y+(base_size*0.3f), base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
             y -= base_size*0.65f;
         }
     }
@@ -332,25 +332,25 @@ void main_menu::render_crossbar(dreamrender::gui_renderer& renderer, time_point 
             if(i == selected_submenu) {
                 if(!in_submenu_now) {
                     double size = base_size*glm::mix(0.6, 1.2, partial_transition);
-                double text_size = base_size*glm::mix(0.4, 0.6, partial_transition);
-                    renderer.draw_image_a(submenu.get_icon(), x+(base_size*0.5f-size/2.0f)/renderer.aspect_ratio, y, size, size);
+                    double text_size = base_size*glm::mix(0.4, 0.6, partial_transition);
+                    submenu.draw_icon(renderer, x+(base_size*0.5f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                     if(!in_submenu_now)
-                        renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
+                        submenu.draw_name(renderer, x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
                 }
                 y += base_size*glm::mix(0.65f, 1.5f, partial_transition);
             }
             else if(i == last_selected_menu_item) {
                 double size = base_size*glm::mix(0.6, 1.2, 1.0f-partial_transition);
                 double text_size = base_size*glm::mix(0.4, 0.6, 1.0f-partial_transition);
-                renderer.draw_image_a(submenu.get_icon(), x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
+                submenu.draw_icon(renderer, x+(0.05f-size/2.0f)/renderer.aspect_ratio, y, size, size);
                 if(!in_submenu_now)
-                    renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
+                    submenu.draw_name(renderer, x+(base_size*1.5f)/renderer.aspect_ratio, y+size/2, text_size, glm::vec4(1, 1, 1, 1), false, true);
                 y += base_size*glm::mix(0.65f, 1.5f, 1.0f-partial_transition);
             }
             else {
-                renderer.draw_image_a(submenu.get_icon(), x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
+                submenu.draw_icon(renderer, x+(base_size*0.2f)/renderer.aspect_ratio, y, base_size*0.6f, base_size*0.6f);
                 if(!in_submenu_now)
-                    renderer.draw_text(submenu.get_name(), x+(base_size*1.5f)/renderer.aspect_ratio, y+base_size*0.3f, base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
+                    submenu.draw_name(renderer, x+(base_size*1.5f)/renderer.aspect_ratio, y+base_size*0.3f, base_size*0.4f, glm::vec4(0.7, 0.7, 0.7, 1), false, true);
                 y += base_size*0.65f;
             }
         }
@@ -372,8 +372,8 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
     const auto& selected_menu = *menus[selected];
     const auto& selected_submenu = *current_submenu;
 
-    renderer.draw_image_a(selected_menu.get_icon(), base_pos.x, base_pos.y, 0.1f, 0.1f);
-    renderer.draw_image_a(selected_submenu.get_icon(), base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);
+    selected_menu.draw_icon(renderer, base_pos.x, base_pos.y, 0.1f, 0.1f);
+    selected_submenu.draw_icon(renderer, base_pos.x, base_pos.y+0.15f, 0.1f, 0.1f);
 
     if(!in_submenu)
         return;
@@ -401,11 +401,11 @@ void main_menu::render_submenu(dreamrender::gui_renderer& renderer, time_point n
                 continue;
 
             auto& entry = submenu->get_submenu(i);
-            renderer.draw_image_a(entry.get_icon(), base_pos.x + 0.1 + offset, y, size, size);
-            renderer.draw_text(entry.get_name(), base_pos.x + 0.2, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
+            entry.draw_icon(renderer, base_pos.x + 0.1 + offset, y, size, size);
+            entry.draw_name(renderer, base_pos.x + 0.2, y+size/2, size/2, glm::vec4(1, 1, 1, 1), false, true);
             if(i == selected) {
-                auto s = renderer.measure_text(entry.get_name(), size/2);
-                renderer.draw_text(entry.get_description(), base_pos.x + 0.2, y+size/2 + s.y, size / 3);
+                auto s = entry.measure_name(renderer, size/2);
+                entry.draw_description(renderer, base_pos.x + 0.2, y+size/2 + s.y, size / 3);
             }
         }
     }
