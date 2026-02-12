@@ -97,13 +97,16 @@ namespace app
 
             std::string get_controller_type() const;
             void render_controller_buttons(gui_renderer& renderer, float x, float y, std::ranges::range auto buttons) {
-                constexpr float min_width = 0.2f;
+                constexpr float min_width = 0.15f;
                 constexpr float size = 0.05f;
+                constexpr float spacing_scale = 1.0f / 1.25f;
+
                 float size_x = static_cast<float>(size/renderer.aspect_ratio);
+                float space_x = size_x * spacing_scale;
                 float total_width = 0.0f;
                 float last_width = 0.0f;
                 for (const auto& [action, text] : buttons) {
-                    last_width = size_x/1.25f+renderer.measure_text(text, size).x;
+                    last_width = space_x + renderer.measure_text(text, size).x;
                     total_width += std::max(min_width, last_width);
                 }
                 if(last_width < min_width) {
@@ -113,10 +116,10 @@ namespace app
                 float current_x = x - total_width/2;
                 for (const auto& [action, text] : buttons) {
                     auto icon = buttonTextures[std::to_underlying(action)].get();
-                    float width = std::max(min_width, size_x/1.25f+renderer.measure_text(text, size).x);
+                    float width = std::max(min_width, space_x + renderer.measure_text(text, size).x);
                     if(action != action::none && icon) {
                         renderer.draw_image(*icon, current_x, y, size/2.0, size/2.0);
-                        renderer.draw_text(text, current_x+size_x/1.25f, y+size*0.033f, size);
+                        renderer.draw_text(text, current_x+space_x, y+size*0.033f, size);
                     }
                     current_x += width;
                 }
