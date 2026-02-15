@@ -60,6 +60,8 @@ namespace app
     {
         phase::preload();
 
+        video_decode_queue = device.getQueue(*win->queueFamilyIndices.videoDecodeFamily, 0);
+
         font_render = std::make_unique<font_renderer>(config::CONFIG.fontPath.string(), 32, device, allocator, win->swapchainExtent, win->gpuFeatures);
         image_render = std::make_unique<image_renderer>(device, win->swapchainExtent, win->gpuFeatures);
         simple_render = std::make_unique<simple_renderer>(device, allocator, win->swapchainExtent, win->gpuFeatures);

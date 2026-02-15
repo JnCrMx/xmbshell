@@ -32,6 +32,7 @@ import giomm;
 import dreamrender;
 import argparse;
 import avcpp;
+import vulkan_hpp;
 import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
@@ -175,6 +176,12 @@ int main(int argc, char *argv[])
     } else {
         window_config.headless_output_dir.clear();
     }
+    window_config.additional_device_extensions = {
+        vk::KHRVideoQueueExtensionName,
+        vk::KHRVideoDecodeQueueExtensionName,
+        vk::KHRVideoDecodeH264ExtensionName,
+        vk::KHRVideoDecodeH265ExtensionName
+    };
 
     dreamrender::window window{window_config};
     window.init();
