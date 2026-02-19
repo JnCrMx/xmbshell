@@ -82,7 +82,7 @@ steps:
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
       - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 env
-      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-$HOSTCPU.AppImage --appimage-extract-and-run --appdir AppDir
+      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-$HOSTCPU.AppImage --appimage-extract-and-run --appdir AppDir --exclude-library libvulkan.so.1
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - install -T -D /usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop AppDir/usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop
       - wget "https://github.com/AppImageCommunity/AppImageUpdate/releases/latest/download/appimageupdatetool-$TARGETCPU.AppImage" -O AppDir/usr/bin/appimageupdatetool
