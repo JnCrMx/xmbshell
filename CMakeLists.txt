@@ -187,6 +187,7 @@ set(XMBSHELL_MODULE_SOURCES
   src/render/module.cppm
   src/render/shaders.cppm
   src/render/components/wave_renderer.cppm
+  src/social/social.cppm
   src/utils.cppm
 )
 set(XMBSHELL_SHADERS
