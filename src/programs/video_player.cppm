@@ -75,7 +75,7 @@ export class video_player : private base_viewer, public component, public action
                     ctx->codec = av::findDecodingCodec(ctx->vdec.raw()->codec_id);
                     ctx->vdec.setCodec(ctx->codec);
                     ctx->vdec.setRefCountedFrames(true);
-                    ctx->vdec.open({{"threads", "auto"}}); // TODO: change to auto, once we resolved "Resource temporarily unavailable"
+                    ctx->vdec.open({{"threads", "1"}}); // TODO: change to auto, once we resolved "Resource temporarily unavailable"
                     if(!ctx->vdec.isValid()) {
                         throw std::runtime_error("Cannot open video decoder context found");
                     }

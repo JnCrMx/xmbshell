@@ -95,14 +95,14 @@ FetchContent_MakeAvailable_ExcludeFromAll(dreamrender)
 
 FetchContent_Declare(argparse
   GIT_REPOSITORY https://github.com/p-ranav/argparse.git
-  GIT_TAG        v3.1
+  GIT_TAG        v3.2
   EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable_ExcludeFromAll(argparse)
 
 FetchContent_Declare(avcpp
   GIT_REPOSITORY https://github.com/h4tr3d/avcpp.git
-  GIT_TAG        v2.7.1
+  GIT_TAG        v3.0.1
   GIT_SUBMODULES ""
   EXCLUDE_FROM_ALL
 )

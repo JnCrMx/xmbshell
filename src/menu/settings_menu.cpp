@@ -328,7 +328,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         static const std::string ffmpeg = []() -> std::string {
             return std::format(
                 "libavcodec: {}\n"
-                "libavdevice: {}\n"
                 "libavfilter: {}\n"
                 "libavformat: {}\n"
                 "libavutil: {}\n"
@@ -337,7 +336,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 "\n"
                 "Visit https://ffmpeg.org/legal.html for details.\n",
                 av::avcodec_license(),
-                av::avdevice_license(),
                 av::avfilter_license(),
                 av::avformat_license(),
                 av::avutil_license(),
