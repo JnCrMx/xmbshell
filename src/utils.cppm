@@ -258,6 +258,10 @@ export namespace utils
     std::string type_name(const T& t) {
         return demangle(typeid(t).name());
     }
+
+    bool is_autostart_enabled();
+    void enable_autostart();
+    void disable_autostart();
 }
 
 namespace utils {

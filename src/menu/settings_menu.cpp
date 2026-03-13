@@ -41,6 +41,7 @@ import giomm;
 import i18n;
 import dreamrender;
 import xmbshell.config;
+import xmbshell.utils;
 
 import :settings_menu;
 
@@ -166,14 +167,15 @@ namespace menu {
 
     std::unique_ptr<action_menu_entry> entry_base(dreamrender::resource_loader& loader,
         std::string name, std::string description, const std::string& key,
-        std::function<result()> callback)
+        std::function<result()> callback, bool enabled = true)
     {
         std::string filename = std::format("icon_settings_{}.png", key);
-        return make_simple<action_menu_entry>(std::move(name), config::CONFIG.asset_directory/"icons"/filename, loader, callback, std::function<result(action)>{}, std::move(description));
+        return make_simple<action_menu_entry>(std::move(name), config::CONFIG.asset_directory/"icons"/filename, loader,
+            callback, std::function<result(action)>{}, std::move(description), enabled);
     }
 
     std::unique_ptr<action_menu_entry> entry_bool(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, std::string description, const std::string& schema, const std::string& key)
+        std::string name, std::string description, const std::string& schema, const std::string& key, bool enabled = true)
     {
         return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema](){
             auto settings = Gio::Settings::create(schema);
@@ -186,11 +188,11 @@ namespace menu {
                 }
             );
             return result::success;
-        });
+        }, enabled);
     }
 
     std::unique_ptr<action_menu_entry> entry_int(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, std::string description, const std::string& schema, const std::string& key, int min, int max, int step = 1)
+        std::string name, std::string description, const std::string& schema, const std::string& key, int min, int max, int step = 1, bool enabled = true)
     {
         return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, min, max, step](){
             auto settings = Gio::Settings::create(schema);
@@ -212,10 +214,10 @@ namespace menu {
                 }
             );
             return result::success;
-        });
+        }, enabled);
     }
     std::unique_ptr<action_menu_entry> entry_int(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, std::string description, const std::string& schema, const std::string& key, std::ranges::range auto values)
+        std::string name, std::string description, const std::string& schema, const std::string& key, std::ranges::range auto values, bool enabled = true)
         requires std::is_integral_v<std::ranges::range_value_t<decltype(values)>>
     {
         return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, values](){
@@ -235,10 +237,10 @@ namespace menu {
                 }
             );
             return result::success;
-        });
+        }, enabled);
     }
     std::unique_ptr<action_menu_entry> entry_enum(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, std::string description, const std::string& schema, const std::string& key, std::ranges::range auto values)
+        std::string name, std::string description, const std::string& schema, const std::string& key, std::ranges::range auto values, bool enabled = true)
     {
         return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, values](){
             auto settings = Gio::Settings::create(schema);
@@ -259,10 +261,10 @@ namespace menu {
                 }
             );
             return result::success;
-        });
+        }, enabled);
     }
     std::unique_ptr<action_menu_entry> entry_double(dreamrender::resource_loader& loader, app::xmbshell* xmb,
-        std::string name, std::string description, const std::string& schema, const std::string& key, double min, double max, double step = 1)
+        std::string name, std::string description, const std::string& schema, const std::string& key, double min, double max, double step = 1, bool enabled = true)
     {
         return entry_base(loader, std::move(name), std::move(description), key, [xmb, key, schema, min, max, step](){
             auto settings = Gio::Settings::create(schema);
@@ -284,7 +286,7 @@ namespace menu {
                 }
             );
             return result::success;
-        });
+        }, enabled);
     }
 
     constexpr std::string_view copyright_notice = R"(XMBShell, a console-like desktop shell
@@ -432,6 +434,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 entry_bool(loader, xmb, "Controller Rumble"_(), "Enable controller rumble as feedback for actions"_(), "re.jcm.xmbos.xmbshell", "controller-rumble"),
                 entry_bool(loader, xmb, "Navigate Menus with Analog Stick"_(), "Allow navigating all menus using the analog stick in addition to the D-Pad"_(), "re.jcm.xmbos.xmbshell", "controller-analog-stick"),
                 entry_double(loader, xmb, "Cursor Speed"_(), "Set how fast the cursor moves when controlled by an analog stick"_(), "re.jcm.xmbos.xmbshell", "controller-cursor-speed", 0.1f, 5.0f, 0.1f),
+            }
+        ));
+        entries.push_back(make_simple<simple_menu>("System Settings"_(), asset_dir/"icons/icon_settings_system.png", loader,
+            std::array{
+                entry_base(loader, "Autostart"_(),
+                    std::string{"Automatically start XMBShell after login"_()} + (config::my_packaging_type == config::packaging_type::snap ? (" " + std::string{"(unavailable on Snap)"_()}) : ""),
+                    "autostart", [xmb](){
+                        bool enabled = utils::is_autostart_enabled();
+                        xmb->emplace_overlay<app::choice_overlay>(
+                            std::vector<std::string>{"Off"_(), "On"_()}, enabled ? 1u : 0u,
+                            [xmb](unsigned int choice) {
+                                try {
+                                    if(choice == 0) {
+                                        utils::disable_autostart();
+                                    } else {
+                                        utils::enable_autostart();
+                                    }
+                                } catch (const std::exception& ex) {
+                                    spdlog::error("Failed to {} autostart: {}", choice == 0 ? "disable" : "enable", ex.what());
+                                    auto message = choice == 0 ? "Failed to disable autostart"_ : "Failed to enable autostart"_;
+                                    xmb->emplace_overlay<app::message_overlay>(std::string{message},
+                                        "An error occurred: {}"_(ex.what()), std::vector<std::string>{"OK"_()});
+                                }
+                            }
+                        );
+                        return result::success;
+                    },
+                    config::my_packaging_type == config::packaging_type::native || config::my_packaging_type == config::packaging_type::appimage
+                ),
             }
         ));
         entries.push_back(make_simple<simple_menu>("Debug Settings"_(), asset_dir/"icons/icon_settings_debug.png", loader,

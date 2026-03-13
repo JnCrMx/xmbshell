@@ -238,8 +238,8 @@ namespace menu {
             if(open_infos.empty()) {
                 std::string p = path.string();
                 std::string mime_type = info->get_attribute_string("standard::fast-content-type");
-                spdlog::error("No machting program found for file of type \"{}\": {}", mime_type, p);
-                xmb->emplace_overlay<app::message_overlay>("No machting program found"_(),
+                spdlog::error("No matching program found for file of type \"{}\": {}", mime_type, p);
+                xmb->emplace_overlay<app::message_overlay>("No matching program found"_(),
                     "No matching program found for file of type \"{}\": {}"_(mime_type, p),
                     std::vector<std::string>{"OK"_()});
                 return;

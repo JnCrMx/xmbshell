@@ -72,6 +72,9 @@ class default_rendered : public T {
         virtual const dreamrender::texture& get_icon() const = 0;
         virtual std::string_view get_name() const = 0;
         virtual std::string_view get_description() const = 0;
+        virtual bool is_enabled() const {
+            return true;
+        }
 
         void draw_icon(dreamrender::gui_renderer& renderer, float x, float y, float w, float h) const override {
             renderer.draw_image_a(get_icon(), x, y, w, h);
@@ -79,12 +82,12 @@ class default_rendered : public T {
         void draw_name(dreamrender::gui_renderer& renderer, float x, float y, float size,
             const glm::vec4& color = glm::vec4(1.0f), bool centerH = false, bool centerV = false) const override
         {
-            renderer.draw_text(get_name(), x, y, size, color, centerH, centerV);
+            renderer.draw_text(get_name(), x, y, size, is_enabled() ? color : (color * 0.5f), centerH, centerV);
         }
         void draw_description(dreamrender::gui_renderer& renderer, float x, float y, float size,
             const glm::vec4& color = glm::vec4(1.0f), bool centerH = false, bool centerV = false) const override
         {
-            renderer.draw_text(get_description(), x, y, size, color, centerH, centerV);
+            renderer.draw_text(get_description(), x, y, size, is_enabled() ? color : (color * 0.5f), centerH, centerV);
         }
         glm::vec2 measure_name(dreamrender::gui_renderer& renderer, float size) const override {
             return renderer.measure_text(get_name(), size);
@@ -99,8 +102,8 @@ class simple : public default_rendered<T> {
     public:
         using icon_type = dreamrender::texture;
 
-        simple(std::string name, icon_type&& icon, std::string description = "") :
-            name(std::move(name)), icon(std::move(icon)), description(std::move(description)) {}
+        simple(std::string name, icon_type&& icon, std::string description = "", bool enabled = true) :
+            name(std::move(name)), icon(std::move(icon)), description(std::move(description)), enabled(enabled) {}
         ~simple() override = default;
 
         std::string_view get_name() const override {
@@ -115,10 +118,14 @@ class simple : public default_rendered<T> {
         dreamrender::texture& get_icon() {
             return icon;
         }
+        bool is_enabled() const override {
+            return enabled;
+        }
     private:
         std::string name;
         std::string description;
         icon_type icon;
+        bool enabled;
 };
 
 template<typename T>
@@ -126,8 +133,8 @@ class simple_shared : public default_rendered<T> {
     public:
         using icon_type = std::shared_ptr<dreamrender::texture>;
 
-        simple_shared(std::string name, icon_type&& icon, std::string description = "") :
-            name(std::move(name)), icon(std::move(icon)), description(std::move(description)) {}
+        simple_shared(std::string name, icon_type&& icon, std::string description = "", bool enabled = true) :
+            name(std::move(name)), icon(std::move(icon)), description(std::move(description)), enabled(enabled) {}
         ~simple_shared() override = default;
 
         std::string_view get_name() const override {
@@ -142,10 +149,14 @@ class simple_shared : public default_rendered<T> {
         dreamrender::texture& get_icon() {
             return *icon;
         }
+        bool is_enabled() const override {
+            return enabled;
+        }
     private:
         std::string name;
         std::string description;
         icon_type icon;
+        bool enabled;
 };
 
 using simple_menu_shallow = simple<menu>;
@@ -159,12 +170,17 @@ class action_menu_entry_generic : public Base {
         action_menu_entry_generic(
             std::string name, Base::icon_type&& icon,
             std::function<result()> on_activate, std::function<result(action)> on_action = {},
-            std::string description = ""
+            std::string description = "",
+            bool enabled = true
         ) :
-            Base(std::move(name), std::move(icon), std::move(description)), on_activate(std::move(on_activate)), on_action(std::move(on_action)) {}
+            Base(std::move(name), std::move(icon), std::move(description), enabled), on_activate(std::move(on_activate)), on_action(std::move(on_action)) {}
         ~action_menu_entry_generic() override = default;
 
         result activate(action action) override {
+            if(!this->is_enabled()) {
+                return result::failure;
+            }
+
             if(on_action) {
                 return on_action(action);
             } else if(action != action::ok) {

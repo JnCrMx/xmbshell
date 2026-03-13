@@ -35,6 +35,7 @@ import avcpp;
 import xmbshell.app;
 import xmbshell.dbus;
 import xmbshell.config;
+import xmbshell.utils;
 
 #if __linux__
 std::string find_visualid() {
@@ -145,6 +146,14 @@ int main(int argc, char *argv[])
 
     config::CONFIG.load();
     spdlog::debug("Config loaded");
+    if(utils::is_autostart_enabled()) {
+        spdlog::debug("Autostart is enabled, regenerating autostart file just to be sure.");
+        try {
+            utils::enable_autostart();
+        } catch (const std::exception& ex) {
+            spdlog::error("Failed to regenerate autostart file: {}", ex.what());
+        }
+    }
 
     SDL_SetMainReady();
 

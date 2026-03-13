@@ -18,6 +18,7 @@ module;
 
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <memory>
 #include <mutex>
@@ -40,6 +41,7 @@ module xmbshell.utils;
 import glibmm;
 import giomm;
 import spdlog;
+import xmbshell.config;
 
 namespace utils {
 #if __linux__
@@ -261,21 +263,15 @@ namespace utils {
         }
         return std::nullopt;
     }
-}
 
-namespace utils
-{
     std::string to_fixed_string(double d, int n)
     {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(n) << d;
         return oss.str();
     }
-}
 
 #ifdef __GNUG__
-namespace utils
-{
     std::string demangle(const char *name) {
         int status = -4;
         std::unique_ptr<char, void(*)(void*)> res{
@@ -284,12 +280,68 @@ namespace utils
         };
         return (status==0) ? res.get() : name;
     }
-}
 #else
-namespace utils
-{
     std::string demangle(const char *name) {
         return std::string(name);
     }
-}
 #endif
+
+    bool is_autostart_enabled() {
+        if(config::my_packaging_type == config::packaging_type::snap) {
+            return false;
+        }
+        return std::filesystem::exists(Glib::get_home_dir() + "/.config/autostart/xmbshell.desktop");
+    }
+
+    std::string build_environment_string() {
+        std::stringstream ss;
+        constexpr std::array environment_variables = {
+            "XMB_ASSET_DIR", "XMB_LOCALE_DIR",
+            "GSETTINGS_SCHEMA_DIR",
+            "DREAMRENDER_DEVICE_INDEX", "DREAMRENDER_DEVICE_NAME", "DREAMRENDER_DEVICE_UUID",
+            "DREAMRENDER_NO_FEATURES", "DREAMRENDER_NO_SWAPCHAIN"
+        };
+        for(const auto& key : environment_variables) {
+            if(const char* env = std::getenv(key)) {
+                ss << key << '=' << std::quoted(env) << ' ';
+            }
+        }
+        return ss.str();
+    }
+
+    void enable_autostart() {
+        if(config::my_packaging_type == config::packaging_type::snap) {
+            throw std::runtime_error("autostart for Snap is not supported");
+        }
+
+        std::filesystem::create_directories(Glib::get_home_dir() + "/.config/autostart");
+        std::ofstream file{Glib::get_home_dir() + "/.config/autostart/xmbshell.desktop"};
+        if(file.is_open()) {
+            file << "[Desktop Entry]\n";
+            file << "Name=XMBShell\n";
+            file << "Comment=A desktop shell mimicking the look and functionality of the XrossMediaBar.\n";
+            file << "Type=Application\n";
+            file << "Terminal=false\n";
+
+            std::string env = build_environment_string();
+            std::string command_launcher = env.empty() ? "" : "/usr/bin/env " + env + " ";
+            if(config::my_packaging_type == config::packaging_type::native) {
+                file << "Exec=" << command_launcher << std::filesystem::canonical("/proc/self/exe").string() << '\n';
+                file << "Icon=" << std::filesystem::canonical(config::CONFIG.asset_directory / "icons/xmbshell.png").string() << '\n';
+            } else if(config::my_packaging_type == config::packaging_type::appimage) {
+                file << "Exec=" << command_launcher << std::getenv("APPIMAGE") << '\n';
+                // no icon
+            } else {
+                throw std::runtime_error("Unsupported packaging type");
+            }
+            file << "Path=" << std::filesystem::current_path().string() << '\n'; // important in case environment variables contain relative paths
+            file << "X-GNOME-Autostart-enabled=true\n";
+            file.close();
+        } else {
+            throw std::runtime_error("Failed to open autostart file");
+        }
+    }
+    void disable_autostart() {
+        std::filesystem::remove(Glib::get_home_dir() + "/.config/autostart/xmbshell.desktop");
+    }
+}

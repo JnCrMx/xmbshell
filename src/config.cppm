@@ -221,4 +221,19 @@ export namespace config
             void on_update(const Glib::ustring& key);
     };
     inline class config CONFIG;
+
+    enum class packaging_type {
+        native,
+        snap,
+        appimage
+    };
+    inline const packaging_type my_packaging_type = [](){
+        if(std::getenv("APPIMAGE")) {
+            return packaging_type::appimage;
+        } else if(std::getenv("SNAP")) {
+            return packaging_type::snap;
+        } else {
+            return packaging_type::native;
+        }
+    }();
 }
