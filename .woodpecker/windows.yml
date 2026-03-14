@@ -48,7 +48,9 @@ steps:
         -DSEPARATE_DEBUG_INFO=ON
         -DBUILD_VERSION=$BUILD_VERSION
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-windows.log
+      - sccache --start-server
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-windows.log
+      - sccache --stop-server
       - cd build
       # Install
       - DESTDIR=xmbshell-windows cmake --install . --prefix /

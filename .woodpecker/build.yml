@@ -62,7 +62,9 @@ steps:
         -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=${TARGETARCH}
         -DCPACK_PACKAGE_FILE_NAME=xmbshell-$BUILD_VERSION-${UBUNTU_VERSION}-${TARGETARCH}
         -B build -G Ninja -S . 2>&1 | tee build/cmake-configure-${UBUNTU_VERSION}-${TARGETARCH}.log
+      - sccache --start-server
       - cmake --build build --parallel 2 2>&1 | tee build/cmake-build-${UBUNTU_VERSION}-${TARGETARCH}.log
+      - sccache --stop-server
       - cd build
       - cpack -G DEB
       - mkdir -p upload/build upload/beta
