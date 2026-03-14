@@ -68,7 +68,6 @@ steps:
     environment:
       SCCACHE_ENDPOINT:
         from_secret: minio_endpoint
-      SCCACHE_S3_ENABLE_VIRTUAL_HOST_STYLE: true
       SCCACHE_REGION: eu-central-jcm
       SCCACHE_BUCKET: woodpecker-cache
       SCCACHE_S3_KEY_PREFIX: ${CI_REPO}/${CI_COMMIT_BRANCH}/${CI_WORKFLOW_NAME}/sccache/
