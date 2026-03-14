@@ -47,6 +47,7 @@ steps:
         ln -sf /usr/bin/clang-20 /usr/bin/cc &&
         ln -sf /usr/bin/clang++-20 /usr/bin/c++ &&
         ln -sf /usr/bin/ld.lld-20 /usr/bin/ld
+      - wget -O /usr/local/bin/sccache https://files.jcm.re/sccache-$(arch) && chmod +x /usr/local/bin/sccache
       - .woodpecker/download_unlicensed.sh
       - BUILD_VERSION=$(git describe --tags --always)
       - mkdir -p build
@@ -54,6 +55,7 @@ steps:
         cmake
         -DCMAKE_TOOLCHAIN_FILE=/toolchain.cmake
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_LINKER_TYPE=LLD
+        -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DSEPARATE_DEBUG_INFO=ON
         -DBUILD_VERSION=$BUILD_VERSION
@@ -81,7 +83,6 @@ steps:
       - DESTDIR=AppDir cmake --install . --prefix /usr
       - cp -r ../.woodpecker/apprun-hooks AppDir/
       - glib-compile-schemas AppDir/usr/share/glib-2.0/schemas
-      - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 env
       - LIBROOT="/lib/$TARGETTRIPLE" PATH="$PWD/../.woodpecker/bin:$PATH" ARCH=$TARGETCPU NO_STRIP=1 ./linuxdeploy-$HOSTCPU.AppImage --appimage-extract-and-run --appdir AppDir --exclude-library libvulkan.so.1
       - cp /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf AppDir/usr/share/xmbshell/Ubuntu-R.ttf
       - install -T -D /usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop AppDir/usr/lib/$TARGETTRIPLE/glib-2.0/gio-launch-desktop
@@ -92,6 +93,17 @@ steps:
       # We cannot use -beta- or change the filename here, because the zsync file will not work if I rename the files I think
       - cp XMB_Shell-*.AppImage upload/beta/
       - cp XMB_Shell-*.AppImage.zsync upload/beta/
+    environment:
+      SCCACHE_ENDPOINT:
+        from_secret: minio_endpoint
+      SCCACHE_S3_ENABLE_VIRTUAL_HOST_STYLE: true
+      SCCACHE_REGION: eu-central-jcm
+      SCCACHE_BUCKET: woodpecker-cache
+      SCCACHE_S3_KEY_PREFIX: ${CI_REPO}/${CI_COMMIT_BRANCH}/${CI_WORKFLOW_NAME}/sccache-${UBUNTU_VERSION}-${TARGETARCH}/
+      AWS_ACCESS_KEY_ID:
+        from_secret: minio_access_key
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: minio_secret_key
   upload-logs:
     image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:

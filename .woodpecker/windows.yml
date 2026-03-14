@@ -30,6 +30,7 @@ steps:
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
         curl clang-20 clang-tools-20 lld-20 llvm-20 cmake ninja-build git glslang-tools xxd patch curl gettext
         ca-certificates libglib2.0-bin imagemagick pkg-config make tar gpg zstd wget fonts-ubuntu zip
+      - wget -O /usr/local/bin/sccache https://files.jcm.re/sccache-$(arch) && chmod +x /usr/local/bin/sccache
       - .woodpecker/download_unlicensed.sh
       - git clone https://github.com/HolyBlackCat/quasi-msys2.git
       - cd quasi-msys2
@@ -41,6 +42,7 @@ steps:
       - >-
         cmake
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_LINKER_TYPE=LLD
+        -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
         -DCMAKE_TOOLCHAIN_FILE=cmake/windows.cmake
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DSEPARATE_DEBUG_INFO=ON
@@ -63,6 +65,17 @@ steps:
       - cp upload/build/xmbshell-$BUILD_VERSION-windows.zip upload/beta/xmbshell-beta-windows.zip
       - cp xmbshell.exe.dbg upload/build/xmbshell-$BUILD_VERSION-windows.exe.dbg
       - cp xmbshell.exe.dbg upload/beta/xmbshell-beta-windows.exe.dbg
+    environment:
+      SCCACHE_ENDPOINT:
+        from_secret: minio_endpoint
+      SCCACHE_S3_ENABLE_VIRTUAL_HOST_STYLE: true
+      SCCACHE_REGION: eu-central-jcm
+      SCCACHE_BUCKET: woodpecker-cache
+      SCCACHE_S3_KEY_PREFIX: ${CI_REPO}/${CI_COMMIT_BRANCH}/${CI_WORKFLOW_NAME}/sccache/
+      AWS_ACCESS_KEY_ID:
+        from_secret: minio_access_key
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: minio_secret_key
   upload-logs:
     image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:

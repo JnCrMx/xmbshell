@@ -30,16 +30,18 @@ steps:
       - apt-get update
       - >-
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
-        curl clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin imagemagick
+        curl wget clang-20 clang-tools-20 cmake ninja-build git glslang-tools xxd patch curl gettext ca-certificates libglib2.0-bin imagemagick
         libvulkan-dev pkg-config libsystemd-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libglm-dev
         libspdlog-dev libfreetype-dev libglibmm-2.68-dev libsdbus-c++-dev libboost-dev
         libavformat-dev libavcodec-dev libavutil-dev libavfilter-dev
         libswscale-dev libswresample-dev libpostproc-dev libavdevice-dev
+      - wget -O /usr/local/bin/sccache https://files.jcm.re/sccache-$(arch) && chmod +x /usr/local/bin/sccache
       - .woodpecker/download_unlicensed.sh
       - BUILD_VERSION=$(git describe --tags --always)
       - >-
         cmake -B build -G Ninja
         -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
+        -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
         -DCMAKE_BUILD_TYPE=Debug -DBUILD_VERSION=$BUILD_VERSION
       - cmake --build build --parallel 3
       - glib-compile-schemas schemas
@@ -49,6 +51,17 @@ steps:
       - DESTDIR=install cmake --install . --prefix /usr
       - tar -vcaf upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz -C install .
       - cp upload/build/xmbshell-$BUILD_VERSION-$UBUNTU_VERSION-$(arch).tar.gz upload/beta/xmbshell-beta-$UBUNTU_VERSION-$(arch).tar.gz
+    environment:
+      SCCACHE_ENDPOINT:
+        from_secret: minio_endpoint
+      SCCACHE_S3_ENABLE_VIRTUAL_HOST_STYLE: true
+      SCCACHE_REGION: eu-central-jcm
+      SCCACHE_BUCKET: woodpecker-cache
+      SCCACHE_S3_KEY_PREFIX: ${CI_REPO}/${CI_COMMIT_BRANCH}/${CI_WORKFLOW_NAME}/sccache/
+      AWS_ACCESS_KEY_ID:
+        from_secret: minio_access_key
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: minio_secret_key
   build-upload-build:
     image: git.jcm.re/jcm/woodpecker-plugin-s3:latest
     settings:

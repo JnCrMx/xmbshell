@@ -2,7 +2,7 @@
 
 mkdir -p icons sounds
 
-CURL_OPTIONS="-L --retry 10"
+CURL_OPTIONS="-L --retry 10 --retry-connrefused"
 
 curl $CURL_OPTIONS --output icons/icon_category_users.png "https://www.psdevwiki.com/ps3/images/archive/4/47/20140220101344%21Icon_category_users.png"
 curl $CURL_OPTIONS --output icons/icon_category_settings.png "https://www.psdevwiki.com/ps3/images/archive/b/ba/20140220101323%21Icon_category_settings.png"
