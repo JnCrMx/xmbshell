@@ -59,6 +59,7 @@ if(NOT i18n++_FOUND)
     GIT_REPOSITORY https://github.com/JnCrMx/i18n-cpp.git
     GIT_TAG        trunk
     GIT_SUBMODULES_RECURSE FALSE
+    GIT_SHALLOW TRUE
     EXCLUDE_FROM_ALL
   )
   FetchContent_MakeAvailable_ExcludeFromAll(i18n++)
@@ -76,6 +77,7 @@ if(UNIX AND NOT APPLE)
   FetchContent_Declare(sdbus-cpp
     GIT_REPOSITORY https://github.com/Kistler-Group/sdbus-cpp.git
     GIT_TAG        v1.2.0
+    GIT_SHALLOW TRUE
     EXCLUDE_FROM_ALL
   )
   set(BUILD_DOC OFF CACHE BOOL "" FORCE)
@@ -86,6 +88,7 @@ endif()
 FetchContent_Declare(dreamrender
   GIT_REPOSITORY https://git.jcm.re/jcm/dreamrender.git
   GIT_TAG        main
+  GIT_SHALLOW TRUE
   EXCLUDE_FROM_ALL
 )
 set(DREAMS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -96,6 +99,7 @@ FetchContent_MakeAvailable_ExcludeFromAll(dreamrender)
 FetchContent_Declare(argparse
   GIT_REPOSITORY https://github.com/p-ranav/argparse.git
   GIT_TAG        v3.2
+  GIT_SHALLOW TRUE
   EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable_ExcludeFromAll(argparse)
@@ -104,6 +108,7 @@ FetchContent_Declare(avcpp
   GIT_REPOSITORY https://github.com/h4tr3d/avcpp.git
   GIT_TAG        v3.0.1
   GIT_SUBMODULES ""
+  GIT_SHALLOW TRUE
   EXCLUDE_FROM_ALL
 )
 set(AV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
