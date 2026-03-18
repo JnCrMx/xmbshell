@@ -97,7 +97,7 @@ namespace menu {
             return result::success;
         }));
 
-        if(login1) try {
+        if(login1 && !config::CONFIG.hideLogin1Options) try {
             if(Glib::Variant<Glib::ustring> v; login1->call_sync("CanPowerOff", Glib::VariantContainerBase{}).get_child(v), v.get() == "yes") {
                 entries.push_back(make_simple<action_menu_entry>("Power off"_(), config::CONFIG.asset_directory/"icons/icon_action_poweroff.png", loader, [this, xmb](){
                     xmb->emplace_overlay<app::message_overlay>("Power off"_(), "Do you really want to power off the system?"_(),

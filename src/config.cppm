@@ -187,6 +187,7 @@ export namespace config
             std::string             dateTimeFormat = constants::fallback_datetime_format;
             double                  dateTimeOffset = 0.0;
             std::string             language;
+            bool                    hideLogin1Options = false;
 
             std::unordered_set<std::string> excludedApplications;
 
@@ -213,6 +214,7 @@ export namespace config
             void setWaveColor(const std::string& hex);
             void setDateTimeFormat(const std::string& format);
             void setLanguage(const std::string& lang);
+            void setHideLogin1Options(bool hide);
 
             void excludeApplication(const std::string& application, bool exclude = true);
         private:

@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: xmbshell 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-07-14 02:40+0000\n"
-"PO-Revision-Date: 2026-03-13 03:35+0100\n"
+"PO-Revision-Date: 2026-03-18 02:40+0100\n"
 "Last-Translator: JCM <jcm@jcm.re>\n"
 "Language-Team: English\n"
 "Language: en\n"
@@ -130,7 +130,7 @@ msgstr "Application Information"
 
 #: src/menu/applications_menu.cpp:134 src/menu/files_menu.cpp:244
 #: src/menu/files_menu.cpp:337 src/menu/files_menu.cpp:368
-#: src/menu/settings_menu.cpp:458 src/programs/video_player.cppm:110
+#: src/menu/settings_menu.cpp:459 src/programs/video_player.cppm:110
 msgid "OK"
 msgstr "OK"
 
@@ -262,11 +262,11 @@ msgstr "Updating"
 msgid "Failed to check for updates."
 msgstr "Failed to check for updates."
 
-#: src/menu/settings_menu.cpp:184 src/menu/settings_menu.cpp:446
+#: src/menu/settings_menu.cpp:184 src/menu/settings_menu.cpp:447
 msgid "Off"
 msgstr "Off"
 
-#: src/menu/settings_menu.cpp:184 src/menu/settings_menu.cpp:446
+#: src/menu/settings_menu.cpp:184 src/menu/settings_menu.cpp:447
 msgid "On"
 msgstr "On"
 
@@ -424,86 +424,98 @@ msgid "System Settings"
 msgstr "System Settings"
 
 #: src/menu/settings_menu.cpp:441
+msgid "Hide Power Options"
+msgstr "Hide Power Options"
+
+#: src/menu/settings_menu.cpp:441
+msgid ""
+"Hide power options (such as power off, reboot, and logout) from the users "
+"menu"
+msgstr ""
+"Hide power options (such as power off, reboot, and logout) from the users "
+"menu"
+
+#: src/menu/settings_menu.cpp:442
 msgid "Autostart"
 msgstr "Autostart"
 
-#: src/menu/settings_menu.cpp:442
+#: src/menu/settings_menu.cpp:443
 msgid "(unavailable on Snap)"
 msgstr "(unavailable on Snap)"
 
-#: src/menu/settings_menu.cpp:442
+#: src/menu/settings_menu.cpp:443
 msgid "Automatically start XMBShell after login"
 msgstr "Automatically start XMBShell after login"
 
-#: src/menu/settings_menu.cpp:456
+#: src/menu/settings_menu.cpp:457
 msgid "Failed to disable autostart"
 msgstr "Failed to disable autostart"
 
-#: src/menu/settings_menu.cpp:456
+#: src/menu/settings_menu.cpp:457
 msgid "Failed to enable autostart"
 msgstr "Failed to enable autostart"
 
-#: src/menu/settings_menu.cpp:458
+#: src/menu/settings_menu.cpp:459
 msgid "An error occurred: {}"
 msgstr "An error occurred: {}"
 
-#: src/menu/settings_menu.cpp:468
+#: src/menu/settings_menu.cpp:469
 msgid "Debug Settings"
 msgstr "Debug Settings"
 
-#: src/menu/settings_menu.cpp:470
+#: src/menu/settings_menu.cpp:471
 msgid "Show FPS"
 msgstr "Show FPS"
 
-#: src/menu/settings_menu.cpp:471
+#: src/menu/settings_menu.cpp:472
 msgid "Show Memory Usage"
 msgstr "Show Memory Usage"
 
-#: src/menu/settings_menu.cpp:472
+#: src/menu/settings_menu.cpp:473
 msgid "Toggle Background Blur"
 msgstr "Toggle Background Blur"
 
-#: src/menu/settings_menu.cpp:477
+#: src/menu/settings_menu.cpp:478
 msgid "Toggle Ingame Mode"
 msgstr "Toggle Ingame Mode"
 
-#: src/menu/settings_menu.cpp:486
+#: src/menu/settings_menu.cpp:487
 msgid "Check for Updates"
 msgstr "Check for Updates"
 
-#: src/menu/settings_menu.cpp:488
+#: src/menu/settings_menu.cpp:489
 msgid "System Update"
 msgstr "System Update"
 
-#: src/menu/settings_menu.cpp:493
+#: src/menu/settings_menu.cpp:494
 msgid "Report bug"
 msgstr "Report bug"
 
-#: src/menu/settings_menu.cpp:497
+#: src/menu/settings_menu.cpp:498
 msgid "Reset all Settings to default"
 msgstr "Reset all Settings to default"
 
-#: src/menu/settings_menu.cpp:545
+#: src/menu/settings_menu.cpp:546
 msgid "Open website in browser"
 msgstr "Open website in browser"
 
-#: src/menu/settings_menu.cpp:545
+#: src/menu/settings_menu.cpp:546
 msgid "View License Text"
 msgstr "View License Text"
 
-#: src/menu/settings_menu.cpp:548
+#: src/menu/settings_menu.cpp:549
 msgid "License for {}"
 msgstr "License for {}"
 
-#: src/menu/settings_menu.cpp:558
+#: src/menu/settings_menu.cpp:559
 msgid "Licenses"
 msgstr "Licenses"
 
-#: src/menu/settings_menu.cpp:561
+#: src/menu/settings_menu.cpp:562
 msgid "About XMBShell"
 msgstr "About XMBShell"
 
-#: src/menu/settings_menu.cpp:562
+#: src/menu/settings_menu.cpp:563
 msgid "XMBShell Copyright Notice"
 msgstr "XMBShell Copyright Notice"
 

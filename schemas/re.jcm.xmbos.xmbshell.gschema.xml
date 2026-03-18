@@ -108,6 +108,15 @@
                 List of applications that should not be shown in the XMB.
             </description>
         </key>
+        <key name='hide-login1-options' type='b'>
+            <default>false</default>
+            <summary>Hide login1 options</summary>
+            <description>
+                Hides options powered by org.freedesktop.login1
+                (such as poweroff, reboot, suspend, and logout)
+                in the users menu.
+            </description>
+        </key>
     </schema>
     <schema path="/re/jcm/xmbos/xmbshell/render/" id="re.jcm.xmbos.xmbshell.render">
         <key name='vsync' type='b'>

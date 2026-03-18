@@ -438,6 +438,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         ));
         entries.push_back(make_simple<simple_menu>("System Settings"_(), asset_dir/"icons/icon_settings_system.png", loader,
             std::array{
+                entry_bool(loader, xmb, "Hide Power Options"_(), "Hide power options (such as power off, reboot, and logout) from the users menu"_(), "re.jcm.xmbos.xmbshell", "hide-login1-options"),
                 entry_base(loader, "Autostart"_(),
                     std::string{"Automatically start XMBShell after login"_()} + (config::my_packaging_type == config::packaging_type::snap ? (" " + std::string{"(unavailable on Snap)"_()}) : ""),
                     "autostart", [xmb](){

@@ -121,6 +121,7 @@ void config::reload() {
     backgroundImage = std::string{shellSettings->get_string("background-image")};
 
     setLanguage(shellSettings->get_string("language"));
+    setHideLogin1Options(shellSettings->get_boolean("hide-login1-options"));
 
     int sampleCount = renderSettings->get_int("sample-count");
     switch(sampleCount) {
@@ -248,6 +249,10 @@ void config::setLanguage(const std::string& lang) {
 #else
     Glib::setenv("LANGUAGE", language, true);
 #endif
+}
+
+void config::setHideLogin1Options(bool hide) {
+    hideLogin1Options = hide;
 }
 
 void config::excludeApplication(const std::string& application, bool exclude) {
